@@ -1,6 +1,5 @@
 # Ignore all
 *
-.DS_Store
 
 # Unignore all with extensions
 !*.*
@@ -10,3 +9,6 @@
 
 # IDE stuff
 .idea/
+
+cmake-build-debug/
+.DS_Store

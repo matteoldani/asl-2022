@@ -19,5 +19,8 @@ baseline1.c contains the code for the first baseline implementation. This implem
 
 random_matrix_generator.c is used to craft random populated matrices to be factorized. The program will output to stdout the output_dimension followed by the matrix dimension and the matrix itsef. This can be used as input for the baseline binary (./matrix_random_generation | ./baseline1)
 
+## For CBLAS:
 
-
+Download: http://www.openblas.net/
+How to configure: https://charlesjiangxm.wordpress.com/2017/08/03/use-eigen-in-clion/
+Documentation: https://developer.apple.com/documentation/accelerate/1513282-cblas_dgemm
