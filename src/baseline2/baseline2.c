@@ -1,8 +1,15 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include "lapacke.h"
+#include "lapacke_config.h"
 #include <time.h>
 #include <math.h>
 
+/* Parameters */
+#define N 5
+#define NRHS 3
+#define LDA N
+#define LDB NRHS
 #define EPSILON 0.5
 #define MAX_ITERATION  500
 
@@ -13,24 +20,21 @@
  * @param n_col is the number of cols
  */
 typedef struct {
-    double ** M;
+    double* M;
     int n_row;
     int n_col;
 }Matrix;
 
-void matrix_allocation(Matrix * matrix);
-void read_input(Matrix * matrix);
-void random_matrix_init(Matrix *matrix);
-void matrix_mul(Matrix *A, Matrix *B, Matrix *R);
-void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R);
-void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R);
-void nnm_factorization(Matrix *V, Matrix *W, Matrix *H);
-void print_matrix(Matrix * matrix);
-double error(Matrix *V, Matrix *W, Matrix *H);
+void matrix_allocation(Matrix* matrix);
+void read_input(Matrix* matrix);
+void random_matrix_init(Matrix* matrix);
+void nnm_factorization(Matrix* V, Matrix* W, Matrix* H);
+void print_matrix(Matrix* matrix);
+double error(Matrix* V, Matrix* W, Matrix* H);
 double rand_from(double min, double max);
-double norm(Matrix * matrix);
+double norm(Matrix* matrix);
 
-int main(int argc, char const *argv[]){
+int main(int argc, char const* argv[]) {
 
     Matrix V;
     Matrix W, H;
@@ -69,92 +73,35 @@ int main(int argc, char const *argv[]){
 }
 
 /**
- * @brief allocates the matrix as a double pointer inside the struct
+ * @brief allocates the matrix as an array inside the struct
  * @param matrix    is the struct where the matrix will be allocated
  */
-void matrix_allocation(Matrix * matrix){
+void matrix_allocation(Matrix* matrix) {
+
     // allocate the matrix dynamically
-    matrix -> M = malloc(sizeof(double *) * matrix -> n_row);
-    for(int row=0; row<matrix -> n_row; row++){
-        (matrix -> M)[row] = malloc(sizeof(double) * matrix -> n_col);
-    }
+    matrix->M = malloc(sizeof(double*) * matrix->n_row * matrix->n_col);
 }
 
 /**
  * @brief reads the input corresponfind to the matrix values
  * @param matrix    the matrix that will be filled
  */
-void read_input(Matrix * matrix){
-    for(int row=0; row < matrix -> n_row; row++){
-        for(int col=0; col< matrix -> n_col; col++){
-            fscanf(stdin, "%lf", &(matrix -> M[row][col]));
-        }
-    }
-}
+void read_input(Matrix* matrix) {
 
-/**
- * @brief compute the multiplication of A and B
- * @param A is the first factor
- * @param B is the other factor of the multiplication
- * @param R is the matrix that will hold the result
- */
-void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
-    for (int i = 0; i < A->n_row ; i++){
-        for (int j = 0; j < B->n_col; j++) {
-            R->M[i][j] = 0;
-            for (int k = 0; k < A->n_col; k++) {
-                R->M[i][j] += A->M[i][k] * B->M[k][j];
-            }
-        }
-    }
-}
-
-/**
- * @brief compute the multiplication of A and B transposed
- * @param A is the other factor of the multiplication
- * @param B is the matrix to be transposed
- * @param R is the matrix that will hold the result
- */
-void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
-    for (int i = 0; i < A->n_col; i++){
-        for (int j = 0; j < B->n_col; j++) {
-            R->M[i][j] = 0;
-            for (int k = 0; k < B->n_row; k++) {
-                R->M[i][j] += A->M[k][i] * B->M[k][j];
-            }
-        }
-    }
-}
-
-/**
- * @brief compute the multiplication of A transposed and B
- * @param A is the matrix to be transposed
- * @param B is the other factor of the multiplication
- * @param R is the matrix that will hold the result
- */
-void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R) {
-
-    for (int i = 0; i < A->n_row; i++)
-        for (int j = 0; j < B->n_row; j++) {
-            R->M[i][j] = 0;
-            for (int k = 0; k < A->n_col; k++) {
-                R->M[i][j] += A->M[i][k] * B->M[j][k];
-
-            }
-
-        }
+    for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
+        fscanf(stdin, "%lf", &(matrix->M[i]));
 }
 
 /**
  * @brief prints the matrix
  * @param matrix    the matrix to be printed
  */
-void print_matrix(Matrix * matrix){
+void print_matrix(Matrix* matrix) {
 
-    printf("Printing a matrix with %d rows and %d cols\n\n", matrix -> n_row, matrix -> n_col);
-    for(int row=0; row<matrix -> n_row; row++){
-        for(int col=0; col<matrix -> n_col; col++){
-            fprintf(stdout, "%.2lf\t", matrix -> M[row][col]);
+    printf("Printing a matrix with %d rows and %d cols\n\n", matrix->n_row, matrix->n_col);
+    for (int row = 0; row < matrix->n_row; row++) {
+        for (int col = 0; col < matrix->n_col; col++) {
+            fprintf(stdout, "%.2lf\t", matrix->M[row * matrix->n_col + col]);
         }
         fprintf(stdout, "\n\n");
     }
@@ -173,7 +120,6 @@ double rand_from(double min, double max) {
     double range = (max - min);
     double div = RAND_MAX / range;
     return min + (rand() / div);
-
 }
 
 
@@ -181,13 +127,10 @@ double rand_from(double min, double max) {
  * @brief initialize a matrix with random numbers between 0 and 1
  * @param matrix    the matrix to be initialized
  */
-void random_matrix_init(Matrix *matrix){
+void random_matrix_init(Matrix* matrix) {
 
-    for(int row=0; row < matrix -> n_row; row++){
-        for(int col=0; col< matrix -> n_col; col++){
-            matrix -> M[row][col] = rand_from(0.00, 1.00);
-        }
-    }
+    for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
+        matrix->M[i] = rand_from(0.00, 1.00);
 }
 
 /**
@@ -198,7 +141,7 @@ void random_matrix_init(Matrix *matrix){
  * @param W     the first matrix in which V will be factorized
  * @param H     the second matrix in which V will be factorized
  */
-void nnm_factorization(Matrix *V, Matrix *W, Matrix *H){
+void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
 
     //Operands needed to compute Hn+1
     Matrix numerator, denominator_l, denominator;
@@ -235,31 +178,33 @@ void nnm_factorization(Matrix *V, Matrix *W, Matrix *H){
     //real convergence computation
     double err;
     int count = MAX_ITERATION;
-    while( --count /*(err = error(V, W, H)) > EPSILON */){
+    while (--count /*(err = error(V, W, H)) > EPSILON */) {
         err = error(V, W, H);
         printf("Current error: %lf\n", err);
 
-        //computation for Wn+1
-        matrix_ltrans_mul(W, V, &numerator);
-        matrix_ltrans_mul(W,W, &denominator_l);
-        matrix_mul(&denominator_l, H, &denominator);
 
-        for (int i = 0; i < H->n_row; i ++) {
-            for (int j = 0; j < H->n_col; j++) {
-                H->M[i][j] = H->M[i][j] * numerator.M[i][j] / denominator.M[i][j];
-            }
-        }
 
         //computation for Wn+1
-        matrix_rtrans_mul(V, H, &numerator_W);
-        matrix_mul(W,H, &denominator_l_W);
-        matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
+        LAPACKE_dgemm('N', 'T', W->n_row, V->n_col, W->n_col, 1, W->M, W->n_row, V->M, V->n_col, 0, numerator.M, numerator.n_row);
+        // matrix_ltrans_mul(W, V, &numerator);
+        LAPACKE_dgemm('N', 'T', W->n_row, W->n_col, W->n_col, 1, W->M, W->n_row, W->M, W->n_col, 0, denominator_l.M, denominator_l.n_row);
+        //matrix_ltrans_mul(W, W, &denominator_l);
+        LAPACKE_dgemm('N', 'N', denominator_l.n_row, H->n_col, denominator_l.n_col, 1, denominator_l.M, denominator_l.n_row, H->M, H->n_row, 0, denominator.M, denominator.n_row);
+        //matrix_mul(&denominator_l, H, &denominator);
 
-        for (int i = 0; i < W->n_row; i ++) {
-            for (int j = 0; j < W->n_col; j++) {
-                W->M[i][j] = W->M[i][j] * numerator_W.M[i][j] / denominator_W.M[i][j];
-            }
-        }
+        for (int i = 0; i < H->n_row * H->n_col; i++)
+            H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i];
+
+        //computation for Wn+1
+        LAPACKE_dgemm('T', 'N', V->n_row, H->n_col, V->n_col, 1, V->M, V->n_col, H->M, H->n_row, 0, numerator_W.M, numerator_W.n_row);
+        //matrix_rtrans_mul(V, H, &numerator_W);
+        LAPACKE_dgemm('N', 'N', W->n_row, H->n_col, W->n_col, 1, W->M, W->n_row, H->M, H->n_row, 0, denominator_l_W.M, denominator_l_W.n_row);
+        //matrix_mul(W, H, &denominator_l_W);
+        LAPACKE_dgemm('T', 'N', denominator_l_W.n_row, H->n_col, denominator_l_W.n_col, 1, denominator_l_W.M, denominator_l_W.n_col, H->M, H->n_row, 0, denominator_W.M, denominator_W.n_row);
+        //matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
+
+        for (int i = 0; i < W->n_row * W->n_col; i++)
+            W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i];
     }
 }
 
@@ -272,7 +217,7 @@ void nnm_factorization(Matrix *V, Matrix *W, Matrix *H){
  * @param H is the second factorization matrix
  * @return is the error
  */
-double error(Matrix *V, Matrix *W, Matrix *H) {
+double error(Matrix* V, Matrix* W, Matrix* H) {
 
     Matrix approximation;
 
@@ -280,17 +225,18 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
     approximation.n_col = V->n_col;
 
     matrix_allocation(&approximation);
-    matrix_mul(W, H, &approximation);
+
+    LAPACKE_dgemm('N', 'N', W->n_row, H->n_col, W->n_col, 1, W->M, W->n_row, H->M, H->n_row, 0, approximation.M, approximation.n_row);
+    //matrix_mul(W, H, &approximation);
 
     double V_norm = norm(V);
     double approximation_norm;
 
-    for (int row = 0; row < V->n_row; row++)
-        for(int col = 0; col < V->n_col; col++){
-            approximation.M[row][col] = (V->M[row][col]-approximation.M[row][col]);
-        }
+    for (int i = 0; i < V->n_row * V->n_col; i++)
+        approximation.M[i] = (V->M[i] - approximation.M[i]);
+
     approximation_norm = norm(&approximation);
-    return approximation_norm/V_norm;
+    return approximation_norm / V_norm;
 }
 
 
@@ -300,12 +246,10 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
  * @param matrix is the matrix which norm is computed
  * @return the norm
  */
-double norm(Matrix * matrix){
+double norm(Matrix* matrix) {
     double temp_norm = 0;
-    for(int row=0; row<matrix->n_row; row++){
-        for(int col=0; col<matrix->n_col; col++){
-            temp_norm += matrix->M[row][col]*matrix->M[row][col];
-        }
-    }
+    for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
+        temp_norm += matrix->M[i] * matrix->M[i];
+
     return sqrt(temp_norm);
 }
