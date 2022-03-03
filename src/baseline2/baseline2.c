@@ -32,6 +32,12 @@ void read_input(Matrix *matrix);
 
 void random_matrix_init(Matrix *matrix);
 
+void matrix_mul(Matrix* A, Matrix* B, Matrix* R);
+
+void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R);
+
+void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R);
+
 void nnm_factorization(Matrix *V, Matrix *W, Matrix *H);
 
 void print_matrix(Matrix *matrix);
@@ -91,13 +97,55 @@ void matrix_allocation(Matrix *matrix) {
 }
 
 /**
- * @brief reads the input corresponfind to the matrix values
+ * @brief reads the input corresponding to the matrix values
  * @param matrix    the matrix that will be filled
  */
 void read_input(Matrix *matrix) {
 
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         fscanf(stdin, "%lf", &(matrix->M[i]));
+}
+
+/**
+ * @brief compute the multiplication of A and B
+ * @param A is the first factor
+ * @param B is the other factor of the multiplication
+ * @param R is the matrix that will hold the result
+ */
+void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
+
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                A->n_row, B->n_col, A->n_col, 1, 
+                A->M, A->n_row, B->M, B->n_row, 
+                0, R->M, R->n_row);
+}
+
+/**
+ * @brief compute the multiplication of A and B transposed
+ * @param A is the other factor of the multiplication
+ * @param B is the matrix to be transposed
+ * @param R is the matrix that will hold the result
+ */
+void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
+                A->n_row, B->n_col, A->n_col, 1, 
+                A->M, A->n_row, B->M, B->n_col, 
+                0, R->M, R->n_row);
+}
+
+/**
+ * @brief compute the multiplication of A transposed and B
+ * @param A is the matrix to be transposed
+ * @param B is the other factor of the multiplication
+ * @param R is the matrix that will hold the result
+ */
+void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+
+    cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
+                A->n_row, B->n_col, A->n_col, 1, 
+                A->M, A->n_col, B->M, B->n_row, 
+                0, R->M, R->n_row);
 }
 
 /**
@@ -191,29 +239,41 @@ void nnm_factorization(Matrix *V, Matrix *W, Matrix *H) {
         printf("Current error: %lf\n", err);
 
         //computation for Wn+1
-        cblas_dgemm(CblasRowMajor,CblasNoTrans, CblasTrans, W->n_row, V->n_col, W->n_col, 1, W->M, W->n_row, V->M, V->n_col, 0, numerator.M,
-                      numerator.n_row);
-        // matrix_ltrans_mul(W, V, &numerator);
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, W->n_row, W->n_col, W->n_col, 1, W->M, W->n_row, W->M, W->n_col, 0, denominator_l.M,
-                      denominator_l.n_row);
-        //matrix_ltrans_mul(W, W, &denominator_l);
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, denominator_l.n_row, H->n_col, denominator_l.n_col, 1, denominator_l.M,
-                      denominator_l.n_row, H->M, H->n_row, 0, denominator.M, denominator.n_row);
-        //matrix_mul(&denominator_l, H, &denominator);
+        /*cblas_dgemm(CblasRowMajor,CblasNoTrans, CblasTrans,
+                      W->n_row, V->n_col, W->n_col, 1, 
+                      W->M, W->n_row, V->M, V->n_col, 
+                      0, numerator.M, numerator.n_row);*/
+        matrix_ltrans_mul(W, V, &numerator);
+        /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
+                      W->n_row, W->n_col, W->n_col, 1, 
+                      W->M, W->n_row, W->M, W->n_col, 
+                      0, denominator_l.M, denominator_l.n_row);*/
+        matrix_ltrans_mul(W, W, &denominator_l);
+        /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                      denominator_l.n_row, H->n_col, denominator_l.n_col, 1, 
+                      denominator_l.M, denominator_l.n_row, H->M, H->n_row, 
+                      0, denominator.M, denominator.n_row);*/
+        matrix_mul(&denominator_l, H, &denominator);
 
         for (int i = 0; i < H->n_row * H->n_col; i++)
             H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i];
 
         //computation for Wn+1
-        cblas_dgemm(CblasRowMajor,CblasTrans, CblasNoTrans, V->n_row, H->n_col, V->n_col, 1, V->M, V->n_col, H->M, H->n_row, 0, numerator_W.M,
-                      numerator_W.n_row);
-        //matrix_rtrans_mul(V, H, &numerator_W);
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, W->n_row, H->n_col, W->n_col, 1, W->M, W->n_row, H->M, H->n_row, 0, denominator_l_W.M,
-                      denominator_l_W.n_row);
-        //matrix_mul(W, H, &denominator_l_W);
-        cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, denominator_l_W.n_row, H->n_col, denominator_l_W.n_col, 1, denominator_l_W.M,
-                      denominator_l_W.n_col, H->M, H->n_row, 0, denominator_W.M, denominator_W.n_row);
-        //matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
+        /*cblas_dgemm(CblasRowMajor,CblasTrans, CblasNoTrans, 
+                      V->n_row, H->n_col, V->n_col, 1, 
+                      V->M, V->n_col, H->M, H->n_row, 
+                      0, numerator_W.M, numerator_W.n_row);*/
+        matrix_rtrans_mul(V, H, &numerator_W);
+        /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                      W->n_row, H->n_col, W->n_col, 1, 
+                      W->M, W->n_row, H->M, H->n_row, 
+                      0, denominator_l_W.M, denominator_l_W.n_row);*/
+        matrix_mul(W, H, &denominator_l_W);
+        /*cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
+                      denominator_l_W.n_row, H->n_col, denominator_l_W.n_col, 1, 
+                      denominator_l_W.M, denominator_l_W.n_col, H->M, H->n_row, 
+                      0, denominator_W.M, denominator_W.n_row);*/
+        matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
 
         for (int i = 0; i < W->n_row * W->n_col; i++)
             W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i];
@@ -238,9 +298,11 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
 
     matrix_allocation(&approximation);
 
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, W->n_row, H->n_col, W->n_col, 1, W->M, W->n_row, H->M, H->n_row, 0, approximation.M,
-                  approximation.n_row);
-    //matrix_mul(W, H, &approximation);
+    /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                  W->n_row, H->n_col, W->n_col, 1, 
+                  W->M, W->n_row, H->M, H->n_row, 
+                  0, approximation.M, approximation.n_row);*/
+    matrix_mul(W, H, &approximation);
 
     double V_norm = norm(V);
     double approximation_norm;
