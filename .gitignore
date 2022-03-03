@@ -8,3 +8,5 @@
 # Unignore all dirs
 !*/
 
+# IDE stuff
+.idea/
