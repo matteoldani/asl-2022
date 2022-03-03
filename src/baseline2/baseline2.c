@@ -73,14 +73,11 @@ int main(int argc, char const *argv[]){
  * @param matrix    is the struct where the matrix will be allocated
  */
 void matrix_allocation(Matrix * matrix){
-
     // allocate the matrix dynamically
     matrix -> M = malloc(sizeof(double *) * matrix -> n_row);
-
     for(int row=0; row<matrix -> n_row; row++){
         (matrix -> M)[row] = malloc(sizeof(double) * matrix -> n_col);
     }
-
 }
 
 /**
@@ -88,14 +85,11 @@ void matrix_allocation(Matrix * matrix){
  * @param matrix    the matrix that will be filled
  */
 void read_input(Matrix * matrix){
-
     for(int row=0; row < matrix -> n_row; row++){
         for(int col=0; col< matrix -> n_col; col++){
             fscanf(stdin, "%lf", &(matrix -> M[row][col]));
         }
     }
-
-
 }
 
 /**
@@ -105,18 +99,14 @@ void read_input(Matrix * matrix){
  * @param R is the matrix that will hold the result
  */
 void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
-
     for (int i = 0; i < A->n_row ; i++){
         for (int j = 0; j < B->n_col; j++) {
             R->M[i][j] = 0;
             for (int k = 0; k < A->n_col; k++) {
                 R->M[i][j] += A->M[i][k] * B->M[k][j];
-
             }
-
         }
     }
-
 }
 
 /**
@@ -126,18 +116,14 @@ void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
  * @param R is the matrix that will hold the result
  */
 void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
-
     for (int i = 0; i < A->n_col; i++){
         for (int j = 0; j < B->n_col; j++) {
             R->M[i][j] = 0;
             for (int k = 0; k < B->n_row; k++) {
                 R->M[i][j] += A->M[k][i] * B->M[k][j];
-
             }
-
         }
     }
-
 }
 
 /**
@@ -303,7 +289,6 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
         for(int col = 0; col < V->n_col; col++){
             approximation.M[row][col] = (V->M[row][col]-approximation.M[row][col]);
         }
-
     approximation_norm = norm(&approximation);
     return approximation_norm/V_norm;
 }
@@ -316,15 +301,11 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
  * @return the norm
  */
 double norm(Matrix * matrix){
-
     double temp_norm = 0;
-
     for(int row=0; row<matrix->n_row; row++){
         for(int col=0; col<matrix->n_col; col++){
             temp_norm += matrix->M[row][col]*matrix->M[row][col];
         }
     }
-
     return sqrt(temp_norm);
-
 }
