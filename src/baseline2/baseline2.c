@@ -1,17 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "lapacke.h"
-#include "lapacke_config.h"
 #include <time.h>
 #include <math.h>
 #include "cblas.h"
 
 /* Parameters */
-#define N 5
-#define NRHS 3
-#define LDA N
-#define LDB NRHS
-#define EPSILON 0.5
 #define MAX_ITERATION  500
 
 /**

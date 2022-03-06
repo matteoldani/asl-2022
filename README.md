@@ -24,3 +24,7 @@ random_matrix_generator.c is used to craft random populated matrices to be facto
 Download: http://www.openblas.net/
 How to configure: https://charlesjiangxm.wordpress.com/2017/08/03/use-eigen-in-clion/
 Documentation: https://developer.apple.com/documentation/accelerate/1513282-cblas_dgemm
+Build, install and compile: https://github.com/bgeneto/build-install-compile-openblas
+
+How to compile:
+gcc -I/opt/homebrew/opt/openblas/include (or -I/opt/openblas/include on windows) -pthread -O3 -Wall baseline2.c -o baseline1.out -L/opt/homebrew/opt/openblas/lib (or -L/opt/openblas/lib on windows) -lm -lpthread -lopenblas
