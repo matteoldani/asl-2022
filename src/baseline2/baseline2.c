@@ -25,11 +25,11 @@ void read_input(Matrix *matrix);
 
 void random_matrix_init(Matrix *matrix);
 
-void matrix_mul(Matrix* A, Matrix* B, Matrix* R);
+void matrix_mul(Matrix *A, Matrix *B, Matrix *R);
 
-void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R);
+void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R);
 
-void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R);
+void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R);
 
 void nnm_factorization(Matrix *V, Matrix *W, Matrix *H);
 
@@ -45,13 +45,13 @@ int main(int argc, char const *argv[]) {
 
     Matrix V;
     Matrix W, H;
-    int m, n, r;
+    int m = 10, n = 10, r = 10;
 
     srand(time(NULL));
     // read the desired factorization dimension
-    fscanf(stdin, "%d", &r);
+    //fscanf(stdin, "%d", &r);
     // read the dimensions
-    fscanf(stdin, "%d %d", &m, &n);
+    //fscanf(stdin, "%d %d", &m, &n);
 
     V.n_row = m;
     V.n_col = n;
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[]) {
     random_matrix_init(&W);
     random_matrix_init(&H);
 
-    read_input(&V);
+    random_matrix_init(&V);
     print_matrix(&V);
 
     nnm_factorization(&V, &W, &H);
@@ -105,12 +105,27 @@ void read_input(Matrix *matrix) {
  * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
-void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
 
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-                A->n_row, B->n_col, A->n_col, 1, 
-                A->M, A->n_row, B->M, B->n_row, 
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                A->n_row, B->n_col, A->n_col, 1,
+                A->M, A->n_row, B->M, B->n_row,
                 0, R->M, R->n_row);
+//    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+//                A->n_row, B->n_col, A->n_col, 1,
+//                A->M, A->n_col, B->M, B->n_col,
+//                0, R->M, B->n_col);
+
+//    for (int i = 0; i < A->n_row; i++) {
+//        for (int j = 0; j < B->n_col; j++) {
+//            R->M[i * R->n_col + j] = 0;
+//            for (int k = 0; k < A->n_col; k++) {
+//                R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[k * B->n_col + j];
+//
+//            }
+//
+//        }
+//    }
 }
 
 /**
@@ -119,12 +134,26 @@ void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
  * @param B is the matrix to be transposed
  * @param R is the matrix that will hold the result
  */
-void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
 
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
-                A->n_row, B->n_col, A->n_col, 1, 
-                A->M, A->n_row, B->M, B->n_col, 
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+                A->n_row, B->n_col, A->n_col, 1,
+                A->M, A->n_row, B->M, B->n_col,
                 0, R->M, R->n_row);
+
+//    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+//                A->n_row, B->n_row, A->n_col, 1,
+//                A->M, A->n_col, B->M, B->n_col,
+//                0, R->M, A->n_col);
+
+//    for (int i = 0; i < A->n_col; i++) {
+//        for (int j = 0; j < B->n_col; j++) {
+//            R->M[i * R->n_col + j] = 0;
+//            for (int k = 0; k < B->n_row; k++) {
+//                R->M[i * R->n_col + j] += A->M[k * A->n_col + i] * B->M[k * B->n_col + j];
+//            }
+//        }
+//    }
 }
 
 /**
@@ -133,12 +162,27 @@ void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
  * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
-void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R) {
 
-    cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
-                A->n_row, B->n_col, A->n_col, 1, 
-                A->M, A->n_col, B->M, B->n_row, 
+    cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+                A->n_row, B->n_col, A->n_col, 1,
+                A->M, A->n_col, B->M, B->n_row,
                 0, R->M, R->n_row);
+
+//    cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+//                A->n_col, B->n_col, A->n_row, 1,
+//                A->M, A->n_row, B->M, A->n_row,
+//                0, R->M, A->n_col);
+
+//    for (int i = 0; i < A->n_row; i++)
+//        for (int j = 0; j < B->n_row; j++) {
+//            R->M[i * R->n_col + j] = 0;
+//            for (int k = 0; k < A->n_col; k++) {
+//                R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[j * B->n_col + k];
+//
+//            }
+//
+//        }
 }
 
 /**
