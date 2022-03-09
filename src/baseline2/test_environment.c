@@ -73,17 +73,15 @@ void matrix_mul_right_straight(Matrix *A, Matrix *B, Matrix *R) {
             R->M[i * R->n_col + j] = 0;
             for (int k = 0; k < A->n_col; k++) {
                 R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[j * B->n_col + k];
-
             }
-
         }
 }
 
 void matrix_mul_right_cblas(Matrix *A, Matrix *B, Matrix *R) {
-    cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
-                A->n_row, B->n_col, A->n_col, 1,
-                A->M, A->n_col, B->M, B->n_row,
-                0, R->M, R->n_row);
+    cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+                A->n_row, B->n_col, A->n_row, 1,
+                A->M, A->n_col, B->M, B->n_col,
+                0, R->M, A->n_row);
 }
 
 void print_matrix(Matrix *matrix) {
@@ -155,20 +153,20 @@ void run_once(void (*straight)(Matrix *, Matrix *, Matrix *), void (*cblas)(Matr
 int main(int argc, char const *argv[]) {
     //void (*mul_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_straight;
     //void (*mul_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_cblas;
-    void (*mul_l_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_left_straight;
-    void (*mul_l_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_left_cblas;
-    //void (*mul_r_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_right_straight;
-    //void (*mul_r_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_right_cblas;
+    //void (*mul_l_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_left_straight;
+    //void (*mul_l_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_left_cblas;
+    void (*mul_r_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_right_straight;
+    void (*mul_r_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_right_cblas;
 
     //printf("------------------\n"
     //"Running matrix multiplication:\n");
     //run_once(mul_s, mul_c);
-    printf("------------------\n"
-           "Running matrix multiplication left:\n");
-    run_once(mul_l_s, mul_l_c);
     //printf("------------------\n"
-    //       "Running matrix multiplication right:\n");
-    //run_once(mul_r_s, mul_r_c);
+    //       "Running matrix multiplication left:\n");
+    //run_once(mul_l_s, mul_l_c);
+    printf("------------------\n"
+           "Running matrix multiplication right:\n");
+    run_once(mul_r_s, mul_r_c);
     printf("SANITY\n");
 }
 
