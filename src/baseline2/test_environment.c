@@ -44,21 +44,46 @@ void matrix_mul_straight(Matrix *A, Matrix *B, Matrix *R) {
             R->M[i * R->n_col + j] = 0;
             for (int k = 0; k < A->n_col; k++) {
                 R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[k * B->n_col + j];
-
             }
-
         }
     }
 }
 
-void matrix_mult_left(Matrix *A, Matrix *B, Matrix *R) {
+void matrix_mul_left_straight(Matrix *A, Matrix *B, Matrix *R) {
+    for (int i = 0; i < A->n_col; i++) {
+        for (int j = 0; j < B->n_col; j++) {
+            R->M[i * R->n_col + j] = 0;
+            for (int k = 0; k < B->n_row; k++) {
+                R->M[i * R->n_col + j] += A->M[k * A->n_col + i] * B->M[k * B->n_col + j];
+            }
+        }
+    }
+}
+
+void matrix_mul_left_cblas(Matrix *A, Matrix *B, Matrix *R) {
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+                A->n_col, B->n_col, A->n_col, 1,
+                A->M, A->n_col, B->M, B->n_col,
+                0, R->M, A->n_col);
+}
+
+void matrix_mul_right_straight(Matrix *A, Matrix *B, Matrix *R) {
     for (int i = 0; i < A->n_row; i++)
         for (int j = 0; j < B->n_row; j++) {
             R->M[i * R->n_col + j] = 0;
             for (int k = 0; k < A->n_col; k++) {
                 R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[j * B->n_col + k];
+
             }
+
         }
+}
+
+void matrix_mul_right_cblas(Matrix *A, Matrix *B, Matrix *R) {
+    cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
+                A->n_row, B->n_col, A->n_col, 1,
+                A->M, A->n_col, B->M, B->n_row,
+                0, R->M, R->n_row);
 }
 
 void print_matrix(Matrix *matrix) {
@@ -80,16 +105,16 @@ void compare_mat(Matrix *A, Matrix *B) {
             if (floor(10000 * A->M[row * A->n_col + col]) / 10000 !=
                 floor(10000 * B->M[row * B->n_col + col]) / 10000) {
                 printf("(%f, %f)", A->M[row * A->n_col + col], B->M[row * B->n_col + col]);
-                printf("Not the same, boho!");
+                printf("ERROR");
                 return;
             }
         }
     }
-    printf("The same, hell yeah!");
+    printf("OK");
 }
 
-int main(int argc, char const *argv[]) {
-    for (int i = 5; i < 1000; i += 100) {
+void run_once(void (*straight)(Matrix *, Matrix *, Matrix *), void (*cblas)(Matrix *, Matrix *, Matrix *)) {
+    for (int i = 100; i <= 1100; i += 200) {
         Matrix V1, V2;
         Matrix W, H;
         int m = i, n = i + 2, r = i + 3;
@@ -116,16 +141,35 @@ int main(int argc, char const *argv[]) {
         random_matrix_init(&V1);
         random_matrix_init(&V2);
 
-        matrix_mul_straight(&W, &H, &V1);
-        //print_matrix(&V1);
+        (*straight)(&W, &H, &V1);
 
-        matrix_mul_cblas(&W, &H, &V2);
-        //print_matrix(&V2);
+        (*cblas)(&W, &H, &V2);
 
-        printf("Running %i: \n", i);
+        printf("Running with matrix sizes %i: \n", i);
         compare_mat(&V1, &V2);
         printf("\n");
+
     }
+}
+
+int main(int argc, char const *argv[]) {
+    //void (*mul_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_straight;
+    //void (*mul_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_cblas;
+    void (*mul_l_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_left_straight;
+    void (*mul_l_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_left_cblas;
+    //void (*mul_r_s)(Matrix *, Matrix *, Matrix *) = &matrix_mul_right_straight;
+    //void (*mul_r_c)(Matrix *, Matrix *, Matrix *) = &matrix_mul_right_cblas;
+
+    //printf("------------------\n"
+    //"Running matrix multiplication:\n");
+    //run_once(mul_s, mul_c);
+    printf("------------------\n"
+           "Running matrix multiplication left:\n");
+    run_once(mul_l_s, mul_l_c);
+    //printf("------------------\n"
+    //       "Running matrix multiplication right:\n");
+    //run_once(mul_r_s, mul_r_c);
+    printf("SANITY\n");
 }
 
 
