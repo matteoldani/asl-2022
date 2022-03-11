@@ -142,9 +142,9 @@ void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
 
 // _____________________________ LEFT MATRIX MUL _____________________________
 /**
- * @brief compute the multiplication of A and B transposed
- * @param A is the other factor of the multiplication
- * @param B is the matrix to be transposed
+ * @brief compute the multiplication of A^T and B
+ * @param A is the matrix to be transposed
+ * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
 
@@ -189,9 +189,9 @@ void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
 
 // _____________________________ RIGHT MATRIX MUL _____________________________
 /**
- * @brief compute the multiplication of A transposed and B
- * @param A is the matrix to be transposed
- * @param B is the other factor of the multiplication
+ * @brief compute the multiplication of A and B^T
+ * @param A is the other factor of the multiplication
+ * @param B is the matrix to be transposed
  * @param R is the matrix that will hold the result
  */
 
