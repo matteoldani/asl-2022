@@ -87,10 +87,8 @@ void matrix_allocation(Matrix *matrix) {
     // allocate the matrix dynamically 
     matrix->M = malloc(sizeof(double *) * matrix->n_row);
 
-    for (int row = 0; row < matrix->n_row; row++) {
+    for (int row = 0; row < matrix->n_row; row++)
         (matrix->M)[row] = malloc(sizeof(double) * matrix->n_col);
-    }
-
 }
 
 /**
@@ -100,12 +98,9 @@ void matrix_allocation(Matrix *matrix) {
 void read_input(Matrix *matrix) {
 
     for (int row = 0; row < matrix->n_row; row++) {
-        for (int col = 0; col < matrix->n_col; col++) {
+        for (int col = 0; col < matrix->n_col; col++)
             fscanf(stdin, "%lf", &(matrix->M[row][col]));
-        }
     }
-
-
 }
 
 /**
@@ -121,18 +116,15 @@ void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
             R->M[i][j] = 0;
             for (int k = 0; k < A->n_col; k++) {
                 R->M[i][j] += A->M[i][k] * B->M[k][j];
-
             }
-
         }
     }
-
 }
 
 /**
- * @brief compute the multiplication of A and B transposed
- * @param A is the other factor of the multiplication
- * @param B is the matrix to be transposed
+ * @brief compute the multiplication of A^T and B
+ * @param A is the matrix to be transposed
+ * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
 void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
@@ -144,29 +136,26 @@ void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
                 R->M[i][j] += A->M[k][i] * B->M[k][j];
 
             }
-
         }
     }
-
 }
 
 /**
- * @brief compute the multiplication of A transposed and B
- * @param A is the matrix to be transposed
- * @param B is the other factor of the multiplication
+ * @brief compute the multiplication of A and B^T
+ * @param A is the other factor of the multiplication
+ * @param B is the matrix to be transposed
  * @param R is the matrix that will hold the result
  */
 void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R) {
 
-    for (int i = 0; i < A->n_row; i++)
+    for (int i = 0; i < A->n_row; i++) {
         for (int j = 0; j < B->n_row; j++) {
             R->M[i][j] = 0;
             for (int k = 0; k < A->n_col; k++) {
                 R->M[i][j] += A->M[i][k] * B->M[j][k];
-
             }
-
         }
+	}
 }
 
 /**
@@ -182,7 +171,6 @@ void print_matrix(Matrix *matrix) {
         }
         fprintf(stdout, "\n\n");
     }
-
     fprintf(stdout, "\n\n");
 }
 
@@ -197,7 +185,6 @@ double rand_from(double min, double max) {
     double range = (max - min);
     double div = RAND_MAX / range;
     return min + (rand() / div);
-
 }
 
 
@@ -336,5 +323,4 @@ double norm(Matrix *matrix) {
     }
 
     return sqrt(temp_norm);
-
 }
