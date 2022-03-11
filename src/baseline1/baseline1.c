@@ -250,7 +250,7 @@ void nnm_factorization(Matrix *V, Matrix *W, Matrix *H) {
         err = error(V, W, H);
         printf("Current error: %lf\n", err);
 
-        //computation for Wn+1
+        //computation for Hn+1
         matrix_ltrans_mul(W, V, &numerator);
         matrix_ltrans_mul(W, W, &denominator_l);
         matrix_mul(&denominator_l, H, &denominator);
