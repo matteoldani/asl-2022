@@ -14,38 +14,38 @@
  * @param n_col is the number of cols
  */
 typedef struct {
-    double *M;
+    double* M;
     int n_row;
     int n_col;
 } Matrix;
 
-void matrix_allocation(Matrix *matrix);
+void matrix_allocation(Matrix* matrix);
 
-void read_input(Matrix *matrix);
+void read_input(Matrix* matrix);
 
-void random_matrix_init(Matrix *matrix);
+void random_matrix_init(Matrix* matrix);
 
-void matrix_mul(Matrix *A, Matrix *B, Matrix *R);
+void matrix_mul(Matrix* A, Matrix* B, Matrix* R);
 
-void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R);
+void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R);
 
-void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R);
+void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R);
 
-void nnm_factorization(Matrix *V, Matrix *W, Matrix *H);
+void nnm_factorization(Matrix* V, Matrix* W, Matrix* H);
 
-void print_matrix(Matrix *matrix);
+void print_matrix(Matrix* matrix);
 
-double error(Matrix *V, Matrix *W, Matrix *H);
+double error(Matrix* V, Matrix* W, Matrix* H);
 
 double rand_from(double min, double max);
 
-double norm(Matrix *matrix);
+double norm(Matrix* matrix);
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const* argv[]) {
 
     Matrix V;
     Matrix W, H;
-    int m = 10, n = 10, r = 10;
+    int m = 10, n = 11, r = 12;
 
     srand(time(NULL));
     // read the desired factorization dimension
@@ -83,113 +83,163 @@ int main(int argc, char const *argv[]) {
  * @brief allocates the matrix as an array inside the struct
  * @param matrix    is the struct where the matrix will be allocated
  */
-void matrix_allocation(Matrix *matrix) {
+void matrix_allocation(Matrix* matrix) {
 
     // allocate the matrix dynamically
-    matrix->M = malloc(sizeof(double *) * matrix->n_row * matrix->n_col);
+    matrix->M = malloc(sizeof(double*) * matrix->n_row * matrix->n_col);
 }
 
 /**
  * @brief reads the input corresponding to the matrix values
  * @param matrix    the matrix that will be filled
  */
-void read_input(Matrix *matrix) {
+void read_input(Matrix* matrix) {
 
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         fscanf(stdin, "%lf", &(matrix->M[i]));
 }
 
+
+// _____________________________ MATRIX MUL _____________________________
 /**
  * @brief compute the multiplication of A and B
  * @param A is the first factor
  * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
-void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
 
-    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                A->n_row, B->n_col, A->n_col, 1,
-                A->M, A->n_row, B->M, B->n_row,
-                0, R->M, R->n_row);
-//    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-//                A->n_row, B->n_col, A->n_col, 1,
-//                A->M, A->n_col, B->M, B->n_col,
-//                0, R->M, B->n_col);
+// RowMajor implementation
+void matrix_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
 
-//    for (int i = 0; i < A->n_row; i++) {
-//        for (int j = 0; j < B->n_col; j++) {
-//            R->M[i * R->n_col + j] = 0;
-//            for (int k = 0; k < A->n_col; k++) {
-//                R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[k * B->n_col + j];
-//
-//            }
-//
-//        }
-//    }
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+        A->n_row, B->n_col, A->n_col, 1,
+        A->M, A->n_col, B->M, B->n_col,
+        0, R->M, B->n_col);
 }
 
+// Straightforward implementation (no BLAS)
+void matrix_mul_s(Matrix* A, Matrix* B, Matrix* R) {
+
+    for (int i = 0; i < A->n_row; i++) {
+        for (int j = 0; j < B->n_col; j++) {
+            R->M[i * R->n_col + j] = 0;
+            for (int k = 0; k < A->n_col; k++) {
+                R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[k * B->n_col + j];
+
+            }
+
+        }
+    }
+}
+
+// Working impl
+void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
+
+    matrix_mul_rm(A, B, R);
+}
+//_____________________________________________________________________________
+
+
+// _____________________________ LEFT MATRIX MUL _____________________________
 /**
  * @brief compute the multiplication of A and B transposed
  * @param A is the other factor of the multiplication
  * @param B is the matrix to be transposed
  * @param R is the matrix that will hold the result
  */
-void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
+
+// ColMajor impl  ----Param num 10 has an illegal value (0.270872)
+void matrix_ltrans_mul_cm(Matrix* A, Matrix* B, Matrix* R) {
 
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
-                A->n_row, B->n_col, A->n_col, 1,
-                A->M, A->n_row, B->M, B->n_col,
-                0, R->M, R->n_row);
-
-//    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-//                A->n_row, B->n_row, A->n_col, 1,
-//                A->M, A->n_col, B->M, B->n_col,
-//                0, R->M, A->n_col);
-
-//    for (int i = 0; i < A->n_col; i++) {
-//        for (int j = 0; j < B->n_col; j++) {
-//            R->M[i * R->n_col + j] = 0;
-//            for (int k = 0; k < B->n_row; k++) {
-//                R->M[i * R->n_col + j] += A->M[k * A->n_col + i] * B->M[k * B->n_col + j];
-//            }
-//        }
-//    }
+        A->n_col, B->n_col, A->n_row, 1,
+        A->M, A->n_col, B->M, B->n_row,
+        0, R->M, A->n_col);
 }
 
+// RowMajor impl  ----Param num 8 has an illegal value (0.324447)
+void matrix_ltrans_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
+
+    cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
+        A->n_col, B->n_col, A->n_row, 1,
+        A->M, A->n_col, B->M, B->n_row,
+        0, R->M, A->n_col);
+}
+
+// Straightforward implementation (no BLAS)
+void matrix_ltrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
+
+    for (int i = 0; i < A->n_col; i++) {
+        for (int j = 0; j < B->n_col; j++) {
+            R->M[i * R->n_col + j] = 0;
+            for (int k = 0; k < B->n_row; k++) {
+                R->M[i * R->n_col + j] += A->M[k * A->n_col + i] * B->M[k * B->n_col + j];
+            }
+        }
+    }
+}
+
+// Working impl
+void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+
+    matrix_ltrans_mul_cm(A, B, R);
+}
+//_____________________________________________________________________________
+
+
+// _____________________________ RIGHT MATRIX MUL _____________________________
 /**
  * @brief compute the multiplication of A transposed and B
  * @param A is the matrix to be transposed
  * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
-void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R) {
+
+// ColMajor impl  ----Param num 8 has an illegal value (0.327659)
+void matrix_rtrans_mul_cm(Matrix* A, Matrix* B, Matrix* R) {
 
     cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
-                A->n_row, B->n_col, A->n_col, 1,
-                A->M, A->n_col, B->M, B->n_row,
-                0, R->M, R->n_row);
-
-//    cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
-//                A->n_col, B->n_col, A->n_row, 1,
-//                A->M, A->n_row, B->M, A->n_row,
-//                0, R->M, A->n_col);
-
-//    for (int i = 0; i < A->n_row; i++)
-//        for (int j = 0; j < B->n_row; j++) {
-//            R->M[i * R->n_col + j] = 0;
-//            for (int k = 0; k < A->n_col; k++) {
-//                R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[j * B->n_col + k];
-//
-//            }
-//
-//        }
+        A->n_row, B->n_row, A->n_col, 1,
+        A->M, A->n_row, B->M, B->n_col,
+        0, R->M, A->n_row);
 }
+
+// RowMajor impl  ----Param num 10 has an illegal value (0.295054)
+void matrix_rtrans_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
+
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+        A->n_row, B->n_row, A->n_col, 1,
+        A->M, A->n_row, B->M, B->n_col,
+        0, R->M, A->n_row);
+}
+
+//  Straightforward implementation (no BLAS)
+void matrix_rtrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
+
+    for (int i = 0; i < A->n_row; i++) {
+        for (int j = 0; j < B->n_row; j++) {
+            R->M[i * R->n_col + j] = 0;
+            for (int k = 0; k < A->n_col; k++) {
+                R->M[i * R->n_col + j] += A->M[i * A->n_col + k] * B->M[j * B->n_col + k];
+
+            }
+        }
+    }
+}
+
+// Working impl
+void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+
+    matrix_rtrans_mul_cm(A, B, R);
+}
+//_____________________________________________________________________________
+
 
 /**
  * @brief prints the matrix
  * @param matrix    the matrix to be printed
  */
-void print_matrix(Matrix *matrix) {
+void print_matrix(Matrix* matrix) {
 
     printf("Printing a matrix with %d rows and %d cols\n\n", matrix->n_row, matrix->n_col);
     for (int row = 0; row < matrix->n_row; row++) {
@@ -198,7 +248,6 @@ void print_matrix(Matrix *matrix) {
         }
         fprintf(stdout, "\n\n");
     }
-
     fprintf(stdout, "\n\n");
 }
 
@@ -220,7 +269,7 @@ double rand_from(double min, double max) {
  * @brief initialize a matrix with random numbers between 0 and 1
  * @param matrix    the matrix to be initialized
  */
-void random_matrix_init(Matrix *matrix) {
+void random_matrix_init(Matrix* matrix) {
 
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         matrix->M[i] = rand_from(0.00, 1.00);
@@ -234,7 +283,7 @@ void random_matrix_init(Matrix *matrix) {
  * @param W     the first matrix in which V will be factorized
  * @param H     the second matrix in which V will be factorized
  */
-void nnm_factorization(Matrix *V, Matrix *W, Matrix *H) {
+void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
 
     //Operands needed to compute Hn+1
     Matrix numerator, denominator_l, denominator;
@@ -275,41 +324,17 @@ void nnm_factorization(Matrix *V, Matrix *W, Matrix *H) {
         err = error(V, W, H);
         printf("Current error: %lf\n", err);
 
-        //computation for Wn+1
-        /*cblas_dgemm(CblasRowMajor,CblasNoTrans, CblasTrans,
-                      W->n_row, V->n_col, W->n_col, 1, 
-                      W->M, W->n_row, V->M, V->n_col, 
-                      0, numerator.M, numerator.n_row);*/
+        //computation for Hn+1
         matrix_ltrans_mul(W, V, &numerator);
-        /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
-                      W->n_row, W->n_col, W->n_col, 1, 
-                      W->M, W->n_row, W->M, W->n_col, 
-                      0, denominator_l.M, denominator_l.n_row);*/
         matrix_ltrans_mul(W, W, &denominator_l);
-        /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-                      denominator_l.n_row, H->n_col, denominator_l.n_col, 1, 
-                      denominator_l.M, denominator_l.n_row, H->M, H->n_row, 
-                      0, denominator.M, denominator.n_row);*/
         matrix_mul(&denominator_l, H, &denominator);
 
         for (int i = 0; i < H->n_row * H->n_col; i++)
             H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i];
 
         //computation for Wn+1
-        /*cblas_dgemm(CblasRowMajor,CblasTrans, CblasNoTrans, 
-                      V->n_row, H->n_col, V->n_col, 1, 
-                      V->M, V->n_col, H->M, H->n_row, 
-                      0, numerator_W.M, numerator_W.n_row);*/
         matrix_rtrans_mul(V, H, &numerator_W);
-        /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-                      W->n_row, H->n_col, W->n_col, 1, 
-                      W->M, W->n_row, H->M, H->n_row, 
-                      0, denominator_l_W.M, denominator_l_W.n_row);*/
         matrix_mul(W, H, &denominator_l_W);
-        /*cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
-                      denominator_l_W.n_row, H->n_col, denominator_l_W.n_col, 1, 
-                      denominator_l_W.M, denominator_l_W.n_col, H->M, H->n_row, 
-                      0, denominator_W.M, denominator_W.n_row);*/
         matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
 
         for (int i = 0; i < W->n_row * W->n_col; i++)
@@ -326,7 +351,7 @@ void nnm_factorization(Matrix *V, Matrix *W, Matrix *H) {
  * @param H is the second factorization matrix
  * @return is the error
  */
-double error(Matrix *V, Matrix *W, Matrix *H) {
+double error(Matrix* V, Matrix* W, Matrix* H) {
 
     Matrix approximation;
 
@@ -335,10 +360,6 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
 
     matrix_allocation(&approximation);
 
-    /*cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                  W->n_row, H->n_col, W->n_col, 1, 
-                  W->M, W->n_row, H->M, H->n_row, 
-                  0, approximation.M, approximation.n_row);*/
     matrix_mul(W, H, &approximation);
 
     double V_norm = norm(V);
@@ -358,7 +379,7 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
  * @param matrix is the matrix which norm is computed
  * @return the norm
  */
-double norm(Matrix *matrix) {
+double norm(Matrix* matrix) {
     double temp_norm = 0;
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         temp_norm += matrix->M[i] * matrix->M[i];
