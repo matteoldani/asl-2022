@@ -21,6 +21,8 @@ typedef struct {
 
 void matrix_allocation(Matrix* matrix);
 
+void matrix_deallocation(Matrix* matrix);
+
 void read_input(Matrix* matrix);
 
 void random_matrix_init(Matrix* matrix);
@@ -45,7 +47,7 @@ int main(int argc, char const* argv[]) {
 
     Matrix V;
     Matrix W, H;
-    int m = 10, n = 11, r = 12;
+    int m = 100, n = 110, r = 12;
 
     srand(time(NULL));
     // read the desired factorization dimension
@@ -76,6 +78,10 @@ int main(int argc, char const* argv[]) {
     print_matrix(&W);
     print_matrix(&H);
 
+    matrix_deallocation(&V);
+    matrix_deallocation(&W);
+    matrix_deallocation(&H);
+
     return 0;
 }
 
@@ -87,6 +93,15 @@ void matrix_allocation(Matrix* matrix) {
 
     // allocate the matrix dynamically
     matrix->M = malloc(sizeof(double*) * matrix->n_row * matrix->n_col);
+}
+
+/**
+ * @brief deallocates the matrix
+ * @param matrix    is the struct where the matrix will be deallocated
+ */
+void matrix_deallocation(Matrix* matrix) {
+
+    free(matrix->M);
 }
 
 /**
@@ -142,13 +157,14 @@ void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
 
 // _____________________________ LEFT MATRIX MUL _____________________________
 /**
- * @brief compute the multiplication of A^T and B
- * @param A is the matrix to be transposed
- * @param B is the other factor of the multiplication
+ * @brief compute the multiplication of A and B transposed
+ * @param A is the other factor of the multiplication
+ * @param B is the matrix to be transposed
  * @param R is the matrix that will hold the result
  */
 
 // ColMajor impl  ----Param num 10 has an illegal value (0.270872)
+// m=n=100        ----Param num 10 has an illegal value (nan)
 void matrix_ltrans_mul_cm(Matrix* A, Matrix* B, Matrix* R) {
 
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
@@ -157,13 +173,13 @@ void matrix_ltrans_mul_cm(Matrix* A, Matrix* B, Matrix* R) {
         0, R->M, A->n_col);
 }
 
-// RowMajor impl  ----Param num 8 has an illegal value (0.324447)
+// RowMajor impl (0.47)
 void matrix_ltrans_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
 
     cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
-        A->n_col, B->n_col, A->n_row, 1,
-        A->M, A->n_col, B->M, B->n_row,
-        0, R->M, A->n_col);
+        A->n_col, B->n_col, B->n_row, 1, //r=A->n_row = B->n_row
+        A->M, A->n_col, B->M, B->n_col,
+        0, R->M, B->n_col);
 }
 
 // Straightforward implementation (no BLAS)
@@ -182,16 +198,16 @@ void matrix_ltrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
 // Working impl
 void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
 
-    matrix_ltrans_mul_cm(A, B, R);
+    matrix_ltrans_mul_rm(A, B, R);
 }
 //_____________________________________________________________________________
 
 
 // _____________________________ RIGHT MATRIX MUL _____________________________
 /**
- * @brief compute the multiplication of A and B^T
- * @param A is the other factor of the multiplication
- * @param B is the matrix to be transposed
+ * @brief compute the multiplication of A transposed and B
+ * @param A is the matrix to be transposed
+ * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
 
@@ -204,7 +220,7 @@ void matrix_rtrans_mul_cm(Matrix* A, Matrix* B, Matrix* R) {
         0, R->M, A->n_row);
 }
 
-// RowMajor impl  ----Param num 10 has an illegal value (0.295054)
+// RowMajor impl  ----Param num 10 has an illegal value (0.475054)
 void matrix_rtrans_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
@@ -230,7 +246,7 @@ void matrix_rtrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
 // Working impl
 void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R) {
 
-    matrix_rtrans_mul_cm(A, B, R);
+    matrix_rtrans_mul_rm(A, B, R);
 }
 //_____________________________________________________________________________
 
@@ -340,6 +356,13 @@ void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
         for (int i = 0; i < W->n_row * W->n_col; i++)
             W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i];
     }
+
+    matrix_deallocation(&numerator);
+    matrix_deallocation(&denominator);
+    matrix_deallocation(&denominator_l);
+    matrix_deallocation(&numerator_W);
+    matrix_deallocation(&denominator_W);
+    matrix_deallocation(&denominator_l_W);
 }
 
 /**
@@ -369,6 +392,9 @@ double error(Matrix* V, Matrix* W, Matrix* H) {
         approximation.M[i] = (V->M[i] - approximation.M[i]);
 
     approximation_norm = norm(&approximation);
+
+    matrix_deallocation(&approximation);
+
     return approximation_norm / V_norm;
 }
 
