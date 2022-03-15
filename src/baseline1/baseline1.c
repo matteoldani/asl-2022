@@ -2,21 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-
-#define EPSILON 0.5
-#define MAX_ITERATION  500
-
-/**
- * @brief represents a dynamic allocated matrix
- * @param M     is the matrix 
- * @param n_row is the number of rows
- * @param n_col is the number of cols
- */
-typedef struct {
-    double **M;
-    int n_row;
-    int n_col;
-} Matrix;
+#include "baseline1.h"
 
 void matrix_allocation(Matrix *matrix);
 
@@ -30,8 +16,6 @@ void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R);
 
 void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R);
 
-void nnm_factorization(Matrix *V, Matrix *W, Matrix *H);
-
 void print_matrix(Matrix *matrix);
 
 double error(Matrix *V, Matrix *W, Matrix *H);
@@ -39,44 +23,6 @@ double error(Matrix *V, Matrix *W, Matrix *H);
 double rand_from(double min, double max);
 
 double norm(Matrix *matrix);
-
-int main(int argc, char const *argv[]) {
-
-    Matrix V;
-    Matrix W, H;
-    int m, n, r;
-
-    srand(time(NULL));
-    // read the desired factorization dimension
-    fscanf(stdin, "%d", &r);
-    // read the dimensions
-    fscanf(stdin, "%d %d", &m, &n);
-
-    V.n_row = m;
-    V.n_col = n;
-    matrix_allocation(&V);
-
-    W.n_row = m;
-    W.n_col = r;
-    matrix_allocation(&W);
-
-    H.n_row = r;
-    H.n_col = n;
-    matrix_allocation(&H);
-
-    random_matrix_init(&W);
-    random_matrix_init(&H);
-
-    read_input(&V);
-    print_matrix(&V);
-
-    nnm_factorization(&V, &W, &H);
-
-    print_matrix(&W);
-    print_matrix(&H);
-
-    return 0;
-}
 
 /**
  * @brief allocates the matrix as a double pointer inside the struct
@@ -155,7 +101,7 @@ void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R) {
                 R->M[i][j] += A->M[i][k] * B->M[j][k];
             }
         }
-	}
+    }
 }
 
 /**
@@ -209,7 +155,8 @@ void random_matrix_init(Matrix *matrix) {
  * @param W     the first matrix in which V will be factorized
  * @param H     the second matrix in which V will be factorized
  */
-void nnm_factorization(Matrix *V, Matrix *W, Matrix *H) {
+double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon) {
+    int count = maxIteration;
 
     //Operands needed to compute Hn+1
     Matrix numerator, denominator_l, denominator;
@@ -245,8 +192,14 @@ void nnm_factorization(Matrix *V, Matrix *W, Matrix *H) {
 
     //real convergence computation
     double err;
-    int count = MAX_ITERATION;
-    while (--count /*(err = error(V, W, H)) > EPSILON */) {
+    for (;;) {
+        if (maxIteration > 0 && count == 0) {
+            break;
+        }
+        if (err <= epsilon) {
+            break;
+        }
+        count--;
         err = error(V, W, H);
         printf("Current error: %lf\n", err);
 
@@ -323,4 +276,49 @@ double norm(Matrix *matrix) {
     }
 
     return sqrt(temp_norm);
+}
+
+/**
+ * @brief represents a dynamic allocated matrix
+ * @param M     is the matrix
+ * @param n_row is the number of rows
+ * @param n_col is the number of cols
+ */
+
+int main(int argc, char const *argv[]) {
+
+    Matrix V;
+    Matrix W, H;
+    int m, n, r;
+
+    srand(time(NULL));
+    // read the desired factorization dimension
+    fscanf(stdin, "%d", &r);
+    // read the dimensions
+    fscanf(stdin, "%d %d", &m, &n);
+
+    V.n_row = m;
+    V.n_col = n;
+    matrix_allocation(&V);
+
+    W.n_row = m;
+    W.n_col = r;
+    matrix_allocation(&W);
+
+    H.n_row = r;
+    H.n_col = n;
+    matrix_allocation(&H);
+
+    random_matrix_init(&W);
+    random_matrix_init(&H);
+
+    read_input(&V);
+    print_matrix(&V);
+
+    nnm_factorization_bs1(&V, &W, &H, 100, 0.5);
+
+    print_matrix(&W);
+    print_matrix(&H);
+
+    return 0;
 }

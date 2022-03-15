@@ -3,115 +3,45 @@
 #include <time.h>
 #include <math.h>
 #include "cblas.h"
+#include "baseline2.h"
 
-/* Parameters */
-#define MAX_ITERATION  500
+void matrix_allocation(vMatrix *matrix);
 
-/**
- * @brief represents a dynamic allocated matrix
- * @param M     is the matrix
- * @param n_row is the number of rows
- * @param n_col is the number of cols
- */
-typedef struct {
-    double* M;
-    int n_row;
-    int n_col;
-} Matrix;
+void matrix_deallocation(vMatrix *matrix);
 
-void matrix_allocation(Matrix* matrix);
+void random_matrix_init(vMatrix *matrix);
 
-void matrix_deallocation(Matrix* matrix);
+void matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 
-void read_input(Matrix* matrix);
+void matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 
-void random_matrix_init(Matrix* matrix);
+void matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 
-void matrix_mul(Matrix* A, Matrix* B, Matrix* R);
+void print_matrix(vMatrix *matrix);
 
-void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R);
-
-void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R);
-
-void nnm_factorization(Matrix* V, Matrix* W, Matrix* H);
-
-void print_matrix(Matrix* matrix);
-
-double error(Matrix* V, Matrix* W, Matrix* H);
+double error(vMatrix *V, vMatrix *W, vMatrix *H);
 
 double rand_from(double min, double max);
 
-double norm(Matrix* matrix);
-
-int main(int argc, char const* argv[]) {
-
-    Matrix V;
-    Matrix W, H;
-    int m = 100, n = 110, r = 12;
-
-    srand(time(NULL));
-    // read the desired factorization dimension
-    //fscanf(stdin, "%d", &r);
-    // read the dimensions
-    //fscanf(stdin, "%d %d", &m, &n);
-
-    V.n_row = m;
-    V.n_col = n;
-    matrix_allocation(&V);
-
-    W.n_row = m;
-    W.n_col = r;
-    matrix_allocation(&W);
-
-    H.n_row = r;
-    H.n_col = n;
-    matrix_allocation(&H);
-
-    random_matrix_init(&W);
-    random_matrix_init(&H);
-
-    random_matrix_init(&V);
-    print_matrix(&V);
-
-    nnm_factorization(&V, &W, &H);
-
-    print_matrix(&W);
-    print_matrix(&H);
-
-    matrix_deallocation(&V);
-    matrix_deallocation(&W);
-    matrix_deallocation(&H);
-
-    return 0;
-}
+double norm(vMatrix *matrix);
 
 /**
  * @brief allocates the matrix as an array inside the struct
  * @param matrix    is the struct where the matrix will be allocated
  */
-void matrix_allocation(Matrix* matrix) {
+void matrix_allocation(vMatrix *matrix) {
 
     // allocate the matrix dynamically
-    matrix->M = malloc(sizeof(double*) * matrix->n_row * matrix->n_col);
+    matrix->M = malloc(sizeof(double *) * matrix->n_row * matrix->n_col);
 }
 
 /**
  * @brief deallocates the matrix
  * @param matrix    is the struct where the matrix will be deallocated
  */
-void matrix_deallocation(Matrix* matrix) {
+void matrix_deallocation(vMatrix *matrix) {
 
     free(matrix->M);
-}
-
-/**
- * @brief reads the input corresponding to the matrix values
- * @param matrix    the matrix that will be filled
- */
-void read_input(Matrix* matrix) {
-
-    for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
-        fscanf(stdin, "%lf", &(matrix->M[i]));
 }
 
 
@@ -124,16 +54,16 @@ void read_input(Matrix* matrix) {
  */
 
 // RowMajor implementation
-void matrix_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-        A->n_row, B->n_col, A->n_col, 1,
-        A->M, A->n_col, B->M, B->n_col,
-        0, R->M, B->n_col);
+                A->n_row, B->n_col, A->n_col, 1,
+                A->M, A->n_col, B->M, B->n_col,
+                0, R->M, B->n_col);
 }
 
 // Straightforward implementation (no BLAS)
-void matrix_mul_s(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     for (int i = 0; i < A->n_row; i++) {
         for (int j = 0; j < B->n_col; j++) {
@@ -148,7 +78,7 @@ void matrix_mul_s(Matrix* A, Matrix* B, Matrix* R) {
 }
 
 // Working impl
-void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     matrix_mul_rm(A, B, R);
 }
@@ -165,25 +95,25 @@ void matrix_mul(Matrix* A, Matrix* B, Matrix* R) {
 
 // ColMajor impl  ----Param num 10 has an illegal value (0.270872)
 // m=n=100        ----Param num 10 has an illegal value (nan)
-void matrix_ltrans_mul_cm(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_ltrans_mul_cm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
-        A->n_col, B->n_col, A->n_row, 1,
-        A->M, A->n_col, B->M, B->n_row,
-        0, R->M, A->n_col);
+                A->n_col, B->n_col, A->n_row, 1,
+                A->M, A->n_col, B->M, B->n_row,
+                0, R->M, A->n_col);
 }
 
 // RowMajor impl (0.47)
-void matrix_ltrans_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_ltrans_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
-        A->n_col, B->n_col, B->n_row, 1, //r=A->n_row = B->n_row
-        A->M, A->n_col, B->M, B->n_col,
-        0, R->M, B->n_col);
+                A->n_col, B->n_col, B->n_row, 1, //r=A->n_row = B->n_row
+                A->M, A->n_col, B->M, B->n_col,
+                0, R->M, B->n_col);
 }
 
 // Straightforward implementation (no BLAS)
-void matrix_ltrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_ltrans_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     for (int i = 0; i < A->n_col; i++) {
         for (int j = 0; j < B->n_col; j++) {
@@ -196,7 +126,7 @@ void matrix_ltrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
 }
 
 // Working impl
-void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     matrix_ltrans_mul_rm(A, B, R);
 }
@@ -212,25 +142,25 @@ void matrix_ltrans_mul(Matrix* A, Matrix* B, Matrix* R) {
  */
 
 // ColMajor impl  ----Param num 8 has an illegal value (0.327659)
-void matrix_rtrans_mul_cm(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_rtrans_mul_cm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
-        A->n_row, B->n_row, A->n_col, 1,
-        A->M, A->n_row, B->M, B->n_col,
-        0, R->M, A->n_row);
+                A->n_row, B->n_row, A->n_col, 1,
+                A->M, A->n_row, B->M, B->n_col,
+                0, R->M, A->n_row);
 }
 
 // RowMajor impl  ----Param num 10 has an illegal value (0.475054)
-void matrix_rtrans_mul_rm(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_rtrans_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-        A->n_row, B->n_row, A->n_col, 1,
-        A->M, A->n_row, B->M, B->n_col,
-        0, R->M, A->n_row);
+                A->n_row, B->n_row, A->n_col, 1,
+                A->M, A->n_row, B->M, B->n_col,
+                0, R->M, A->n_row);
 }
 
 //  Straightforward implementation (no BLAS)
-void matrix_rtrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_rtrans_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     for (int i = 0; i < A->n_row; i++) {
         for (int j = 0; j < B->n_row; j++) {
@@ -244,7 +174,7 @@ void matrix_rtrans_mul_s(Matrix* A, Matrix* B, Matrix* R) {
 }
 
 // Working impl
-void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R) {
+void matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     matrix_rtrans_mul_rm(A, B, R);
 }
@@ -255,7 +185,7 @@ void matrix_rtrans_mul(Matrix* A, Matrix* B, Matrix* R) {
  * @brief prints the matrix
  * @param matrix    the matrix to be printed
  */
-void print_matrix(Matrix* matrix) {
+void print_matrix(vMatrix *matrix) {
 
     printf("Printing a matrix with %d rows and %d cols\n\n", matrix->n_row, matrix->n_col);
     for (int row = 0; row < matrix->n_row; row++) {
@@ -285,7 +215,7 @@ double rand_from(double min, double max) {
  * @brief initialize a matrix with random numbers between 0 and 1
  * @param matrix    the matrix to be initialized
  */
-void random_matrix_init(Matrix* matrix) {
+void random_matrix_init(vMatrix *matrix) {
 
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         matrix->M[i] = rand_from(0.00, 1.00);
@@ -299,10 +229,11 @@ void random_matrix_init(Matrix* matrix) {
  * @param W     the first matrix in which V will be factorized
  * @param H     the second matrix in which V will be factorized
  */
-void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
+double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteration, double epsilon) {
+    int count = maxIteration;
 
     //Operands needed to compute Hn+1
-    Matrix numerator, denominator_l, denominator;
+    vMatrix numerator, denominator_l, denominator;
 
     numerator.n_row = W->n_col;
     numerator.n_col = V->n_col;
@@ -318,7 +249,7 @@ void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
     matrix_allocation(&denominator_l);
 
     //Operands needed to compute Wn+1
-    Matrix numerator_W, denominator_l_W, denominator_W;
+    vMatrix numerator_W, denominator_l_W, denominator_W;
 
     numerator_W.n_row = V->n_row;
     numerator_W.n_col = H->n_row;
@@ -335,8 +266,14 @@ void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
 
     //real convergence computation
     double err;
-    int count = MAX_ITERATION;
-    while (--count /*(err = error(V, W, H)) > EPSILON */) {
+    for (;;) {
+        if (maxIteration > 0 && count == 0) {
+            break;
+        }
+        if (err <= epsilon) {
+            break;
+        }
+        count--;
         err = error(V, W, H);
         printf("Current error: %lf\n", err);
 
@@ -363,6 +300,7 @@ void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
     matrix_deallocation(&numerator_W);
     matrix_deallocation(&denominator_W);
     matrix_deallocation(&denominator_l_W);
+    return err;
 }
 
 /**
@@ -374,9 +312,9 @@ void nnm_factorization(Matrix* V, Matrix* W, Matrix* H) {
  * @param H is the second factorization matrix
  * @return is the error
  */
-double error(Matrix* V, Matrix* W, Matrix* H) {
+double error(vMatrix *V, vMatrix *W, vMatrix *H) {
 
-    Matrix approximation;
+    vMatrix approximation;
 
     approximation.n_row = V->n_row;
     approximation.n_col = V->n_col;
@@ -405,10 +343,59 @@ double error(Matrix* V, Matrix* W, Matrix* H) {
  * @param matrix is the matrix which norm is computed
  * @return the norm
  */
-double norm(Matrix* matrix) {
+double norm(vMatrix *matrix) {
     double temp_norm = 0;
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         temp_norm += matrix->M[i] * matrix->M[i];
 
     return sqrt(temp_norm);
+}
+
+/**
+ * @brief represents a dynamic allocated matrix
+ * @param M     is the matrix
+ * @param n_row is the number of rows
+ * @param n_col is the number of cols
+ */
+
+int main(int argc, char const *argv[]) {
+
+    vMatrix V;
+    vMatrix W, H;
+    int m = 100, n = 110, r = 12;
+
+    srand(time(NULL));
+    // read the desired factorization dimension
+    //fscanf(stdin, "%d", &r);
+    // read the dimensions
+    //fscanf(stdin, "%d %d", &m, &n);
+
+    V.n_row = m;
+    V.n_col = n;
+    matrix_allocation(&V);
+
+    W.n_row = m;
+    W.n_col = r;
+    matrix_allocation(&W);
+
+    H.n_row = r;
+    H.n_col = n;
+    matrix_allocation(&H);
+
+    random_matrix_init(&W);
+    random_matrix_init(&H);
+
+    random_matrix_init(&V);
+    print_matrix(&V);
+
+    nnm_factorization_bs2(&V, &W, &H, 100, 0.5);
+
+    print_matrix(&W);
+    print_matrix(&H);
+
+    matrix_deallocation(&V);
+    matrix_deallocation(&W);
+    matrix_deallocation(&H);
+
+    return 0;
 }
