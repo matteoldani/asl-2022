@@ -5,12 +5,6 @@
 #include "cblas.h"
 #include "baseline2.h"
 
-void matrix_allocation(vMatrix *matrix);
-
-void matrix_deallocation(vMatrix *matrix);
-
-void random_matrix_init(vMatrix *matrix);
-
 void matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 
 void matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
@@ -20,8 +14,6 @@ void matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 void print_matrix(vMatrix *matrix);
 
 double error(vMatrix *V, vMatrix *W, vMatrix *H);
-
-double rand_from(double min, double max);
 
 double norm(vMatrix *matrix);
 
@@ -198,27 +190,13 @@ void print_matrix(vMatrix *matrix) {
 }
 
 /**
- * @brief generate a random floating point number from min to max
- * @param min   the minumum possible value
- * @param max   the maximum possible value
- * @return      the random value
- */
-double rand_from(double min, double max) {
-
-    double range = (max - min);
-    double div = RAND_MAX / range;
-    return min + (rand() / div);
-}
-
-
-/**
  * @brief initialize a matrix with random numbers between 0 and 1
  * @param matrix    the matrix to be initialized
  */
-void random_matrix_init(vMatrix *matrix) {
+void random_v_matrix_init(vMatrix *matrix, double min, double max) {
 
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
-        matrix->M[i] = rand_from(0.00, 1.00);
+        matrix->M[i] = rand_from(min, max);
 }
 
 /**

@@ -5,11 +5,7 @@
 #include <math.h>
 #include "baseline1.h"
 
-void matrix_allocation(Matrix *matrix);
-
 void read_input(Matrix *matrix);
-
-void random_matrix_init(Matrix *matrix);
 
 void random_acol_matrix_init(Matrix *V, Matrix *W, int q);
 
@@ -38,6 +34,15 @@ void matrix_allocation(Matrix *matrix) {
 
     for (int row = 0; row < matrix->n_row; row++)
         (matrix->M)[row] = malloc(sizeof(double) * matrix->n_col);
+}
+
+/**
+ * @brief deallocates the matrix
+ * @param matrix    is the struct where the matrix will be deallocated
+ */
+void matrix_deallocation(Matrix *matrix) {
+
+    free(matrix->M);
 }
 
 /**
@@ -123,29 +128,15 @@ void print_matrix(Matrix *matrix) {
     fprintf(stdout, "\n\n");
 }
 
-/** 
- * @brief generate a random floating point number from min to max 
- * @param min   the minumum possible value
- * @param max   the maximum possible value
- * @return      the random value
- */
-double rand_from(double min, double max) {
-
-    double range = (max - min);
-    double div = RAND_MAX / range;
-    return min + (rand() / div);
-}
-
-
 /**
  * @brief initialize a matrix with random numbers between 0 and 1
  * @param matrix    the matrix to be initialized
  */
-void random_matrix_init(Matrix *matrix) {
+void random_matrix_init(Matrix *matrix, double min, double max) {
 
     for (int row = 0; row < matrix->n_row; row++) {
         for (int col = 0; col < matrix->n_col; col++) {
-            matrix->M[row][col] = rand_from(0.00, 1.00);
+            matrix->M[row][col] = rand_from(min, max);
         }
     }
 }
@@ -155,7 +146,7 @@ void random_matrix_init(Matrix *matrix) {
  * @brief initialize a matrix W averaging columns of X
  * @param V    matrix to be factorized
  * @param W    factorizing matrix, initialized here
- * @param q    number of columns of X averaged to obtsain a column of W 
+ * @param q    number of columns of X averaged to obtsain a column of W
  */
 void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {
     int r;
@@ -168,13 +159,13 @@ void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {
         //average q random column of X into W
 
         for (int i = 0; i < q; i++){
-            r = rand() % V->n_col; 
+            r = rand() % V->n_col;
             for (int j = 0; j < V -> n_row; j++)
-                W->M[j][k] += V->M[j][r];     
+                W->M[j][k] += V->M[j][r];
         }
 
         for (int j = 0; j < V -> n_row; j++)
-            W->M[j][k] = W->M[j][k] / q;   
+            W->M[j][k] = W->M[j][k] / q;
     }
 }
 
