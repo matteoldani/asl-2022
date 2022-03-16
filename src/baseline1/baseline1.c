@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <math.h>
 #include "baseline1.h"
@@ -9,6 +10,8 @@ void matrix_allocation(Matrix *matrix);
 void read_input(Matrix *matrix);
 
 void random_matrix_init(Matrix *matrix);
+
+void random_acol_matrix_init(Matrix *V, Matrix *W, int q);
 
 void matrix_mul(Matrix *A, Matrix *B, Matrix *R);
 
@@ -147,6 +150,38 @@ void random_matrix_init(Matrix *matrix) {
     }
 }
 
+
+/**
+ * @brief initialize a matrix W averaging columns of X
+ * @param V    matrix to be factorized
+ * @param W    factorizing matrix, initialized here
+ * @param q    number of columns of X averaged to obtsain a column of W 
+ */
+void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {
+    int r;
+
+    // initialize W to all zeros
+    for(int k = 0; k < W -> n_row; k++)
+        memset(W->M[k], 0,  sizeof(double) * W->n_col);
+
+    for(int  k = 0; k < W -> n_col; k++){
+        //average q random column of X into W
+
+        for (int i = 0; i < q; i++){
+            r = rand() % V->n_col; 
+            for (int j = 0; j < V -> n_row; j++)
+                W->M[j][k] += V->M[j][r];     
+        }
+
+        for (int j = 0; j < V -> n_row; j++)
+            W->M[j][k] = W->M[j][k] / q;   
+    }
+}
+
+
+
+
+
 /**
  * @brief computes the non-negative matrix factorisation updating the values stored by the 
  *        factorization functions
@@ -192,6 +227,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
 
     //real convergence computation
     double err;
+    err = error(V, W, H);
     for (;;) {
         if (maxIteration > 0 && count == 0) {
             break;
@@ -309,16 +345,17 @@ int main(int argc, char const *argv[]) {
     H.n_col = n;
     matrix_allocation(&H);
 
-    random_matrix_init(&W);
-    random_matrix_init(&H);
-
     read_input(&V);
     print_matrix(&V);
+
+    //random_matrix_init(&W);
+    random_acol_matrix_init(&V, &W, 3);
+    random_matrix_init(&H);
 
     nnm_factorization_bs1(&V, &W, &H, 100, 0.5);
 
     print_matrix(&W);
     print_matrix(&H);
-
+    printf("Error: %lf\n", error(&V,&W,&H));
     return 0;
 }
