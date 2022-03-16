@@ -29,9 +29,10 @@ How to configure: https://charlesjiangxm.wordpress.com/2017/08/03/use-eigen-in-c
 Documentation: https://developer.apple.com/documentation/accelerate/1513282-cblas_dgemm
 Build, install and compile: https://github.com/bgeneto/build-install-compile-openblas
 
-How to compile:
-gcc -I/opt/homebrew/opt/openblas/include -pthread -O3 -Wall baseline2.c -o baseline1.out
--L/opt/homebrew/opt/openblas/lib -lm -lpthread -lopenblas
+How to compile the verification:
+gcc -I/opt/homebrew/opt/openblas/include -pthread -O3 -Wall baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -o verification.out -L/opt/homebrew/opt/openblas/lib -lm -lpthread -lopenblas
+
+gcc -O3 baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -framework Accelerate -lm -o verification.out
 
 (or -I/opt/openblas/include on windows)
 

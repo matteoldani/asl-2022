@@ -24,28 +24,6 @@ double rand_from(double min, double max);
 double norm(Matrix *matrix);
 
 /**
- * @brief allocates the matrix as a double pointer inside the struct
- * @param matrix    is the struct where the matrix will be allocated
- */
-void matrix_allocation(Matrix *matrix) {
-
-    // allocate the matrix dynamically 
-    matrix->M = malloc(sizeof(double *) * matrix->n_row);
-
-    for (int row = 0; row < matrix->n_row; row++)
-        (matrix->M)[row] = malloc(sizeof(double) * matrix->n_col);
-}
-
-/**
- * @brief deallocates the matrix
- * @param matrix    is the struct where the matrix will be deallocated
- */
-void matrix_deallocation(Matrix *matrix) {
-
-    free(matrix->M);
-}
-
-/**
  * @brief reads the input corresponfind to the matrix values
  * @param matrix    the matrix that will be filled
  */
@@ -228,7 +206,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
         }
         count--;
         err = error(V, W, H);
-        printf("Current error: %lf\n", err);
+        //printf("Current error: %lf\n", err);
 
         //computation for Hn+1
         matrix_ltrans_mul(W, V, &numerator);
@@ -252,6 +230,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
             }
         }
     }
+    return err;
 }
 
 /**
@@ -303,50 +282,4 @@ double norm(Matrix *matrix) {
     }
 
     return sqrt(temp_norm);
-}
-
-/**
- * @brief represents a dynamic allocated matrix
- * @param M     is the matrix
- * @param n_row is the number of rows
- * @param n_col is the number of cols
- */
-
-int main(int argc, char const *argv[]) {
-
-    Matrix V;
-    Matrix W, H;
-    int m, n, r;
-
-    srand(time(NULL));
-    // read the desired factorization dimension
-    fscanf(stdin, "%d", &r);
-    // read the dimensions
-    fscanf(stdin, "%d %d", &m, &n);
-
-    V.n_row = m;
-    V.n_col = n;
-    matrix_allocation(&V);
-
-    W.n_row = m;
-    W.n_col = r;
-    matrix_allocation(&W);
-
-    H.n_row = r;
-    H.n_col = n;
-    matrix_allocation(&H);
-
-    read_input(&V);
-    print_matrix(&V);
-
-    //random_matrix_init(&W);
-    random_acol_matrix_init(&V, &W, 3);
-    random_matrix_init(&H);
-
-    nnm_factorization_bs1(&V, &W, &H, 100, 0.5);
-
-    print_matrix(&W);
-    print_matrix(&H);
-    printf("Error: %lf\n", error(&V,&W,&H));
-    return 0;
 }

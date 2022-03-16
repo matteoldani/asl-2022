@@ -2,40 +2,24 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include "cblas.h"
 #include "baseline2.h"
+#if __APPLE__
+    #include <Accelerate/Accelerate.h>
+#else
+    #include "cblas.h"
+#endif
 
-void matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R);
+void v_matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 
-void matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
+void v_matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 
-void matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
+void v_matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R);
 
-void print_matrix(vMatrix *matrix);
+void print_v_matrix(vMatrix *matrix);
 
-double error(vMatrix *V, vMatrix *W, vMatrix *H);
+double v_error(vMatrix *V, vMatrix *W, vMatrix *H);
 
-double norm(vMatrix *matrix);
-
-/**
- * @brief allocates the matrix as an array inside the struct
- * @param matrix    is the struct where the matrix will be allocated
- */
-void matrix_allocation(vMatrix *matrix) {
-
-    // allocate the matrix dynamically
-    matrix->M = malloc(sizeof(double *) * matrix->n_row * matrix->n_col);
-}
-
-/**
- * @brief deallocates the matrix
- * @param matrix    is the struct where the matrix will be deallocated
- */
-void matrix_deallocation(vMatrix *matrix) {
-
-    free(matrix->M);
-}
-
+double v_norm(vMatrix *matrix);
 
 // _____________________________ MATRIX MUL _____________________________
 /**
@@ -70,7 +54,7 @@ void matrix_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 }
 
 // Working impl
-void matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
+void v_matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     matrix_mul_rm(A, B, R);
 }
@@ -118,7 +102,7 @@ void matrix_ltrans_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 }
 
 // Working impl
-void matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
+void v_matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     matrix_ltrans_mul_rm(A, B, R);
 }
@@ -166,7 +150,7 @@ void matrix_rtrans_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 }
 
 // Working impl
-void matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
+void v_matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
 
     matrix_rtrans_mul_rm(A, B, R);
 }
@@ -177,7 +161,7 @@ void matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
  * @brief prints the matrix
  * @param matrix    the matrix to be printed
  */
-void print_matrix(vMatrix *matrix) {
+void print_v_matrix(vMatrix *matrix) {
 
     printf("Printing a matrix with %d rows and %d cols\n\n", matrix->n_row, matrix->n_col);
     for (int row = 0; row < matrix->n_row; row++) {
@@ -222,9 +206,9 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
     denominator.n_row = H->n_row;
     denominator.n_col = H->n_col;
 
-    matrix_allocation(&numerator);
-    matrix_allocation(&denominator);
-    matrix_allocation(&denominator_l);
+    v_matrix_allocation(&numerator);
+    v_matrix_allocation(&denominator);
+    v_matrix_allocation(&denominator_l);
 
     //Operands needed to compute Wn+1
     vMatrix numerator_W, denominator_l_W, denominator_W;
@@ -238,9 +222,9 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
     denominator_W.n_row = W->n_row;
     denominator_W.n_col = W->n_col;
 
-    matrix_allocation(&numerator_W);
-    matrix_allocation(&denominator_W);
-    matrix_allocation(&denominator_l_W);
+    v_matrix_allocation(&numerator_W);
+    v_matrix_allocation(&denominator_W);
+    v_matrix_allocation(&denominator_l_W);
 
     //real convergence computation
     double err;
@@ -249,36 +233,37 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
         if (maxIteration > 0 && count == 0) {
             break;
         }
+        printf("%lf", err);
         if (err <= epsilon) {
             break;
         }
         count--;
-        err = error(V, W, H);
-        printf("Current error: %lf\n", err);
+        err = v_error(V, W, H);
+        //printf("Current error: %lf\n", err);
 
         //computation for Hn+1
-        matrix_ltrans_mul(W, V, &numerator);
-        matrix_ltrans_mul(W, W, &denominator_l);
-        matrix_mul(&denominator_l, H, &denominator);
+        v_matrix_ltrans_mul(W, V, &numerator);
+        v_matrix_ltrans_mul(W, W, &denominator_l);
+        v_matrix_mul(&denominator_l, H, &denominator);
 
         for (int i = 0; i < H->n_row * H->n_col; i++)
             H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i];
 
         //computation for Wn+1
-        matrix_rtrans_mul(V, H, &numerator_W);
-        matrix_mul(W, H, &denominator_l_W);
-        matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
+        v_matrix_rtrans_mul(V, H, &numerator_W);
+        v_matrix_mul(W, H, &denominator_l_W);
+        v_matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
 
         for (int i = 0; i < W->n_row * W->n_col; i++)
             W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i];
     }
 
-    matrix_deallocation(&numerator);
-    matrix_deallocation(&denominator);
-    matrix_deallocation(&denominator_l);
-    matrix_deallocation(&numerator_W);
-    matrix_deallocation(&denominator_W);
-    matrix_deallocation(&denominator_l_W);
+    v_matrix_deallocation(&numerator);
+    v_matrix_deallocation(&denominator);
+    v_matrix_deallocation(&denominator_l);
+    v_matrix_deallocation(&numerator_W);
+    v_matrix_deallocation(&denominator_W);
+    v_matrix_deallocation(&denominator_l_W);
     return err;
 }
 
@@ -291,26 +276,26 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
  * @param H is the second factorization matrix
  * @return is the error
  */
-double error(vMatrix *V, vMatrix *W, vMatrix *H) {
+double v_error(vMatrix *V, vMatrix *W, vMatrix *H) {
 
     vMatrix approximation;
 
     approximation.n_row = V->n_row;
     approximation.n_col = V->n_col;
 
-    matrix_allocation(&approximation);
+    v_matrix_allocation(&approximation);
 
-    matrix_mul(W, H, &approximation);
+    v_matrix_mul(W, H, &approximation);
 
-    double V_norm = norm(V);
+    double V_norm = v_norm(V);
     double approximation_norm;
 
     for (int i = 0; i < V->n_row * V->n_col; i++)
         approximation.M[i] = (V->M[i] - approximation.M[i]);
 
-    approximation_norm = norm(&approximation);
+    approximation_norm = v_norm(&approximation);
 
-    matrix_deallocation(&approximation);
+    v_matrix_deallocation(&approximation);
 
     return approximation_norm / V_norm;
 }
@@ -322,59 +307,10 @@ double error(vMatrix *V, vMatrix *W, vMatrix *H) {
  * @param matrix is the matrix which norm is computed
  * @return the norm
  */
-double norm(vMatrix *matrix) {
+double v_norm(vMatrix *matrix) {
     double temp_norm = 0;
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         temp_norm += matrix->M[i] * matrix->M[i];
 
     return sqrt(temp_norm);
-}
-
-/**
- * @brief represents a dynamic allocated matrix
- * @param M     is the matrix
- * @param n_row is the number of rows
- * @param n_col is the number of cols
- */
-
-int main(int argc, char const *argv[]) {
-
-    vMatrix V;
-    vMatrix W, H;
-    int m = 100, n = 110, r = 12;
-
-    srand(time(NULL));
-    // read the desired factorization dimension
-    //fscanf(stdin, "%d", &r);
-    // read the dimensions
-    //fscanf(stdin, "%d %d", &m, &n);
-
-    V.n_row = m;
-    V.n_col = n;
-    matrix_allocation(&V);
-
-    W.n_row = m;
-    W.n_col = r;
-    matrix_allocation(&W);
-
-    H.n_row = r;
-    H.n_col = n;
-    matrix_allocation(&H);
-
-    random_matrix_init(&W);
-    random_matrix_init(&H);
-
-    random_matrix_init(&V);
-    print_matrix(&V);
-
-    nnm_factorization_bs2(&V, &W, &H, 100, 0.5);
-
-    print_matrix(&W);
-    print_matrix(&H);
-
-    matrix_deallocation(&V);
-    matrix_deallocation(&W);
-    matrix_deallocation(&H);
-
-    return 0;
 }
