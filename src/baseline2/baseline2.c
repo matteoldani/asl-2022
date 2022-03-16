@@ -132,7 +132,7 @@ void matrix_rtrans_mul_cm(vMatrix *A, vMatrix *B, vMatrix *R) {
 // RowMajor impl  ----Param num 10 has an illegal value (0.475054)
 void matrix_rtrans_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
-    // WARNING: I changed the following, the working version (for Masa) is below!
+    // WARNING: I changed the following, the working version (for Masa) is below! The following works for mac though :)
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A->n_row, B->n_row, A->n_col, 1,
                 A->M, A->n_col, B->M, B->n_col,
