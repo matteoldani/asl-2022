@@ -3,10 +3,13 @@
 #include <time.h>
 #include <math.h>
 #include "baseline2.h"
+
 #if __APPLE__
-    #include <Accelerate/Accelerate.h>
+#include <Accelerate/Accelerate.h>
 #else
-    #include "cblas.h"
+
+#include "cblas.h"
+
 #endif
 
 void v_matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R);
@@ -129,10 +132,18 @@ void matrix_rtrans_mul_cm(vMatrix *A, vMatrix *B, vMatrix *R) {
 // RowMajor impl  ----Param num 10 has an illegal value (0.475054)
 void matrix_rtrans_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
+    // WARNING: I changed the following, the working version (for Masa) is below!
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A->n_row, B->n_row, A->n_col, 1,
-                A->M, A->n_row, B->M, B->n_col,
-                0, R->M, A->n_row);
+                A->M, A->n_col, B->M, B->n_col,
+                0, R->M, B->n_row);
+
+    /*
+    * cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+            A->n_row, B->n_row, A->n_col, 1,
+            A->M, A->n_row, B->M, B->n_col,
+            0, R->M, A->n_row);
+    */
 }
 
 //  Straightforward implementation (no BLAS)
@@ -233,7 +244,7 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
         if (maxIteration > 0 && count == 0) {
             break;
         }
-        printf("%lf", err);
+        //printf("%lf\n", err);
         if (err <= epsilon) {
             break;
         }

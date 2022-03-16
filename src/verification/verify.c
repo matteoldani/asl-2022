@@ -16,9 +16,10 @@ void testRun(int m, int n, int r, int maxIteration, double epsilon, double min, 
     resultBS2 = nnm_factorization_bs2(&baselineTestsuite.bs2Matrices.V, &baselineTestsuite.bs2Matrices.W,
                                       &baselineTestsuite.bs2Matrices.H, maxIteration, epsilon);
     printf("Results: error_bs1=%lf, error_bs2=%lf\n", resultBS1, resultBS2);
-    printf("Difference: %f\n", fabs(resultBS1 - resultBS2));
-
-
+    if (fabs(resultBS1 - resultBS2) > 0.000001) {
+        printf("ERROR: Difference: %f\n", fabs(resultBS1 - resultBS2));
+        printf("Parameters: m=%d, n=%d, r=%d\n", m, n, r);
+    }
 }
 
 void generate_baseline_test_suite(BaselineTestsuite *b, int m, int n, int r, double min, double max) {
@@ -63,8 +64,8 @@ int main(int argc, char const *argv[]) {
         m = i;
         n = i + steps;
         r = 12;
-        printf("Test run nr: %d\n", count);
-        printf("Parameters: m=%d, n=%d, r=%d\n", m, n, r);
+        //printf("Test run nr: %d\n", count);
+        //printf("Parameters: m=%d, n=%d, r=%d\n", m, n, r);
         testRun(m, n, r, maxIteration, epsilon, low, high);
         count++;
     }
