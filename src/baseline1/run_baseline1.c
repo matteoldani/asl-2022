@@ -42,5 +42,9 @@ int main(int argc, char const *argv[]) {
     print_matrix(&W);
     print_matrix(&H);
 
+    matrix_deallocation(&V);
+    matrix_deallocation(&W);
+    matrix_deallocation(&H);
+
     return 0;
 }

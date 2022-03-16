@@ -29,14 +29,10 @@ How to configure: https://charlesjiangxm.wordpress.com/2017/08/03/use-eigen-in-c
 Documentation: https://developer.apple.com/documentation/accelerate/1513282-cblas_dgemm
 Build, install and compile: https://github.com/bgeneto/build-install-compile-openblas
 
-How to compile the verification:
-gcc -I/opt/homebrew/opt/openblas/include -pthread -O3 -Wall baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -o verification.out -L/opt/homebrew/opt/openblas/lib -lm -lpthread -lopenblas
+### How to compile the verification:
 
+#### Windows:
+gcc -I/opt/openblas/include -pthread -O3 -Wall baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -o verification.out -L/opt/openblas/lib -lm -lpthread -lopenblas
+
+#### MacOS:
 gcc -O3 baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -framework Accelerate -lm -o verification.out
-
-(or -I/opt/openblas/include on windows)
-
-(or -L/opt/openblas/lib on windows)
-
-To make the whole process easier we have created a test environment to automatically test the implementations (sanity
-check) on the level of the matrix multiplications. (Don't forget to chmod u+x test_run_mac.sh)

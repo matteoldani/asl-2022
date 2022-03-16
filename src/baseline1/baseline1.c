@@ -230,6 +230,14 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
             }
         }
     }
+
+    matrix_deallocation(&numerator);
+    matrix_deallocation(&denominator);
+    matrix_deallocation(&denominator_l);
+    matrix_deallocation(&numerator_W);
+    matrix_deallocation(&denominator_W);
+    matrix_deallocation(&denominator_l_W);
+
     return err;
 }
 
@@ -261,6 +269,7 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
         }
 
     approximation_norm = norm(&approximation);
+    matrix_deallocation(&approximation);
     return approximation_norm / V_norm;
 }
 

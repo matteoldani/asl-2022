@@ -17,6 +17,8 @@ void testRun(int m, int n, int r, int maxIteration, double epsilon, double min, 
                                       &baselineTestsuite.bs2Matrices.H, maxIteration, epsilon);
     printf("Results: error_bs1=%lf, error_bs2=%lf\n", resultBS1, resultBS2);
     printf("Difference: %f\n", fabs(resultBS1 - resultBS2));
+
+
 }
 
 void generate_baseline_test_suite(BaselineTestsuite *b, int m, int n, int r, double min, double max) {
@@ -27,6 +29,16 @@ void generate_baseline_test_suite(BaselineTestsuite *b, int m, int n, int r, dou
     generate_random_matrices(&b->bs1Matrices.V, &b->bs2Matrices.V, min, max);
     generate_random_matrices(&b->bs1Matrices.W, &b->bs2Matrices.W, min, max);
     generate_random_matrices(&b->bs1Matrices.H, &b->bs2Matrices.H, min, max);
+}
+
+void deallocate_matrices(BaselineTestsuite *b) {
+
+    matrix_deallocation(&b->bs1Matrices.V);
+    matrix_deallocation(&b->bs1Matrices.W);
+    matrix_deallocation(&b->bs1Matrices.H);
+    v_matrix_deallocation(&b->bs2Matrices.V);
+    v_matrix_deallocation(&b->bs2Matrices.W);
+    v_matrix_deallocation(&b->bs2Matrices.H);
 }
 
 int main(int argc, char const *argv[]) {
