@@ -239,7 +239,7 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
 
     //real convergence computation
     double err;
-    err = error(V, W, H);
+    err = v_error(V, W, H);
     for (;;) {
         if (maxIteration > 0 && count == 0) {
             break;
