@@ -7,11 +7,11 @@
  * @param max   the maximum possible value
  * @return      the random value
  */
-double rand_from(double min, double max) {
+double rand_from(double min, double max) {	// 5
 
-    double range = (max - min);
-    double div = RAND_MAX / range;
-    return min + (rand() / div);
+    double range = (max - min);		// 1
+    double div = RAND_MAX / range;	// 1
+    return min + (rand() / div);	// 3
 }
 
 /**

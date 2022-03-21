@@ -41,7 +41,7 @@ void read_input(Matrix *matrix) {
  * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
-void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
+void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {			// 2 * A->n_row * B->n_col * A->n_col
 
     for (int i = 0; i < A->n_row; i++) {
         for (int j = 0; j < B->n_col; j++) {
@@ -59,7 +59,7 @@ void matrix_mul(Matrix *A, Matrix *B, Matrix *R) {
  * @param B is the other factor of the multiplication
  * @param R is the matrix that will hold the result
  */
-void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
+void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {	// 2 * A->n_col * B->n_col * B->n_row
 
     for (int i = 0; i < A->n_col; i++) {
         for (int j = 0; j < B->n_col; j++) {
@@ -78,7 +78,7 @@ void matrix_ltrans_mul(Matrix *A, Matrix *B, Matrix *R) {
  * @param B is the matrix to be transposed
  * @param R is the matrix that will hold the result
  */
-void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R) {
+void matrix_rtrans_mul(Matrix *A, Matrix *B, Matrix *R) {	// 2 * A->n_row * B->n_row * A->n_col
 
     for (int i = 0; i < A->n_row; i++) {
         for (int j = 0; j < B->n_row; j++) {
@@ -110,7 +110,7 @@ void print_matrix(Matrix *matrix) {
  * @brief initialize a matrix with random numbers between 0 and 1
  * @param matrix    the matrix to be initialized
  */
-void random_matrix_init(Matrix *matrix, double min, double max) {
+void random_matrix_init(Matrix *matrix, double min, double max) {	// 5 * matrix->n_row * matrix->n_col
 
     for (int row = 0; row < matrix->n_row; row++) {
         for (int col = 0; col < matrix->n_col; col++) {
@@ -126,7 +126,7 @@ void random_matrix_init(Matrix *matrix, double min, double max) {
  * @param W    factorizing matrix, initialized here
  * @param q    number of columns of X averaged to obtsain a column of W
  */
-void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {
+void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {		// W->n_col * (2 * q + V->n_row * q + V->n_row)
     int r;
 
     // initialize W to all zeros
@@ -137,13 +137,13 @@ void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {
         //average q random column of X into W
 
         for (int i = 0; i < q; i++){
-            r = rand() % V->n_col;
+            r = rand() % V->n_col;					// 2 * W->n_col * q
             for (int j = 0; j < V -> n_row; j++)
-                W->M[j][k] += V->M[j][r];
+                W->M[j][k] += V->M[j][r];			// W->n_col * q * V->n_row
         }
 
         for (int j = 0; j < V -> n_row; j++)
-            W->M[j][k] = W->M[j][k] / q;
+            W->M[j][k] = W->M[j][k] / q;			// W->n_col * V->n_row
     }
 }
 
@@ -160,6 +160,16 @@ void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {
  * @param H     the second matrix in which V will be factorized
  */
 double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon) {
+	// 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3 +
+	// i * (4 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col +
+	// 		2 * W->n_col * V->n_col * V->n_row +
+	//		2 * W->n_col * W->n_col * W->n_row +
+	//		2 * W->n_row * H->n_col * H->n_col +
+	//		2 * V->n_row * H->n_row * V->n_col +
+	//		2 * W->n_row * H->n_row * H->n_col +
+	//		2 * H->n_row * H->n_col +
+	//		2 * W->n_row * W->n_col + 3)
+	
     int count = maxIteration;
 
     //Operands needed to compute Hn+1
@@ -195,36 +205,43 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     matrix_allocation(&denominator_l_W);
 
     //real convergence computation
-    double err;
-    err = error(V, W, H);
-    for (;;) {
+    double err;											
+    err = error(V, W, H);								// 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3
+    for (;;) {											// i * (4 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col +
+														// 		2 * W->n_col * V->n_col * V->n_row +
+														//		2 * W->n_col * W->n_col * W->n_row +
+														//		2 * W->n_row * H->n_col * H->n_col +
+														//		2 * V->n_row * H->n_row * V->n_col +
+														//		2 * W->n_row * H->n_row * H->n_col +
+														//		2 * H->n_row * H->n_col +
+														//		2 * W->n_row * W->n_col + 3)
         if (maxIteration > 0 && count == 0) {
             break;
         }
-        if (err <= epsilon) {
+        if (err <= epsilon) {							// *** is comparison an op
             break;
         }
         count--;
-        err = error(V, W, H);
+        err = error(V, W, H);							// 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3 **
         //printf("Current error: %lf\n", err);
 
         //computation for Hn+1
-        matrix_ltrans_mul(W, V, &numerator);
-        matrix_ltrans_mul(W, W, &denominator_l);
-        matrix_mul(&denominator_l, H, &denominator);
+        matrix_ltrans_mul(W, V, &numerator);			// 2 * W->n_col * V->n_col * V->n_row **
+        matrix_ltrans_mul(W, W, &denominator_l);		// 2 * W->n_col * W->n_col * W->n_row **
+        matrix_mul(&denominator_l, H, &denominator);	// 2 * W->n_row * H->n_col * H->n_col **
 
-        for (int i = 0; i < H->n_row; i++) {
+        for (int i = 0; i < H->n_row; i++) {			// 2 * H->n_row * H->n_col **
             for (int j = 0; j < H->n_col; j++) {
                 H->M[i][j] = H->M[i][j] * numerator.M[i][j] / denominator.M[i][j];
             }
         }
 
         //computation for Wn+1
-        matrix_rtrans_mul(V, H, &numerator_W);
-        matrix_mul(W, H, &denominator_l_W);
-        matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
+        matrix_rtrans_mul(V, H, &numerator_W);					// 2 * V->n_row * H->n_row * V->n_col **
+        matrix_mul(W, H, &denominator_l_W);						// 2 * W->n_row * H->n_col * W->n_col **
+        matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);	// 2 * W->n_row * H->n_row * H->n_col **
 
-        for (int i = 0; i < W->n_row; i++) {
+        for (int i = 0; i < W->n_row; i++) {					// 2 * W->n_row * W->n_col **
             for (int j = 0; j < W->n_col; j++) {
                 W->M[i][j] = W->M[i][j] * numerator_W.M[i][j] / denominator_W.M[i][j];
             }
@@ -250,7 +267,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
  * @param H is the second factorization matrix
  * @return is the error
  */
-double error(Matrix *V, Matrix *W, Matrix *H) {
+double error(Matrix *V, Matrix *W, Matrix *H) {		// 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3
 
     Matrix approximation;
 
@@ -258,19 +275,19 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
     approximation.n_col = V->n_col;
 
     matrix_allocation(&approximation);
-    matrix_mul(W, H, &approximation);
+    matrix_mul(W, H, &approximation);				//cost of mul --- 2 * W->n_row * H->n_col * W->n_col
 
-    double V_norm = norm(V);
+    double V_norm = norm(V);						// 2 * V->n_row * V->n_col + 1
     double approximation_norm;
 
     for (int row = 0; row < V->n_row; row++)
         for (int col = 0; col < V->n_col; col++) {
-            approximation.M[row][col] = (V->M[row][col] - approximation.M[row][col]);
+            approximation.M[row][col] = (V->M[row][col] - approximation.M[row][col]);  // V->n_row * V->n_col
         }
 
-    approximation_norm = norm(&approximation);
+    approximation_norm = norm(&approximation);		// 2 * V->n_row * V->n_col + 1
     matrix_deallocation(&approximation);
-    return approximation_norm / V_norm;
+    return approximation_norm / V_norm;				// 1
 }
 
 
@@ -280,7 +297,7 @@ double error(Matrix *V, Matrix *W, Matrix *H) {
  * @param matrix is the matrix which norm is computed
  * @return the norm 
  */
-double norm(Matrix *matrix) {
+double norm(Matrix *matrix) {		// 2 * matrix->n_row * matrix->n_col + 1
 
     double temp_norm = 0;
 

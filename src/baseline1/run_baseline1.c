@@ -31,13 +31,13 @@ int main(int argc, char const *argv[]) {
     H.n_col = n;
     matrix_allocation(&H);
 
-    random_matrix_init(&W, 0, 1);
-    random_matrix_init(&H, 0, 1);
+    random_matrix_init(&W, 0, 1);					// 5 * W->n_row * W->n_col
+    random_matrix_init(&H, 0, 1);					// 5 * H->n_row * H->n_col
 
     read_input(&V);
     print_matrix(&V);
 
-    nnm_factorization_bs1(&V, &W, &H, 100, 0.5);
+    nnm_factorization_bs1(&V, &W, &H, 100, 0.5);	// go to baseline1.c nnm_factorization_bs1 for cost
 
     print_matrix(&W);
     print_matrix(&H);
