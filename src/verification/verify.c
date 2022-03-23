@@ -64,8 +64,6 @@ int main(int argc, char const *argv[]) {
         m = i;
         n = i + steps;
         r = 12;
-        //printf("Test run nr: %d\n", count);
-        //printf("Parameters: m=%d, n=%d, r=%d\n", m, n, r);
         testRun(m, n, r, maxIteration, epsilon, low, high);
         count++;
     }
