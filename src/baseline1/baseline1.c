@@ -4,7 +4,7 @@
 #include <time.h>
 #include <math.h>
 #include "baseline1.h"
-
+//remove this comment
 void read_input(Matrix *matrix);
 
 void random_acol_matrix_init(Matrix *V, Matrix *W, int q);
