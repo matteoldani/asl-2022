@@ -119,6 +119,15 @@ void random_matrix_init(Matrix *matrix, double min, double max) {	// 5 * matrix-
     }
 }
 
+/**
+ * @brief returns the cost of the funcion random_matrix_init
+ * @param matrix    the matrix to be initialized, containing the info on its size
+ */
+long random_matrix_init_cost(Matrix* matrix)
+{
+    return 5 * matrix->n_row * matrix->n_col;
+}
+
 
 /**
  * @brief initialize a matrix W averaging columns of X
@@ -145,6 +154,17 @@ void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {		// W->n_col * (2 * 
         for (int j = 0; j < V -> n_row; j++)
             W->M[j][k] = W->M[j][k] / q;			// W->n_col * V->n_row
     }
+}
+
+/**
+ * @brief returns the cost of the funcion random_acol_matrix_init
+ * @param V    matrix to be factorized
+ * @param W    factorizing matrix, initialized here
+ * @param q    number of columns of X averaged to obtsain a column of W
+ */
+long random_acol_matrix_init_cost(Matrix* V, Matrix* W, int q)
+{
+    return W->n_col * (2 * q + V->n_row * q + V->n_row);
 }
 
 
@@ -256,6 +276,24 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     matrix_deallocation(&denominator_l_W);
 
     return err;
+}
+
+/**
+ * @brief returns the cost of the function nnm_factorization_bs1
+ * @param V     the matrix to be factorized
+ * @param W     the first matrix in which V will be factorized
+ * @param H     the second matrix in which V will be factorized
+ */
+double nnm_factorization_bs1_cost(Matrix* V, Matrix* W, Matrix* H, int numIterations) {
+    return 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3 +
+           numIterations * (4 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col +
+                            2 * W->n_col * V->n_col * V->n_row +
+                            2 * W->n_col * W->n_col * W->n_row +
+                            2 * W->n_row * H->n_col * H->n_col +
+                            2 * V->n_row * H->n_row * V->n_col +
+                            2 * W->n_row * H->n_row * H->n_col +
+                            2 * H->n_row * H->n_col +
+                            2 * W->n_row * W->n_col + 3);
 }
 
 /**
