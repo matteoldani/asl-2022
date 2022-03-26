@@ -3,7 +3,7 @@
 #include <time.h>
 #include <math.h>
 #include "baseline2.h"
-
+#include <string.h>
 #if __APPLE__
 #include <Accelerate/Accelerate.h>
 #else
@@ -193,6 +193,35 @@ void random_v_matrix_init(vMatrix *matrix, double min, double max) {
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         matrix->M[i] = rand_from(min, max);
 }
+
+/**
+ * @brief initialize a matrix W averaging columns of X
+ * @param V    matrix to be factorized
+ * @param W    factorizing matrix, initialized here
+ * @param q    number of columns of X averaged to obtsain a column of W
+ */
+void random_v_acol_matrix_init(vMatrix *V, vMatrix *W, int q) {		// W->n_col * (2 * q + V->n_row * q + V->n_row)
+    int r;
+
+    // initialize W to all zeros
+    memset(W->M, 0, sizeof(double) * W->n_col * W->n_row);
+
+    for(int  k = 0; k < W -> n_col; k++){
+
+        //average q random columns of X into W
+        for (int i = 0; i < q; i++){
+            r = rand() % V->n_col;					                    // 2 * W->n_col * q
+            for (int j = 0; j < V -> n_row; j++)
+                W->M[j * W->n_col + k] += V->M[j * V->n_col + r];   //W->M[j][k] += V->M[j][r];		
+        }
+
+        for (int j = 0; j < V -> n_row; j++)
+             W->M[j * W->n_col + k] = W->M[j * W->n_col + k] / q;       //W->M[j][k] = W->M[j][k] / q;			
+    }
+}
+
+
+
 
 /**
  * @brief computes the non-negative matrix factorisation updating the values stored by the

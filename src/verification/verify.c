@@ -28,8 +28,13 @@ void generate_baseline_test_suite(BaselineTestsuite *b, int m, int n, int r, dou
     initialise_bs2_matrices(&b->bs2Matrices, m, n, r);
 
     generate_random_matrices(&b->bs1Matrices.V, &b->bs2Matrices.V, min, max);
+    //These should be part of the algorithm
     generate_random_matrices(&b->bs1Matrices.W, &b->bs2Matrices.W, min, max);
     generate_random_matrices(&b->bs1Matrices.H, &b->bs2Matrices.H, min, max);
+
+    //random_acol_matrix_init(&b->bs1Matrices.V,&b->bs1Matrices.W, 3 );
+    //random_v_acol_matrix_init(&b->bs2Matrices.V,&b->bs2Matrices.W, 3 ) ;
+
 }
 
 void deallocate_matrices(BaselineTestsuite *b) {
