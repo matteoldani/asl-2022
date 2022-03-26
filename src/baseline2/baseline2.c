@@ -35,6 +35,7 @@ double v_norm(vMatrix *matrix);
 // RowMajor implementation
 void matrix_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
+    // cost: B_col*A_col + 2*A_row*A_col*B_col
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 A->n_row, B->n_col, A->n_col, 1,
                 A->M, A->n_col, B->M, B->n_col,
@@ -58,7 +59,7 @@ void matrix_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 
 // Working impl
 void v_matrix_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
-
+     // cost: B_col*A_col + 2*A_row*A_col*B_col
     matrix_mul_rm(A, B, R);
 }
 //_____________________________________________________________________________
@@ -84,7 +85,7 @@ void matrix_ltrans_mul_cm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
 // RowMajor impl (0.47)
 void matrix_ltrans_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
-
+     // cost: B_col*B_row + 2*B_row*A_col*B_col
     cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                 A->n_col, B->n_col, B->n_row, 1, //r=A->n_row = B->n_row
                 A->M, A->n_col, B->M, B->n_col,
@@ -106,7 +107,7 @@ void matrix_ltrans_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 
 // Working impl
 void v_matrix_ltrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
-
+   
     matrix_ltrans_mul_rm(A, B, R);
 }
 //_____________________________________________________________________________
@@ -132,18 +133,19 @@ void matrix_rtrans_mul_cm(vMatrix *A, vMatrix *B, vMatrix *R) {
 // RowMajor impl  ----Param num 10 has an illegal value (0.475054)
 void matrix_rtrans_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
-    // WARNING: I changed the following, the working version (for Masa) is below! The following works for mac though :)
+    ////WARNING: I changed the following, the working version (for Masa) is below! The following works for mac though :)
+    ////        This is the version that also works for linux (tested on asl-server)
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A->n_row, B->n_row, A->n_col, 1,
                 A->M, A->n_col, B->M, B->n_col,
                 0, R->M, B->n_row);
 
-    /*
-    * cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-            A->n_row, B->n_row, A->n_col, 1,
-            A->M, A->n_row, B->M, B->n_col,
-            0, R->M, A->n_row);
-    */
+    // cost: A_col*B_row + 2*A_row*A_col*B_row
+    // cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+    //         A->n_row, B->n_row, A->n_col, 1,
+    //         A->M, A->n_row, B->M, B->n_col,
+    //         0, R->M, A->n_row);
+    
 }
 
 //  Straightforward implementation (no BLAS)
@@ -162,7 +164,7 @@ void matrix_rtrans_mul_s(vMatrix *A, vMatrix *B, vMatrix *R) {
 
 // Working impl
 void v_matrix_rtrans_mul(vMatrix *A, vMatrix *B, vMatrix *R) {
-
+    // cost: A_col*B_row + 2*A_row*A_col*B_row
     matrix_rtrans_mul_rm(A, B, R);
 }
 //_____________________________________________________________________________
@@ -232,6 +234,16 @@ void random_v_acol_matrix_init(vMatrix *V, vMatrix *W, int q) {		// W->n_col * (
  * @param H     the second matrix in which V will be factorized
  */
 double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteration, double epsilon) {
+    /**
+     * @brief cost of the function
+     * 
+     * V = m x n
+     * W = m x r
+     * H = r x n
+     * 
+     * (3 + 7*r*n + 3*m*r + 6n*m + 10*m*r*n + 2*m*r*r + 2*r*r*n) * Number_of_iterations
+     * 
+     */
     int count = maxIteration;
 
     //Operands needed to compute Hn+1
@@ -268,8 +280,9 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
 
     //real convergence computation
     double err;
-    err = v_error(V, W, H);
+
     for (;;) {
+        err = v_error(V, W, H);     //cost: 3 + n*r + 5*m*n + 2*m*r*n
         if (maxIteration > 0 && count == 0) {
             break;
         }
@@ -278,24 +291,24 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
             break;
         }
         count--;
-        err = v_error(V, W, H);
+        
         //printf("Current error: %lf\n", err);
 
         //computation for Hn+1
-        v_matrix_ltrans_mul(W, V, &numerator);
-        v_matrix_ltrans_mul(W, W, &denominator_l);
-        v_matrix_mul(&denominator_l, H, &denominator);
+        v_matrix_ltrans_mul(W, V, &numerator);          // cost: B_col*B_row + 2*B_row*A_col*B_col = n*m + 2*m*r*n
+        v_matrix_ltrans_mul(W, W, &denominator_l);      // cost: B_col*B_row + 2*B_row*A_col*B_col = m*r + 2*m*r*r
+        v_matrix_mul(&denominator_l, H, &denominator);  // cost: B_col*A_col + 2*A_row*A_col*B_col = n*r + 2*r*r*n
 
         for (int i = 0; i < H->n_row * H->n_col; i++)
-            H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i];
+            H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i]; // 2*r*n
 
         //computation for Wn+1
-        v_matrix_rtrans_mul(V, H, &numerator_W);
-        v_matrix_mul(W, H, &denominator_l_W);
-        v_matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);
+        v_matrix_rtrans_mul(V, H, &numerator_W);                   // cost: A_col*B_row + 2*A_row*A_col*B_row = n*r + 2*m*n*r
+        v_matrix_mul(W, H, &denominator_l_W);                      // cost: B_col*A_col + 2*A_row*A_col*B_col = n*r + 2*m*r*n
+        v_matrix_rtrans_mul(&denominator_l_W, H, &denominator_W);  // cost: A_col*B_row + 2*A_row*A_col*B_row = n*r + 2*m*n*r
 
         for (int i = 0; i < W->n_row * W->n_col; i++)
-            W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i];
+            W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i]; // 2*m*r
     }
 
     v_matrix_deallocation(&numerator);
@@ -318,6 +331,8 @@ double nnm_factorization_bs2(vMatrix *V, vMatrix *W, vMatrix *H, int maxIteratio
  */
 double v_error(vMatrix *V, vMatrix *W, vMatrix *H) {
 
+    //cost: 3 + n*r + 5*m*n + 2*m*r*n
+
     vMatrix approximation;
 
     approximation.n_row = V->n_row;
@@ -325,19 +340,20 @@ double v_error(vMatrix *V, vMatrix *W, vMatrix *H) {
 
     v_matrix_allocation(&approximation);
 
-    v_matrix_mul(W, H, &approximation);
+    v_matrix_mul(W, H, &approximation);  // cost: B_col*A_col + 2*A_row*A_col*B_col = n*r + 2*m*r*n 
 
-    double V_norm = v_norm(V);
+    double V_norm = v_norm(V); // cost: 2 * matrix_row * matrix_col + 1 = 2*m*n + 1
     double approximation_norm;
 
-    for (int i = 0; i < V->n_row * V->n_col; i++)
-        approximation.M[i] = (V->M[i] - approximation.M[i]);
 
-    approximation_norm = v_norm(&approximation);
+    for (int i = 0; i < V->n_row * V->n_col; i++)
+        approximation.M[i] = (V->M[i] - approximation.M[i]); // cost: n*m
+
+    approximation_norm = v_norm(&approximation); // cost: 2 * matrix_row * matrix_col + 1 = 2*m*n + 1
 
     v_matrix_deallocation(&approximation);
 
-    return approximation_norm / V_norm;
+    return approximation_norm / V_norm; //cost: 1
 }
 
 
@@ -348,6 +364,8 @@ double v_error(vMatrix *V, vMatrix *W, vMatrix *H) {
  * @return the norm
  */
 double v_norm(vMatrix *matrix) {
+
+    // cost: 2 * matrix_row * matrix_col + 1
     double temp_norm = 0;
     for (int i = 0; i < matrix->n_row * matrix->n_col; i++)
         temp_norm += matrix->M[i] * matrix->M[i];
