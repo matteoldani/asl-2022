@@ -116,13 +116,13 @@ void baseline2( int numTests, int min, int max){
         //(3 + 7*r*n + 3*m*r + 6n*m + 10*m*r*n + 2*m*r*r + 2*r*r*n) * Number_of_iterations
         cost = 0;
         // init of W cost
-        cost += 4 * m * r;
-        // init of H cost
-        cost += 4 * r * n;
-        // nnmf cost
-        cost += (3 + 7*r*n + 3*m*r + 6*n*m + 10*m*r*n + 2*m*r*r + 2*r*r*n) * 100;
-        
 
+        cost += random_v_matrix_init_cost(&W);
+        cost += random_v_matrix_init_cost(&H);
+        cost += random_v_matrix_init_cost(&V); 
+
+        cost += nnm_factorization_bs2_cost(&V, &W, &H, 100);
+        
         #ifdef __x86_64__
         myInt64 cycles;
         myInt64 start;
@@ -247,12 +247,10 @@ void baseline1( int numTests, int min, int max){
         matrix_allocation(&H);
 
         //Call adequate cost functions
-        //(3 + 7*r*n + 3*m*r + 6n*m + 10*m*r*n + 2*m*r*r + 2*r*r*n) * Number_of_iterations
-        //Call adequate cost functions
 
         cost = random_matrix_init_cost(&W);
         cost += random_matrix_init_cost(&H);
-        cost += random_matrix_init_cost(&V); // should be removed since the V matrix is given
+        cost += random_matrix_init_cost(&V);
 
         cost += nnm_factorization_bs1_cost(&V, &W, &H, 100);
         

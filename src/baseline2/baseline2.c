@@ -133,8 +133,6 @@ void matrix_rtrans_mul_cm(vMatrix *A, vMatrix *B, vMatrix *R) {
 // RowMajor impl  ----Param num 10 has an illegal value (0.475054)
 void matrix_rtrans_mul_rm(vMatrix *A, vMatrix *B, vMatrix *R) {
 
-    ////WARNING: I changed the following, the working version (for Masa) is below! The following works for mac though :)
-    ////        This is the version that also works for linux (tested on asl-server)
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A->n_row, B->n_row, A->n_col, 1,
                 A->M, A->n_col, B->M, B->n_col,
@@ -372,3 +370,42 @@ double v_norm(vMatrix *matrix) {
 
     return sqrt(temp_norm);
 }
+
+
+
+/* --------------- COST FUNCTIONS ---------------- */
+/**
+ * @brief returns the cost of the function nnm_factorization_bs1
+ * @param V     the matrix to be factorized
+ * @param W     the first matrix in which V will be factorized
+ * @param H     the second matrix in which V will be factorized
+ */
+double nnm_factorization_bs2_cost(vMatrix *V, vMatrix *W, vMatrix *H, int numIterations) {
+    
+    unsigned long long n, m, r;
+    m = V->n_row;
+    n = V->n_col;
+    r = W->n_col;
+    return (double) (3 + 7*r*n + 3*m*r + 6*n*m + 10*m*r*n + 2*m*r*r + 2*r*r*n) * numIterations;
+}
+
+/**
+ * @brief returns the cost of the funcion random_acol_matrix_init
+ * @param V    matrix to be factorized
+ * @param W    factorizing matrix, initialized here
+ * @param q    number of columns of X averaged to obtsain a column of W
+ */
+long random_acol_v_matrix_init_cost(vMatrix* V, Matrix* W, int q)
+{
+    return W->n_col * (2 * q + V->n_row * q + V->n_row);
+}
+
+/**
+ * @brief returns the cost of the funcion random_matrix_init
+ * @param matrix    the matrix to be initialized, containing the info on its size
+ */
+long random_v_matrix_init_cost(vMatrix* matrix)
+{
+    return 5 * matrix->n_row * matrix->n_col;
+}
+
