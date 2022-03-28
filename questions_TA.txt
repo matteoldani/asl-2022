@@ -1,0 +1,1 @@
+- When doing the analysis of benchmark alternatives is it okay to look only at number of cycles / seconds taken to execute so we can take into account code in MatLab, R etc.
