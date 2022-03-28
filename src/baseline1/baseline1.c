@@ -184,7 +184,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
 	// i * (4 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col +
 	// 		2 * W->n_col * V->n_col * V->n_row +
 	//		2 * W->n_col * W->n_col * W->n_row +
-	//		2 * W->n_row * H->n_col * H->n_col +
+	//		2 * W->n_col * W->n_col * H->n_col +
 	//		2 * V->n_row * H->n_row * V->n_col +
 	//		2 * W->n_row * H->n_row * H->n_col +
 	//		2 * H->n_row * H->n_col +
@@ -230,7 +230,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     for (;;) {											// i * (4 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col +
 														// 		2 * W->n_col * V->n_col * V->n_row +
 														//		2 * W->n_col * W->n_col * W->n_row +
-														//		2 * W->n_row * H->n_col * H->n_col +
+														//		2 * W->n_col * W->n_col * H->n_col +
 														//		2 * V->n_row * H->n_row * V->n_col +
 														//		2 * W->n_row * H->n_row * H->n_col +
 														//		2 * H->n_row * H->n_col +
@@ -248,7 +248,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
         //computation for Hn+1
         matrix_ltrans_mul(W, V, &numerator);			// 2 * W->n_col * V->n_col * V->n_row **
         matrix_ltrans_mul(W, W, &denominator_l);		// 2 * W->n_col * W->n_col * W->n_row **
-        matrix_mul(&denominator_l, H, &denominator);	// 2 * W->n_row * H->n_col * H->n_col **
+        matrix_mul(&denominator_l, H, &denominator);	// 2 * W->n_col * W->n_col * H->n_col **
 
         for (int i = 0; i < H->n_row; i++) {			// 2 * H->n_row * H->n_col **
             for (int j = 0; j < H->n_col; j++) {
@@ -289,7 +289,7 @@ double nnm_factorization_bs1_cost(Matrix* V, Matrix* W, Matrix* H, int numIterat
            numIterations * (4 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col +
                             2 * W->n_col * V->n_col * V->n_row +
                             2 * W->n_col * W->n_col * W->n_row +
-                            2 * W->n_row * H->n_col * H->n_col +
+                            2 * W->n_col * W->n_col * H->n_col +
                             2 * V->n_row * H->n_row * V->n_col +
                             2 * W->n_row * H->n_row * H->n_col +
                             2 * H->n_row * H->n_col +

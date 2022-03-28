@@ -43,11 +43,15 @@ void generate_random_matrices(Matrix *matrix, vMatrix *vmatrix, double min, doub
 
 void random_v_matrix_init(vMatrix *matrix, double min, double max);
 
+void random_v_acol_matrix_init(vMatrix *V, vMatrix *W, int q);
+
 void v_matrix_allocation(vMatrix *matrix);
 
 void v_matrix_deallocation(vMatrix *matrix);
 
 void random_matrix_init(Matrix *matrix, double min, double max);
+
+void random_acol_matrix_init(Matrix *V, Matrix *W, int q);
 
 void matrix_allocation(Matrix *matrix);
 

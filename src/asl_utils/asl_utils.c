@@ -43,10 +43,13 @@ void matrix_allocation(Matrix *matrix) {
 /**
  * @brief deallocates the matrix
  * @param matrix    is the struct where the matrix will be deallocated
- */
+ */ 
 void matrix_deallocation(Matrix *matrix) {
-
+    for(int i=0; i<matrix->n_row;i++){
+        free(matrix->M[i]);
+    }
     free(matrix->M);
+    
 }
 
 /**
