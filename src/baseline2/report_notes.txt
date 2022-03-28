@@ -1,0 +1,6 @@
+- Different implementations of BLAS - taken into account
+- Cost of BLAS functions initially done by going through the Fortran code
+- Wondered about the cost of rand(), sqrt... - count them as 1 (happen rarely)
+- Wondered if we should count comparison as an op - no (happens rarely)
+- Making BLAS single threaded
+- OpenBLAS first! - if we have time, we can do a little analysis on different BLAS impls and their performance
