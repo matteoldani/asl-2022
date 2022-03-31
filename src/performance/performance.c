@@ -82,7 +82,7 @@ void baseline1_old( int numTests, int min, int max){
     }
 }
 
-void baseline2( int numTests, int min, int max){
+void baseline2( int numTests, int min, int max, FILE * fout){
     vMatrix V;
     vMatrix W, H;
     myInt64 m, n, r;
@@ -97,7 +97,7 @@ void baseline2( int numTests, int min, int max){
     int steps = (max - min) / numTests;
     for (int i = min; i < max; i += steps) {
         m = i;
-        n = i + steps;
+        n = i; //+ steps;
         r = 12;
 
         V.n_row = m;
@@ -211,12 +211,14 @@ void baseline2( int numTests, int min, int max){
 
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
-
+        if(fout != NULL){
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",m,r,n,cost, performance);
+        }
 
     }
 }
 
-void baseline1( int numTests, int min, int max){
+void baseline1( int numTests, int min, int max, FILE * fout){
     Matrix V;
     Matrix W, H;
     myInt64 m, n, r;
@@ -231,7 +233,7 @@ void baseline1( int numTests, int min, int max){
     int steps = (max - min) / numTests;
     for (int i = min; i < max; i += steps) {
         m = i;
-        n = i + steps;
+        n = i; //+ steps; 
         r = 12;
 
         V.n_row = m;
@@ -342,7 +344,9 @@ void baseline1( int numTests, int min, int max){
 
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
-
+         if(fout != NULL){
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",m,r,n,cost, performance);
+        }
     }
 }
 
@@ -354,30 +358,42 @@ int main(int argc, char const* argv[])
         printf("<baseline number [1,2]> ");
         printf("<min size matrix> ");
         printf("<max size matrix> ");
-        printf("<number of test>\n\n");
-
+        printf("<number of test>");
+        printf("<output_file>[?]\n\n");
         return 0;
     }
 
     int b, tests, min, max;
+    FILE *fout = NULL;
     b = atoi(argv[1]);
     
     min = atoi(argv[2]);
     max = atoi(argv[3]);
     tests = atoi(argv[4]);
-    
+
+    if (argc > 5){
+        fout = fopen(argv[5], "w+");
+        if (fout == NULL){
+            printf("Can't open output file\n");
+            exit(-1);
+        }
+        fprintf(fout, "m,r,n,cycles,performance\n");
+    }
+
     switch(b){
     case 1:
-        baseline1(tests, min, max);
+        baseline1(tests, min, max, fout);
         break;
     
     case 2:
-        baseline2(tests, min, max);
+        baseline2(tests, min, max, fout);
         break;
     
     default:
         break;
     }
+    if( fout != NULL)
+        fclose(fout);
 
     
     
