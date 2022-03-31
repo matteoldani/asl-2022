@@ -49,6 +49,19 @@ void deallocate_matrices(BaselineTestsuite *b) {
 
 int main(int argc, char const *argv[]) {
 
+    if(argc <= 1){
+        printf("How to use this tool:\n");
+        printf("/<path>/<to>/<binary> ");
+        printf("<number of test>");
+        printf("<min size matrix> ");
+        printf("<max size matrix> ");
+        printf("<max iteration> ");
+        printf("<epsilon> ");
+        printf("<low value boundary> ");
+        printf("<high value boundary> ");
+        return 0;
+    }
+
     int numTests, min, max, steps, maxIteration, count;
     int m, n, r;
     double epsilon, low, high;
