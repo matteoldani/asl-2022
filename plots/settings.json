@@ -2,19 +2,19 @@
     "title" : "Baselines performance",
     "type"  : "performance",
     "action": "save",
-    "output_file":"../outputs/tmp.pdf",
+    "output_file":"/home/asl/asl-2022/outputs/performance_bs12.pdf",
     "xlabel": "Input matrix size",
     "ylabel": "Flops/Cycle",
     
     "lines" : [
 
         {"label" : "bs2",
-            "input_file" : "../outputs/bs2_r0.out",
+            "input_file" : "/home/asl/asl-2022/outputs/bs2_r0.out",
             "color" : "black",
             "marker": "s"
         },
         {"label" : "bs1",
-         "input_file" : "../outputs/bs1_r0.out",
+         "input_file" : "/home/asl/asl-2022/outputs/bs1_r0.out",
          "color" : "firebrick",
          "marker": "D"
         }
