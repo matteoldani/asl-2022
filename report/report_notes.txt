@@ -4,3 +4,8 @@
 - Wondered if we should count comparison as an op - no (happens rarely)
 - Making BLAS single threaded
 - OpenBLAS first! - if we have time, we can do a little analysis on different BLAS impls and their performance
+- For benchmarking
+	- used seconds so we can run code in all languages
+	- same number of iterations
+	- same iteration method
+	- a machine, but different than the one we ran our code on regularly
