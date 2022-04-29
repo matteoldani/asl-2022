@@ -7,5 +7,7 @@
 - For benchmarking
 	- used seconds so we can run code in all languages
 	- same number of iterations
-	- same iteration method
-	- a machine, but different than the one we ran our code on regularly
+	- same init method - random
+	- one machine, but different than the one we ran our code on regularly (Viktor's computer)
+	- ran 3 times and averaged
+	- ran impls up to the sizes it could handle

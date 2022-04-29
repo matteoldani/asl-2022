@@ -1,0 +1,39 @@
+{
+    "title" : "Benchmarks - runtime comparison",
+    "type"  : "performance",
+    "action": "save",
+    "output_file":"C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/outputs/benchmarking_plot.pdf",
+    "xlabel": "Input matrix size",
+    "ylabel": "Seconds",
+    
+    "lines" : [
+
+		{"label" : "C implementation",
+         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/outputs/c.csv",
+         "color" : "limegreen",
+         "marker": "o"
+        },
+		{"label" : "baseline2",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/outputs/bs2.csv",
+            "color" : "black",
+            "marker": "s"
+        },
+		{"label" : "baseline1",
+         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/outputs/bs1.csv",
+         "color" : "firebrick",
+         "marker": "D"
+        },
+		{"label" : "R implementation",
+         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/outputs/r.csv",
+         "color" : "mediumorchid",
+         "marker": "^"
+        },
+		{"label" : "MATLAB implementation",
+         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/outputs/matlab.csv",
+         "color" : "mediumblue",
+         "marker": "P"
+        }
+
+
+    ]
+}
