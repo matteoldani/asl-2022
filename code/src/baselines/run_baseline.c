@@ -15,7 +15,7 @@ int main(int argc, char const *argv[]) {
     Matrix W, H;
 
     fact_function run_factorization;
-    int m, n, r, b;
+    int m, n, r, b = 0;
     m = 1000;
     n = 1000;
     r = 12;
@@ -66,7 +66,7 @@ int main(int argc, char const *argv[]) {
      
 
     double err = run_factorization(&V, &W, &H, 1000, 0.005);  // go to baseline1.c nnm_factorization_bs1 for cost
-    print("Error: %lf\n", err);
+    printf("Error: %lf\n", err);
 
     matrix_deallocation(&V);
     matrix_deallocation(&W);
