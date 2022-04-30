@@ -172,7 +172,6 @@ double nnm_factorization_bs2(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
      * (3 + 7*r*n + 3*m*r + 6n*m + 10*m*r*n + 2*m*r*r + 2*r*r*n) * Number_of_iterations
      * 
      */
-    int count = maxIteration;
 
     //Operands needed to compute Hn+1
     Matrix numerator, denominator_l, denominator;
@@ -189,18 +188,15 @@ double nnm_factorization_bs2(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     matrix_allocation(&denominator_l_W, W->n_row, H->n_col);
 
     //real convergence computation
-    double err;
+    double err = -1;
 
-    for (;;) {
+    for (int count = 0; count<maxIteration; count++) {
         err = error_bs2(V, W, H);     //cost: 3 + n*r + 5*m*n + 2*m*r*n
-        if (maxIteration > 0 && count == 0) {
-            break;
-        }
+
         //printf("%lf\n", err);
         if (err <= epsilon) {
             break;
         }
-        count--;
         
         //printf("Current error_bs2: %lf\n", err);
 

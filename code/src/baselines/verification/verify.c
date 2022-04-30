@@ -4,71 +4,49 @@ void testRun(int m, int n, int r, int maxIteration, double epsilon, double min, 
     double resultBS1, resultBS2;
     srand(SEED);
 
-    BaselineTestsuite baselineTestsuite;
-    generate_baseline_test_suite(&baselineTestsuite, m, n, r, min, max);
+    Matrices matrices;
+    generate_baseline_test_suite(&matrices, m, n, r, min, max);
 
-    resultBS1 = nnm_factorization_bs1(&baselineTestsuite.bs1Matrices.V, &baselineTestsuite.bs1Matrices.W,
-                                      &baselineTestsuite.bs1Matrices.H, maxIteration, epsilon);
-    resultBS2 = nnm_factorization_bs2(&baselineTestsuite.bs2Matrices.V, &baselineTestsuite.bs2Matrices.W,
-                                      &baselineTestsuite.bs2Matrices.H, maxIteration, epsilon);
-    printf("Results: error_bs1=%lf, error_bs2=%lf\n", resultBS1, resultBS2);
+    resultBS1 = nnm_factorization_bs1(&matrices.V, &matrices.W,
+                                      &matrices.H, maxIteration, epsilon);
+    resultBS2 = nnm_factorization_bs2(&matrices.V, &matrices.W,
+                                      &matrices.H, maxIteration, epsilon);
+    //printf("Results: error_bs1=%lf, error_bs2=%lf\n", resultBS1, resultBS2);
+    printf("ERROR: Difference: %f\n", fabs(resultBS1 - resultBS2));
     if (fabs(resultBS1 - resultBS2) > 0.000001) {
-        printf("ERROR: Difference: %f\n", fabs(resultBS1 - resultBS2));
-        printf("Parameters: m=%d, n=%d, r=%d\n", m, n, r);
+        //printf("Parameters: m=%d, n=%d, r=%d\n", m, n, r);
     }
 }
 
-void generate_baseline_test_suite(BaselineTestsuite *b, int m, int n, int r, double min, double max) {
+void generate_baseline_test_suite(Matrices *matrices, int m, int n, int r, double min, double max) {
 
-    allocate_base_matrices(&b->bs1Matrices, m, n, r);
-    allocate_base_matrices(&b->bs2Matrices, m, n, r);
+    allocate_base_matrices(matrices, m, n, r);
     
-    random_matrix_init(&b->bs1Matrices.V,min, max);
-    random_matrix_init(&b->bs2Matrices.V,min, max);
-
-    random_matrix_init(&b->bs1Matrices.W,min, max);
-    random_matrix_init(&b->bs2Matrices.W,min, max);
+    random_matrix_init(&matrices->V,min, max);
+    random_matrix_init(&matrices->W,min, max);
 
     // random_acol_matrix_init(&b->bs1Matrices.V,&b->bs1Matrices.W, 3);
     // random_acol_matrix_init(&b->bs2Matrices.V,&b->bs2Matrices.W, 3);
 
-    random_matrix_init(&b->bs1Matrices.H,min, max);
-    random_matrix_init(&b->bs2Matrices.H,min, max);
+    random_matrix_init(&matrices->H,min, max);
+
+    // printf("****************** Matrix V ******************\n");
+    // print_matrix(&matrices->V);
+    // printf("****************** Matrix W ******************\n");
+    // print_matrix(&matrices->W);
+    // printf("****************** Matrix H ******************\n");
+    // print_matrix(&matrices->H);
 
 }
 
-void deallocate_matrices(BaselineTestsuite *b) {
-
-    matrix_deallocation(&b->bs1Matrices.V);
-    matrix_deallocation(&b->bs1Matrices.W);
-    matrix_deallocation(&b->bs1Matrices.H);
-
-    matrix_deallocation(&b->bs2Matrices.V);
-    matrix_deallocation(&b->bs2Matrices.W);
-    matrix_deallocation(&b->bs2Matrices.H);
-}
 
 int main(int argc, char const *argv[]) {
-
-    // if(argc <= 7){
-    //     printf("How to use this tool:\n");
-    //     printf("/<path>/<to>/<binary> ");
-    //     printf("<number of test>");
-    //     printf("<min size matrix> ");
-    //     printf("<max size matrix> ");
-    //     printf("<max iteration> ");
-    //     printf("<epsilon> ");
-    //     printf("<low value boundary> ");
-    //     printf("<high value boundary> ");
-    //     return 0;
-    // }
 
     int numTests, min, max, steps, maxIteration, count;
     int m, n, r;
     double epsilon, low, high;
     
     printf("Those are the values required: \n");
-
 
     // read the number of tests to be executed
     printf("\tNum of Tests: ");
@@ -94,7 +72,7 @@ int main(int argc, char const *argv[]) {
     steps = (max - min) / numTests;
     count = 0;
     for (int i = min; i < max; i += steps) {
-        printf("Starting iteration: %d\n", i/steps);
+        //printf("Starting iteration: %d\n", i/steps);
         m = i;
         n = i + steps;
         r = 12;

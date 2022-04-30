@@ -65,7 +65,7 @@ int main(int argc, char const *argv[]) {
     random_matrix_init(&H, 0, 1);          // 5 * H->n_row * H->n_col
      
 
-    double err = run_factorization(&V, &W, &H, 1000, 0.005);  // go to baseline1.c nnm_factorization_bs1 for cost
+    double err = run_factorization(&V, &W, &H, 10000, 0.005);  // go to baseline1.c nnm_factorization_bs1 for cost
     printf("Error: %lf\n", err);
 
     matrix_deallocation(&V);
