@@ -215,6 +215,8 @@ double nnm_factorization_bs2(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
 
         for (int i = 0; i < W->n_row * W->n_col; i++)
             W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i]; // 2*m*r
+
+        //printf("Baseline 2 err: %lf\n", err);
     }
 
     matrix_deallocation(&numerator);
@@ -223,6 +225,8 @@ double nnm_factorization_bs2(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     matrix_deallocation(&numerator_W);
     matrix_deallocation(&denominator_W);
     matrix_deallocation(&denominator_l_W);
+
+    
     return err;
 }
 

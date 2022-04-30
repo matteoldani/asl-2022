@@ -116,7 +116,6 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
 
     //real convergence computation
     double err = -1;											
-    err = error_bs1(V, W, H);								// 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3
     for (int count = 0; count < maxIteration; count++) {											// i * (4 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col +
 														// 		2 * W->n_col * V->n_col * V->n_row +
 														//		2 * W->n_col * W->n_col * W->n_row +
@@ -125,12 +124,13 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
 														//		2 * W->n_row * H->n_row * H->n_col +
 														//		2 * H->n_row * H->n_col +
 														//		2 * W->n_row * W->n_col + 3)
-
+        
+        err = error_bs1(V, W, H);
         if (err <= epsilon) {							// *** is comparison an op
             break;
         }
  
-        err = error_bs1(V, W, H);							// 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3 **
+        							// 2 * W->n_row * H->n_col * W->n_col + 5 * V->n_row * V->n_col + 3 **
         //printf("Current error_bs1: %lf\n", err);
 
         //computation for Hn+1
@@ -154,7 +154,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
                 W->M[i * W->n_col + j] = W->M[i * W->n_col + j] * numerator_W.M[i * numerator_W.n_col + j] / denominator_W.M[i * denominator_W.n_col + j];
             }
         }
-
+    //printf("Baseline 1 err: %lf\n", err);
     }
 
     matrix_deallocation(&numerator);
@@ -163,7 +163,7 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     matrix_deallocation(&numerator_W);
     matrix_deallocation(&denominator_W);
     matrix_deallocation(&denominator_l_W);
-
+    
     return err;
 }
 

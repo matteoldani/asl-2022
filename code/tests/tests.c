@@ -32,15 +32,19 @@ int test_matrix_mult_bs1(){
 
     FILE *f;
 
-    f = fopen("inputs/A_mul.matrix", "r");
+    f = fopen("A_mul.matrix", "r");
+    if (f == NULL){
+        printf("Error opening file\n");
+        return 0;
+    }
     read_matrix_from_file(&A, f);
     fclose(f);
 
-    f = fopen("inputs/B_mul.matrix", "r");
+    f = fopen("B_mul.matrix", "r");
     read_matrix_from_file(&B, f);
     fclose(f);
 
-    f = fopen("inputs/R_mul.matrix", "r");
+    f = fopen("R_mul.matrix", "r");
     read_matrix_from_file(&R_Real, f);
     fclose(f);
 
@@ -66,15 +70,15 @@ int test_matrix_ltrans_mult_bs1(){
 
     FILE *f;
 
-    f = fopen("inputs/A_ltrans_mul.matrix", "r");
+    f = fopen("A_ltrans_mul.matrix", "r");
     read_matrix_from_file(&A, f);
     fclose(f);
 
-    f = fopen("inputs/B_ltrans_mul.matrix", "r");
+    f = fopen("B_ltrans_mul.matrix", "r");
     read_matrix_from_file(&B, f);
     fclose(f);
 
-    f = fopen("inputs/R_ltrans_mul.matrix", "r");
+    f = fopen("R_ltrans_mul.matrix", "r");
     read_matrix_from_file(&R_Real, f);
     fclose(f);
 
@@ -98,15 +102,15 @@ int test_matrix_rtrans_mult_bs1(){
 
     FILE *f;
 
-    f = fopen("inputs/A_rtrans_mul.matrix", "r");
+    f = fopen("A_rtrans_mul.matrix", "r");
     read_matrix_from_file(&A, f);
     fclose(f);
 
-    f = fopen("inputs/B_rtrans_mul.matrix", "r");
+    f = fopen("B_rtrans_mul.matrix", "r");
     read_matrix_from_file(&B, f);
     fclose(f);
 
-    f = fopen("inputs/R_rtrans_mul.matrix", "r");
+    f = fopen("R_rtrans_mul.matrix", "r");
     read_matrix_from_file(&R_Real, f);
     fclose(f);
 
@@ -130,15 +134,15 @@ int test_matrix_mult_bs2(){
 
     FILE *f;
 
-    f = fopen("inputs/A_mul.matrix", "r");
+    f = fopen("A_mul.matrix", "r");
     read_matrix_from_file(&A, f);
     fclose(f);
 
-    f = fopen("inputs/B_mul.matrix", "r");
+    f = fopen("B_mul.matrix", "r");
     read_matrix_from_file(&B, f);
     fclose(f);
 
-    f = fopen("inputs/R_mul.matrix", "r");
+    f = fopen("R_mul.matrix", "r");
     read_matrix_from_file(&R_Real, f);
     fclose(f);
 
@@ -162,15 +166,15 @@ int test_matrix_ltrans_mult_bs2(){
 
     FILE *f;
 
-    f = fopen("inputs/A_ltrans_mul.matrix", "r");
+    f = fopen("A_ltrans_mul.matrix", "r");
     read_matrix_from_file(&A, f);
     fclose(f);
 
-    f = fopen("inputs/B_ltrans_mul.matrix", "r");
+    f = fopen("B_ltrans_mul.matrix", "r");
     read_matrix_from_file(&B, f);
     fclose(f);
 
-    f = fopen("inputs/R_ltrans_mul.matrix", "r");
+    f = fopen("R_ltrans_mul.matrix", "r");
     read_matrix_from_file(&R_Real, f);
     fclose(f);
 
@@ -194,15 +198,15 @@ int test_matrix_rtrans_mult_bs2(){
 
     FILE *f;
 
-    f = fopen("inputs/A_rtrans_mul.matrix", "r");
+    f = fopen("A_rtrans_mul.matrix", "r");
     read_matrix_from_file(&A, f);
     fclose(f);
 
-    f = fopen("inputs/B_rtrans_mul.matrix", "r");
+    f = fopen("B_rtrans_mul.matrix", "r");
     read_matrix_from_file(&B, f);
     fclose(f);
 
-    f = fopen("inputs/R_rtrans_mul.matrix", "r");
+    f = fopen("R_rtrans_mul.matrix", "r");
     read_matrix_from_file(&R_Real, f);
     fclose(f);
 
@@ -218,107 +222,84 @@ int test_matrix_rtrans_mult_bs2(){
     return 0;
 }
 
-int test_nnm_bs1(){
-    Matrix W_computed; 
-    Matrix H_computed;
-    Matrix V;
-    Matrix W_real;
-    Matrix H_real;
-
-
-    FILE *f;
-
-    f = fopen("inputs/W_nnm_init.matrix", "r");
-    read_matrix_from_file(&W_computed, f);
-    fclose(f);
-
-
-    f = fopen("inputs/H_nnm_init.matrix", "r");
-    read_matrix_from_file(&H_computed, f);
-    fclose(f);
-
-    f = fopen("inputs/V_nnm.matrix", "r");
-    read_matrix_from_file(&V, f);
-    fclose(f);
-
-    f = fopen("inputs/W_nnm.matrix", "r");
-    read_matrix_from_file(&W_real, f);
-    fclose(f);
-
-    f = fopen("inputs/H_nnm.matrix", "r");
-    read_matrix_from_file(&H_real, f);
-    fclose(f);
-
-
-    nnm_factorization_bs1(&V, &W_computed, &H_computed, 1000, 0.001);
-
-    for(int i=0; i<H_computed.n_col*H_computed.n_row; i++){
-        if( fabs(H_computed.M[i] - H_real.M[i]) > TOLERANCE){
-            printf("Error: %lf\t",fabs(H_computed.M[i] - H_real.M[i]) );
-            return -1;
-        }
-    }
-
-    return 0;
-
-
-}
-
-
 int test_nnm_bs2(){
-    Matrix W_computed; 
-    Matrix H_computed;
-    Matrix V;
-    Matrix W_real;
-    Matrix H_real;
+    
+    double resultBS1, resultBS2;
+    srand(SEED);
+    int m = 400;
+    int n = 400;
+    int r = 20;
+    int min = 0;
+    int max = 100;
+    int maxIteration = 1000;
+    int epsilon = 0.05;
+    Matrices matrices;
+    Matrix W_temp;
+    Matrix H_temp;
 
+    allocate_base_matrices(&matrices, m, n, r);
+    
+    random_matrix_init(&matrices.V,min, max);
+    random_matrix_init(&matrices.W,min, max);
 
-    FILE *f;
+    // random_acol_matrix_init(&b->bs1Matrices.V,&b->bs1Matrices.W, 3);
+    // random_acol_matrix_init(&b->bs2Matrices.V,&b->bs2Matrices.W, 3);
 
-    f = fopen("inputs/W_nnm_init.matrix", "r");
-    read_matrix_from_file(&W_computed, f);
-    fclose(f);
+    random_matrix_init(&matrices.H,min, max);
+    // copy the matrices 
+    matrix_allocation(&W_temp, matrices.W.n_row, matrices.W.n_col);
+    matrix_allocation(&H_temp, matrices.H.n_row, matrices.H.n_col);
+    
+    for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
+        W_temp.M[i] = matrices.W.M[i];
+    }
 
+    for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
+        H_temp.M[i] = matrices.H.M[i];
+    }
 
-    f = fopen("inputs/H_nnm_init.matrix", "r");
-    read_matrix_from_file(&H_computed, f);
-    fclose(f);
+    resultBS1 = nnm_factorization_bs1(&matrices.V, &matrices.W,
+                                      &matrices.H, maxIteration, epsilon);
 
-    f = fopen("inputs/V_nnm.matrix", "r");
-    read_matrix_from_file(&V, f);
-    fclose(f);
-
-    f = fopen("inputs/W_nnm.matrix", "r");
-    read_matrix_from_file(&W_real, f);
-    fclose(f);
-
-    f = fopen("inputs/H_nnm.matrix", "r");
-    read_matrix_from_file(&H_real, f);
-    fclose(f);
-
-
-    nnm_factorization_bs2(&V, &W_computed, &H_computed, 1000, 0.001);
-
-    for(int i=0; i<H_computed.n_col*H_computed.n_row; i++){
-        if( fabs(H_computed.M[i] - H_real.M[i]) > TOLERANCE){
-            printf("Error: %lf\t",fabs(H_computed.M[i] - H_real.M[i]) );
+    resultBS2 = nnm_factorization_bs2(&matrices.V, &W_temp,
+                                      &H_temp, maxIteration, epsilon);
+    if (fabs(resultBS1 - resultBS2) > 0.000001) {
+        printf("Results: error_bs1=%lf, error_bs2=%lf\t", resultBS1, resultBS2);
+        return -1;
+    }
+   
+    for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
+        if (fabs(H_temp.M[i] - matrices.H.M[i]) > 0.000001){
+            printf("H_bs1[%d][%d] - H_bs2[%d][%d] diff by %lf\t", i,i/H_temp.n_col,i,i/H_temp.n_col,fabs(H_temp.M[i] - matrices.H.M[i]));
             return -1;
         }
     }
 
+    for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
+        if (fabs(W_temp.M[i] - matrices.W.M[i]) > 0.000001){
+            printf("W_bs1[%d][%d] - W_bs2[%d][%d] diff by %lf\t", i,i/W_temp.n_col,i,i/W_temp.n_col,fabs(W_temp.M[i] - matrices.W.M[i]));
+            return -1;
+        }
+    }
     return 0;
 
-
 }
+
+
 
 
 int main(int argc, char const *argv[])
 {
+    char *default_path = "/home/asl/asl-2022/code/tests/inputs";
     if(argc == 1){
-        printf("Pleas specify the full path where to find the input for the tests\n");
+        printf("No path specified, using default: %s \n", default_path);
+        chdir(default_path);
+    }else{
+        chdir(argv[1]);
     }
-    chdir(argv[1]);
-    printf("################ Startinf general test ################\n\n");
+
+    
+    printf("################ Starting general test ################\n\n");
 
     int result;
     int sum_results = 0;
@@ -328,10 +309,6 @@ int main(int argc, char const *argv[])
     print_test_status(result);
     sum_results += result;
 
-    printf("Matrix mult bs1:");
-    result = test_matrix_mult_bs1();
-    print_test_status(result);
-    sum_results += result;
 
     printf("Matrix ltrans mult bs1:");
     result = test_matrix_ltrans_mult_bs1();
@@ -358,20 +335,16 @@ int main(int argc, char const *argv[])
     print_test_status(result);
     sum_results += result;
 
-    printf("NNM bs1:");
-    result = test_nnm_bs1();
-    print_test_status(result);
-    sum_results += result;
-
-    printf("NNM bs2:");
+    printf("NNM bs2:\t");
     result = test_nnm_bs2();
     print_test_status(result);
     sum_results += result;
 
+    
     if(sum_results == 0){
-        printf("Test completed. All test PASSED\n");
+        printf("\nTest completed. All test \e[32mPASSED\e[0m\n");
     }else{
-        printf("Test completed. Numer of test failed: %d\n", sum_results*-1);
+        printf("\nTest completed. Numer of test \e[0;31mFAILED\e[0m: %d\n", sum_results*-1);
     }
     return 0;
 }
