@@ -1,12 +1,8 @@
-#include "verify.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include "math.h"
+#include <baselines/verification/verify.h>
 
 void testRun(int m, int n, int r, int maxIteration, double epsilon, double min, double max) {
     double resultBS1, resultBS2;
-    srand(time(NULL));
+    srand(SEED);
 
     BaselineTestsuite baselineTestsuite;
     generate_baseline_test_suite(&baselineTestsuite, m, n, r, min, max);
@@ -24,16 +20,20 @@ void testRun(int m, int n, int r, int maxIteration, double epsilon, double min, 
 
 void generate_baseline_test_suite(BaselineTestsuite *b, int m, int n, int r, double min, double max) {
 
-    initialise_bs1_matrices(&b->bs1Matrices, m, n, r);
-    initialise_bs2_matrices(&b->bs2Matrices, m, n, r);
+    allocate_base_matrices(&b->bs1Matrices, m, n, r);
+    allocate_base_matrices(&b->bs2Matrices, m, n, r);
+    
+    random_matrix_init(&b->bs1Matrices.V,min, max);
+    random_matrix_init(&b->bs2Matrices.V,min, max);
 
-    generate_random_matrices(&b->bs1Matrices.V, &b->bs2Matrices.V, min, max);
-    //These should be part of the algorithm
-    generate_random_matrices(&b->bs1Matrices.W, &b->bs2Matrices.W, min, max);
-    generate_random_matrices(&b->bs1Matrices.H, &b->bs2Matrices.H, min, max);
+    random_matrix_init(&b->bs1Matrices.W,min, max);
+    random_matrix_init(&b->bs2Matrices.W,min, max);
 
-    //random_acol_matrix_init(&b->bs1Matrices.V,&b->bs1Matrices.W, 3 );
-    //random_v_acol_matrix_init(&b->bs2Matrices.V,&b->bs2Matrices.W, 3 ) ;
+    // random_acol_matrix_init(&b->bs1Matrices.V,&b->bs1Matrices.W, 3);
+    // random_acol_matrix_init(&b->bs2Matrices.V,&b->bs2Matrices.W, 3);
+
+    random_matrix_init(&b->bs1Matrices.H,min, max);
+    random_matrix_init(&b->bs2Matrices.H,min, max);
 
 }
 
@@ -42,43 +42,59 @@ void deallocate_matrices(BaselineTestsuite *b) {
     matrix_deallocation(&b->bs1Matrices.V);
     matrix_deallocation(&b->bs1Matrices.W);
     matrix_deallocation(&b->bs1Matrices.H);
-    v_matrix_deallocation(&b->bs2Matrices.V);
-    v_matrix_deallocation(&b->bs2Matrices.W);
-    v_matrix_deallocation(&b->bs2Matrices.H);
+
+    matrix_deallocation(&b->bs2Matrices.V);
+    matrix_deallocation(&b->bs2Matrices.W);
+    matrix_deallocation(&b->bs2Matrices.H);
 }
 
 int main(int argc, char const *argv[]) {
 
-    if(argc <= 1){
-        printf("How to use this tool:\n");
-        printf("/<path>/<to>/<binary> ");
-        printf("<number of test>");
-        printf("<min size matrix> ");
-        printf("<max size matrix> ");
-        printf("<max iteration> ");
-        printf("<epsilon> ");
-        printf("<low value boundary> ");
-        printf("<high value boundary> ");
-        return 0;
-    }
+    // if(argc <= 7){
+    //     printf("How to use this tool:\n");
+    //     printf("/<path>/<to>/<binary> ");
+    //     printf("<number of test>");
+    //     printf("<min size matrix> ");
+    //     printf("<max size matrix> ");
+    //     printf("<max iteration> ");
+    //     printf("<epsilon> ");
+    //     printf("<low value boundary> ");
+    //     printf("<high value boundary> ");
+    //     return 0;
+    // }
 
     int numTests, min, max, steps, maxIteration, count;
     int m, n, r;
     double epsilon, low, high;
+    
+    printf("Those are the values required: \n");
+
+
     // read the number of tests to be executed
+    printf("\tNum of Tests: ");
     fscanf(stdin, "%d", &numTests);
+    
     // read the minimal and maximal size of the matrices
+    printf("\tMin & Max: ");
     fscanf(stdin, "%d %d", &min, &max);
+
     // read the maxIteration
+    printf("\tMax Iterations: ");
     fscanf(stdin, "%d", &maxIteration);
     // read the epsilon
+
+    printf("\tEpsilon: ");
     fscanf(stdin, "%lf", &epsilon);
+
     // read the low and high of the values in the matrices
+    printf("\tLow & High: ");
     fscanf(stdin, "%lf %lf", &low, &high);
+
 
     steps = (max - min) / numTests;
     count = 0;
     for (int i = min; i < max; i += steps) {
+        printf("Starting iteration: %d\n", i/steps);
         m = i;
         n = i + steps;
         r = 12;

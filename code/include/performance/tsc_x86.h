@@ -1,3 +1,5 @@
+#include <asl.h>
+
 /* ==================== GNU C and possibly other UNIX compilers ===================== */
 #if !defined(WIN32) || defined(__GNUC__)
 
@@ -11,13 +13,11 @@
 		#define VOLATILE
 	#endif
 
-	#define myInt64 unsigned long long
 	#define INT32 unsigned int
 
 /* ======================== WIN32 ======================= */
 #else
 
-	#define myInt64 signed __int64
 	#define INT32 unsigned __int32
 
 #endif
@@ -33,7 +33,7 @@
 #define COUNTER_VAL(a) ((a).int64)
 
 #define COUNTER(a) \
-	((unsigned long long)COUNTER_VAL(a))
+	((myInt64)COUNTER_VAL(a))
 
 #define COUNTER_DIFF(a,b) \
 	(COUNTER(a)-COUNTER(b))

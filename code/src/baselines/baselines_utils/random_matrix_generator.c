@@ -71,7 +71,6 @@ void output_matrix(int rows, int cols, int r_out, double min, double max) {
     }
 }
 
-
 /* generate a random floating point number from min to max */
 double rand_from(double min, double max) {
 
