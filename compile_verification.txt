@@ -1,1 +1,0 @@
-gcc -I/opt/openblas/include -pthread -O3 -Wall baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -o verification.out -L/opt/openblas/lib -lm -lpthread -lopenblas_nonthreaded
