@@ -16,6 +16,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
     double performance;
     
     int num_runs = NUM_RUNS;
+    int max_iterations = 10;
 
     int steps = (max - min) / numTests;
     for (int i = min; i < max; i += steps) {
@@ -33,7 +34,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
         cost += random_matrix_init_cost(&H);
         cost += random_matrix_init_cost(&V);
 
-        cost += fact_cost_function(&V, &W, &H, 100);
+        cost += fact_cost_function(&V, &W, &H, max_iterations);
 
         #ifdef __x86_64__
         myInt64 cycles;
@@ -47,7 +48,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
                 random_matrix_init(&H, 0, 1);
                 random_matrix_init(&V, 0, 1);
 
-                fact_function(&V, &W, &H, 100, 0.005);
+                fact_function(&V, &W, &H, max_iterations, 0.005);
             }
             cycles = stop_tsc(start);
 
@@ -64,7 +65,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
             random_matrix_init(&H, 0, 1);
             random_matrix_init(&V, 0, 1);
 
-            fact_function(&V, &W, &H, 100, 0.005);
+            fact_function(&V, &W, &H, max_iterations, 0.005);
         }
 
         cycles = stop_tsc(start)/num_runs;
