@@ -5,6 +5,14 @@
 #define TOLERANCE 0
 #define NUM_RUNS 10
 
+#define M_PERF 200
+#define N_PERF 200
+#define R_PERF 5
+
+// m = rand_from(100, 300);
+//         n = rand_from(100, 300);
+//         r = 5;
+
 static void print_test_status(int return_value){
     if(return_value == -1){
         printf("\t\e[0;31mFAIL\e[0m");
@@ -213,22 +221,18 @@ int test_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, d
 
 }
 
-int performance_analysis_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Matrix *R)) {
+myInt64 performance_analysis_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Matrix *R)) {
     Matrix V;
     Matrix W, H;
-    myInt64 m, n, r;
 
-    int performance = 0;
+    myInt64 performance = 0;
     int num_runs = NUM_RUNS;
 
     for (int i = 0; i < num_runs; i++) {
-        m = rand_from(100, 300);
-        n = rand_from(100, 300);
-        r = 5;
 
-        matrix_allocation(&V, m, r);
-        matrix_allocation(&W, r, n);
-        matrix_allocation(&H, m, n);
+        matrix_allocation(&V, M_PERF, R_PERF);
+        matrix_allocation(&W, R_PERF, N_PERF);
+        matrix_allocation(&H, M_PERF, N_PERF);
 
         #ifdef __x86_64__
         myInt64 cycles;
@@ -268,24 +272,19 @@ int performance_analysis_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Matrix 
     return performance / NUM_RUNS;
 }
 
-double performance_analysis_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)) {
+myInt64 performance_analysis_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)) {
     Matrix V;
     Matrix W, H;
-    myInt64 m, n, r;
 
-    int performance = 0;
+    myInt64 performance = 0;
     int num_runs = NUM_RUNS;
     int maxIterations = 200;
     double epsilon = 0.05;
 
     for (int i = 0; i < num_runs; i++) {
-        m = rand_from(100, 300);
-        n = rand_from(100, 300);
-        r = 5;
-
-        matrix_allocation(&V, m, n);
-        matrix_allocation(&W, m, r);
-        matrix_allocation(&H, r, n);
+        matrix_allocation(&V, M_PERF, R_PERF);
+        matrix_allocation(&W, R_PERF, N_PERF);
+        matrix_allocation(&H, M_PERF, N_PERF);
 
         #ifdef __x86_64__
         myInt64 cycles;
@@ -336,7 +335,7 @@ void run_tests(int n,
 
     int result;
     int sum_results = 0;
-    int performance = 0;
+    myInt64 performance = 0;
 
     for (int i = 0; i < n; i++) {
             printf("Matrix mult implementation %i:\t\t", i);
@@ -344,28 +343,28 @@ void run_tests(int n,
             print_test_status(result);
             sum_results += result;
             performance = performance_analysis_matrix_mult(mmul[i]);
-            printf("\t%11i cycles\n", performance);
+            printf("\tcycles: %llu\n", performance);
 
             printf("Matrix ltrans mult implementation %i:\t", i);
             result = test_matrix_ltrans_mult(mmulltrans[i]);
             print_test_status(result);
             sum_results += result;
             performance = performance_analysis_matrix_mult(mmulltrans[i]);
-            printf("\t%11i cycles\n", performance);
+            printf("\tcycles: %llu\n", performance);
 
             printf("Matrix rtrans mult implementation %i:\t", i);
             result = test_matrix_rtrans_mult(mmulrtrans[i]);
             print_test_status(result);
             sum_results += result;
             performance = performance_analysis_matrix_mult(mmulrtrans[i]);
-            printf("\t%11i cycles\n", performance);
+            printf("\tcycles: %llu\n", performance);
 
             printf("NNM implementation %i:\t\t\t", i);
             result = test_nnm(nnm[i]);
             print_test_status(result);
             sum_results += result;
             performance = performance_analysis_nnm(nnm[i]);
-            printf("\t%11i cycles\n", performance);
+            printf("\tcycles: %llu\n", performance);
     }
     
     if(sum_results == 0){
