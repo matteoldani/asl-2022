@@ -22,7 +22,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
     for (int i = min; i < max; i += steps) {
         m = i;
         n = i; //+ steps; 
-        r = 12;
+        r = 3;
 
         matrix_allocation(&V, m, n);
         matrix_allocation(&W, m, r);
