@@ -96,24 +96,24 @@ inline void matrix_rtrans_mul(double* A, int A_n_row, int A_n_col, double* B, in
  * @param n         is the number of columns in V
  * @param r         is the factorization parameter
  * @param mn        is the number of elements in matrices V and approx
- * @param norm_V    is the norm of matrix V
+ * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul(W, m, r, H, r, n, approx, m, n);
 
-    double norm_approx;
-
-    for (int i = 0; i < mn; i++)
-        approx[i] = V[i] - approx[i];
+    double norm_approx, temp;
 
     norm_approx = 0;
     for (int i = 0; i < mn; i++)
-        norm_approx += approx[i] * approx[i];
+    {
+        temp = V[i] - approx[i];
+        norm_approx += temp * temp;
+    }
     norm_approx = sqrt(norm_approx);
 
-    return norm_approx / norm_V;
+    return norm_approx * norm_V;
 }
 
 /**
@@ -155,7 +155,7 @@ double nnm_factorization(double *V, double*W, double*H, int m, int n, int r, int
     double norm_V = 0;
     for (int i = 0; i < mn; i++)
         norm_V += V[i] * V[i];
-    norm_V = sqrt(norm_V);
+    norm_V = 1 / sqrt(norm_V);
 
     //real convergence computation
     double err = -1;											
@@ -253,6 +253,8 @@ int main(int argc, char const* argv[]) {
 
     int mn, nr, mr;
 
+    double rand_max_r = 1 / (double)RAND_MAX;
+
     if (argc != 2 && argc != 4) {
         printf("This program can be run in tow different modes:\n");
         printf("\t./ <m> <n> <r>\n");
@@ -270,7 +272,7 @@ int main(int argc, char const* argv[]) {
         mn = m * n;
         V = malloc(double_size * mn);
         for (int i = 0; i < mn; i++)
-            V[i] = rand() / (double)RAND_MAX;
+            V[i] = rand() * rand_max_r;
     }
 
     if (argc == 2) {
@@ -289,9 +291,9 @@ int main(int argc, char const* argv[]) {
     H = malloc(double_size * nr);
 
     for (int i = 0; i < mr; i++)
-        W[i] = rand() / (double)RAND_MAX;
+        W[i] = rand() * rand_max_r;
     for (int i = 0; i < nr; i++)
-        H[i] = rand() / (double)RAND_MAX;
+        H[i] = rand() * rand_max_r;
 
     double err = nnm_factorization(V, W, H, m, n, r, 10000, 0.005);
     printf("Error: %lf\n", err);

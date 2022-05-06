@@ -9,5 +9,22 @@
 	- same number of iterations
 	- same init method - random
 	- one machine, but different than the one we ran our code on regularly (Viktor's computer)
+	- R is 3
 	- ran 3 times and averaged
 	- ran impls up to the sizes it could handle
+- note the R value for each plot
+
+- Optimizations:
+*Basic optimizations:
+	- everything was put into a single file
+	- functions were marked as inline
+	- removed struct, now just using double*
+	- removed function calls for allocation and deallocation
+	- calculation of the norm of V is now done only once
+	- matrix needed to calculate error (approx) is allocated only once
+	- removed call for calculating the norm - now done in place
+	- in the error function, two loops over the approx matrix were 	replaced with one + scalar replacement added and number of 	accesses to memory reduced by 1/3 per function call
+	- error function now takes 1 / norm of V as a parameter so a div 	was replaced with a mul
+	- dimensions of all matrices calculated only once and reused
+	- double loops over matrices replaced with a single loop going 	sequentially over all elements (index calc simplified)
+	- 1 / RAND_MAX was precalculated so all divisions during init are 	now multiplications
