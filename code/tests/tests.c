@@ -837,11 +837,11 @@ int main(int argc, char const *argv[])
     void (*mmul[n]) (Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n]) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    n = 1;  // Number of optimizations
-    void (*mmulrtransd[n]) (double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col);
-    void (*mmulltransd[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col);
-    void (*mmuld[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col);
-    double (*nnmd[n]) (double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon);
+    int n_2 = 1;  // Number of optimizations
+    void (*mmulrtransd[n_2]) (double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col);
+    void (*mmulltransd[n_2]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col);
+    void (*mmuld[n_2]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col);
+    double (*nnmd[n_2]) (double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon);
 
     // START TODO:
     // Now add the functions you would like to test from the impleemntations:
@@ -859,13 +859,13 @@ int main(int argc, char const *argv[])
 
     run_tests(n, mmul, mmulltrans, mmulrtrans, nnm);
 
-    mmuld[0] = matrix_mul;
-    mmulrtransd[0] = matrix_rtrans_mul;
-    mmulltransd[0] = matrix_ltrans_mul;
+    //mmuld[0] = matrix_mul;
+    //mmulrtransd[0] = matrix_rtrans_mul;
+    //mmulltransd[0] = matrix_ltrans_mul;
     nnmd[0] = nnm_factorization;
     
     // END TODO
 
-    run_tests_d(n, mmuld, mmulrtransd, mmulltransd, nnmd);
+    run_tests_d(n_2, mmuld, mmulrtransd, mmulltransd, nnmd);
     return 0;
 }
