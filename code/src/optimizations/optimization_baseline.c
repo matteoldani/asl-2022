@@ -199,7 +199,7 @@ double nnm_factorization(double *V, double*W, double*H, int m, int n, int r, int
  * @param n_row     number of rows in the matrix
  * @param n_col     number of columns in the martix
  */
-void print_matrix(double* matrix, int n_row, int n_col) {
+void print_matrix_opt(double* matrix, int n_row, int n_col) {
 
     printf("Printing a matrix with %d rows and %d cols\n\n", n_row, n_col);
     for (int row = 0; row < n_row; row++) {
@@ -222,7 +222,7 @@ void print_matrix(double* matrix, int n_row, int n_col) {
  * @param r         is the factorization parameter
  * @param file      is the file to read the matrix from
  */
-void allocate_from_file(double* matrix, int* m, int* n, int* r, FILE* file) {
+void allocate_from_file_opt(double* matrix, int* m, int* n, int* r, FILE* file) {
 
     printf("Reading matrix information: \n");
 
@@ -241,7 +241,7 @@ void allocate_from_file(double* matrix, int* m, int* n, int* r, FILE* file) {
         fscanf(file, "%lf", matrix + i);
 }
 
-int main(int argc, char const* argv[]) {
+int main_opt(int argc, char const* argv[]) {
 
     double *V;      //m x n
     double *W, *H;  //m x r and r x n
@@ -282,7 +282,7 @@ int main(int argc, char const* argv[]) {
             return -1;
         }
 
-        allocate_from_file(V, &m, &n, &r, fp);
+        allocate_from_file_opt(V, &m, &n, &r, fp);
     }
 
     mr = m * r;

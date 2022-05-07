@@ -76,19 +76,19 @@ int test_matrix_mult_d(void (*mmuld) (double* A, int A_n_row, int A_n_col, doubl
         printf("Error opening file\n");
         return 0;
     }
-    read_double_from_file(&A, f);
+    A_size = read_double_from_file(A, f);
     fclose(f);
 
     f = fopen("B_mul.matrix", "r");
-    read_double_from_file(&B, f);
+    B_size = read_double_from_file(B, f);
     fclose(f);
 
     f = fopen("R_mul.matrix", "r");
-    R_Real_size = read_double_from_file(&R_Real, f);
+    R_Real_size = read_double_from_file(R_Real, f);
     fclose(f);
 
     R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
-    mmuld(&A, A_size.n_row, A_size.n_col, &B, B_size.n_row, B_size.n_col, &R_Computed, R_Real_size.n_row, R_Real_size.n_col);
+    mmuld(A, A_size.n_row, A_size.n_col, B, B_size.n_row, B_size.n_col, R_Computed, R_Real_size.n_row, R_Real_size.n_col);
 
     for(int i=0; i<R_Real_size.n_col*R_Real_size.n_row; i++){
         if( fabs(R_Computed[i] - R_Real[i]) > TOLERANCE){            
@@ -121,19 +121,19 @@ int test_matrix_ltrans_mult_d(void (*mmulltransd) (double* A, int A_n_row, int A
         printf("Error opening file\n");
         return 0;
     }
-    read_double_from_file(&A, f);
+    A_size = read_double_from_file(A, f);
     fclose(f);
 
     f = fopen("B_ltrans_mul.matrix", "r");
-    read_double_from_file(&B, f);
+    B_size = read_double_from_file(B, f);
     fclose(f);
 
     f = fopen("R_ltrans_mul.matrix", "r");
-    R_Real_size = read_double_from_file(&R_Real, f);
+    R_Real_size = read_double_from_file(R_Real, f);
     fclose(f);
 
     R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
-    mmulltransd(&A, A_size.n_row, A_size.n_col, &B, B_size.n_row, B_size.n_col, &R_Computed, R_Real_size.n_row, R_Real_size.n_col);
+    mmulltransd(A, A_size.n_row, A_size.n_col, B, B_size.n_row, B_size.n_col, R_Computed, R_Real_size.n_row, R_Real_size.n_col);
 
     for(int i=0; i<R_Real_size.n_col*R_Real_size.n_row; i++){
         if( fabs(R_Computed[i] - R_Real[i]) > TOLERANCE){            
@@ -166,19 +166,19 @@ int test_matrix_rtrans_mult_d(void (*mmulrtransd) (double* A, int A_n_row, int A
         printf("Error opening file\n");
         return 0;
     }
-    read_double_from_file(&A, f);
+    A_size = read_double_from_file(A, f);
     fclose(f);
 
     f = fopen("B_rtrans_mul.matrix", "r");
-    read_double_from_file(&B, f);
+    B_size = read_double_from_file(B, f);
     fclose(f);
 
     f = fopen("R_rtrans_mul.matrix", "r");
-    R_Real_size = read_double_from_file(&R_Real, f);
+    R_Real_size = read_double_from_file(R_Real, f);
     fclose(f);
 
     R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
-    mmulrtransd(&A, A_size.n_row, A_size.n_col, &B, B_size.n_row, B_size.n_col, &R_Computed, R_Real_size.n_row, R_Real_size.n_col);
+    mmulrtransd(A, A_size.n_row, A_size.n_col, B, B_size.n_row, B_size.n_col, R_Computed, R_Real_size.n_row, R_Real_size.n_col);
 
     for(int i=0; i<R_Real_size.n_col*R_Real_size.n_row; i++){
         if( fabs(R_Computed[i] - R_Real[i]) > TOLERANCE){            
@@ -194,7 +194,7 @@ int test_matrix_rtrans_mult_d(void (*mmulrtransd) (double* A, int A_n_row, int A
     return return_val;
 }
 
-int test_nnm_d(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)){
+int test_nnm_d(double (*nnmd) (double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon)){
     
     double resultBS1, resultBS2;
     srand(SEED);
@@ -263,8 +263,8 @@ int test_nnm_d(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration,
     random_matrix_init(&matrices.H,min, max);
 
     // copy the matrices 
-    matrix_allocation(&W_temp, matrices.W.n_row, matrices.W.n_col);
-    matrix_allocation(&H_temp, matrices.H.n_row, matrices.H.n_col);
+    matrix_allocation(&W_temp_2, matrices.W.n_row, matrices.W.n_col);
+    matrix_allocation(&H_temp_2, matrices.H.n_row, matrices.H.n_col);
     
     for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
         W_temp_2.M[i] = matrices.W.M[i];
@@ -279,7 +279,7 @@ int test_nnm_d(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration,
     resultBS1 = nnm_factorization_bs1(&matrices.V, &matrices.W,
                                       &matrices.H, maxIteration, epsilon);
 
-    resultBS2 = nnmd(&matrices.V, &W_temp, &H_temp, maxIteration, epsilon);
+    resultBS2 = nnmd(V, W_temp, H_temp, m, n, r, maxIteration, epsilon);
     if (fabs(resultBS1 - resultBS2) > 0.000001) {
         printf("Results: error_bs1=%lf, error_implementation=%lf\t", resultBS1, resultBS2);
         return -1;
@@ -541,7 +541,6 @@ myInt64 performance_analysis_matrix_mult_d(void (*mmuld) (double *A, int A_n_row
     double* V; 
     double* W;
     double* H;
-    int return_val = 0;
     double rand_max_r = 1 / (double)RAND_MAX;
 
     myInt64 performance = 0;
@@ -573,7 +572,7 @@ myInt64 performance_analysis_matrix_mult_d(void (*mmuld) (double *A, int A_n_row
                 for (int i = 0; i < mn; i++)
                     V[i] = rand() * rand_max_r;
 
-                mmuld(&V, M_PERF, R_PERF, &W, R_PERF, N_PERF, &H, M_PERF, N_PERF);
+                mmuld(V, M_PERF, R_PERF, W, R_PERF, N_PERF, H, M_PERF, N_PERF);
             }
             cycles = stop_tsc(start);
 
@@ -591,7 +590,7 @@ myInt64 performance_analysis_matrix_mult_d(void (*mmuld) (double *A, int A_n_row
         for (int i = 0; i < mn; i++)
             V[i] = rand() * rand_max_r;
 
-        mmuld(&V, M_PERF, R_PERF, &W, R_PERF, N_PERF, &H, M_PERF, N_PERF);
+        mmuld(V, M_PERF, R_PERF, W, R_PERF, N_PERF, H, M_PERF, N_PERF);
 
         cycles = stop_tsc(start);
         performance += cycles;
@@ -653,7 +652,7 @@ myInt64 performance_analysis_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H,
     return performance / NUM_RUNS;
 }
 
-myInt64 performance_analysis_nnm_d(double (*nnmd) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)) {
+myInt64 performance_analysis_nnm_d(double (*nnmd) (double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon)) {
     double* V; 
     double* W;
     double* H;
@@ -690,7 +689,7 @@ myInt64 performance_analysis_nnm_d(double (*nnmd) (Matrix *V, Matrix *W, Matrix 
                 for (int i = 0; i < mn; i++)
                     V[i] = rand() * rand_max_r;
 
-                nnmd(&V, &W, &H, maxIterations, epsilon);
+                nnmd(V, W, H, M_PERF, N_PERF, R_PERF, maxIterations, epsilon);
             }
             cycles = stop_tsc(start);
 
@@ -708,7 +707,7 @@ myInt64 performance_analysis_nnm_d(double (*nnmd) (Matrix *V, Matrix *W, Matrix 
         for (int i = 0; i < mn; i++)
             V[i] = rand() * rand_max_r;
 
-        nnmd(&V, &W, &H, maxIterations, epsilon);
+        nnmd(V, W, H, M_PERF, N_PERF, R_PERF, maxIterations, epsilon);
 
         cycles = stop_tsc(start);
         performance += cycles;
