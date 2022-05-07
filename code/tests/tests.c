@@ -13,6 +13,11 @@
 //         n = rand_from(100, 300);
 //         r = 5;
 
+typedef struct {
+    int n_row;
+    int n_col;
+} Sizes;
+
 static void print_test_status(int return_value){
     if(return_value == -1){
         printf("\t\e[0;31mFAIL\e[0m");
@@ -33,6 +38,268 @@ static void read_matrix_from_file(Matrix *M, FILE *f){
     for (int i=0; i<M->n_row * M->n_col; i++){
         fscanf(f, "%lf", &(M->M[i]));
     }
+}
+
+static Sizes read_double_from_file(double *M, FILE *f) {
+    int n_row;
+    int n_col;
+    Sizes s;
+
+    fscanf(f, "%d", &n_row);
+    fscanf(f, "%d", &n_col);
+
+    s.n_col = n_col;
+    s.n_row = n_row;
+
+    M = malloc(sizeof(double *) * n_row * n_col);
+
+    for (int i=0; i<n_row * n_col; i++){
+        fscanf(f, "%lf", &(M[i]));
+    }
+    return s;
+}
+
+int test_matrix_mult_d(void (*mmuld) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col)){
+    double* A; 
+    double* B;
+    double* R_Real;
+    double* R_Computed;
+    Sizes R_Real_size;
+    Sizes A_size;
+    Sizes B_size;
+    int return_val = 0;
+
+    FILE *f;
+
+    f = fopen("A_mul.matrix", "r");
+    if (f == NULL){
+        printf("Error opening file\n");
+        return 0;
+    }
+    read_double_from_file(&A, f);
+    fclose(f);
+
+    f = fopen("B_mul.matrix", "r");
+    read_double_from_file(&B, f);
+    fclose(f);
+
+    f = fopen("R_mul.matrix", "r");
+    R_Real_size = read_double_from_file(&R_Real, f);
+    fclose(f);
+
+    R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
+    mmuld(&A, A_size.n_row, A_size.n_col, &B, B_size.n_row, B_size.n_col, &R_Computed, R_Real_size.n_row, R_Real_size.n_col);
+
+    for(int i=0; i<R_Real_size.n_col*R_Real_size.n_row; i++){
+        if( fabs(R_Computed[i] - R_Real[i]) > TOLERANCE){            
+            return_val = -1;
+            break;
+        }
+    }
+
+    free(A);
+    free(B);
+    free(R_Real);
+    free(R_Computed);
+    return return_val;
+}
+
+int test_matrix_ltrans_mult_d(void (*mmulltransd) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col)){
+    double* A; 
+    double* B;
+    double* R_Real;
+    double* R_Computed;
+    Sizes R_Real_size;
+    Sizes A_size;
+    Sizes B_size;
+    int return_val = 0;
+
+    FILE *f;
+
+    f = fopen("A_ltrans_mul.matrix", "r");
+    if (f == NULL){
+        printf("Error opening file\n");
+        return 0;
+    }
+    read_double_from_file(&A, f);
+    fclose(f);
+
+    f = fopen("B_ltrans_mul.matrix", "r");
+    read_double_from_file(&B, f);
+    fclose(f);
+
+    f = fopen("R_ltrans_mul.matrix", "r");
+    R_Real_size = read_double_from_file(&R_Real, f);
+    fclose(f);
+
+    R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
+    mmulltransd(&A, A_size.n_row, A_size.n_col, &B, B_size.n_row, B_size.n_col, &R_Computed, R_Real_size.n_row, R_Real_size.n_col);
+
+    for(int i=0; i<R_Real_size.n_col*R_Real_size.n_row; i++){
+        if( fabs(R_Computed[i] - R_Real[i]) > TOLERANCE){            
+            return_val = -1;
+            break;
+        }
+    }
+
+    free(A);
+    free(B);
+    free(R_Real);
+    free(R_Computed);
+    return return_val;
+}
+
+int test_matrix_rtrans_mult_d(void (*mmulrtransd) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col)){
+    double* A; 
+    double* B;
+    double* R_Real;
+    double* R_Computed;
+    Sizes R_Real_size;
+    Sizes A_size;
+    Sizes B_size;
+    int return_val = 0;
+
+    FILE *f;
+
+    f = fopen("A_rtrans_mul.matrix", "r");
+    if (f == NULL){
+        printf("Error opening file\n");
+        return 0;
+    }
+    read_double_from_file(&A, f);
+    fclose(f);
+
+    f = fopen("B_rtrans_mul.matrix", "r");
+    read_double_from_file(&B, f);
+    fclose(f);
+
+    f = fopen("R_rtrans_mul.matrix", "r");
+    R_Real_size = read_double_from_file(&R_Real, f);
+    fclose(f);
+
+    R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
+    mmulrtransd(&A, A_size.n_row, A_size.n_col, &B, B_size.n_row, B_size.n_col, &R_Computed, R_Real_size.n_row, R_Real_size.n_col);
+
+    for(int i=0; i<R_Real_size.n_col*R_Real_size.n_row; i++){
+        if( fabs(R_Computed[i] - R_Real[i]) > TOLERANCE){            
+            return_val = -1;
+            break;
+        }
+    }
+
+    free(A);
+    free(B);
+    free(R_Real);
+    free(R_Computed);
+    return return_val;
+}
+
+int test_nnm_d(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)){
+    
+    double resultBS1, resultBS2;
+    srand(SEED);
+    int m = 400;
+    int n = 400;
+    int r = 3;
+    int min = 0;
+    int max = 100;
+    int maxIteration = 100;
+    int epsilon = 0.05;
+    double* V;
+    double* W;
+    double* H;
+    double* W_temp;
+    double* H_temp;
+    int mr, nr;
+
+    double rand_max_r = 1 / (double)RAND_MAX;
+
+    mr = m * r;
+    nr = n * r;
+
+    V = malloc(sizeof(double *) * m * n);
+    W = malloc(sizeof(double *) * m * r);
+    H = malloc(sizeof(double *) * r * n);
+
+    for (int i = 0; i < mr; i++)
+        W[i] = rand() * rand_max_r;
+    for (int i = 0; i < nr; i++)
+        H[i] = rand() * rand_max_r;
+
+    // copy the matrices 
+
+    W_temp = malloc(sizeof(double *) * m * r);
+    H_temp = malloc(sizeof(double *) * r * n);
+    
+    for(int i=0; i< mr;i++){
+        W_temp[i] = W[i];
+    }
+
+    for(int i=0; i<nr;i++){
+        H_temp[i] = H[i];
+    }
+
+    // Setup for BS1 for comparison:
+    Matrices matrices;
+    Matrix W_temp_2;
+    Matrix H_temp_2;
+
+    allocate_base_matrices(&matrices, m, n, r);
+
+    for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
+        matrices.W.M[i] = W[i];
+    }
+
+    for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
+        matrices.H.M[i] = H[i];
+    }
+
+    for(int i=0; i<matrices.V.n_col*matrices.V.n_row;i++){
+        matrices.V.M[i] = V[i];
+    }
+    
+    random_matrix_init(&matrices.V,min, max);
+    random_matrix_init(&matrices.W,min, max);
+    random_matrix_init(&matrices.H,min, max);
+
+    // copy the matrices 
+    matrix_allocation(&W_temp, matrices.W.n_row, matrices.W.n_col);
+    matrix_allocation(&H_temp, matrices.H.n_row, matrices.H.n_col);
+    
+    for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
+        W_temp_2.M[i] = matrices.W.M[i];
+    }
+
+    for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
+        H_temp_2.M[i] = matrices.H.M[i];
+    }
+
+    // Run:
+
+    resultBS1 = nnm_factorization_bs1(&matrices.V, &matrices.W,
+                                      &matrices.H, maxIteration, epsilon);
+
+    resultBS2 = nnmd(&matrices.V, &W_temp, &H_temp, maxIteration, epsilon);
+    if (fabs(resultBS1 - resultBS2) > 0.000001) {
+        printf("Results: error_bs1=%lf, error_implementation=%lf\t", resultBS1, resultBS2);
+        return -1;
+    }
+   
+    for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
+        if (fabs(H_temp_2.M[i] - H[i]) > 0.000001){
+            printf("H_bs1[%d][%d] - H_implementation[%d][%d] diff by %lf\t", i,i/H_temp_2.n_col,i,i/H_temp_2.n_col,fabs(H_temp_2.M[i] - H[i]));
+            return -1;
+        }
+    }
+
+    for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
+        if (fabs(W_temp_2.M[i] - W[i]) > 0.000001){
+            printf("W_bs1[%d][%d] - W_implementation[%d][%d] diff by %lf\t", i,i/W_temp_2.n_col,i,i/W_temp_2.n_col,fabs(W_temp_2.M[i] - W[i]));
+            return -1;
+        }
+    }
+    return 0;
+
 }
 
 int test_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Matrix *R)){
@@ -63,7 +330,7 @@ int test_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Matrix *R)){
     mmul(&A, &B, &R_Computed);
 
     for(int i=0; i<R_Computed.n_col*R_Computed.n_row; i++){
-        if( fabs(R_Computed.M[i] - R_Computed.M[i]) > TOLERANCE){
+        if( fabs(R_Real.M[i] - R_Computed.M[i]) > TOLERANCE){
             matrix_deallocation(&A);
             matrix_deallocation(&B);
             matrix_deallocation(&R_Real);
@@ -103,7 +370,7 @@ int test_matrix_ltrans_mult(void (*mmulltrans) (Matrix *A, Matrix *B, Matrix *R)
     mmulltrans(&A, &B, &R_Computed);
 
     for(int i=0; i<R_Computed.n_col*R_Computed.n_row; i++){
-        if( fabs(R_Computed.M[i] - R_Computed.M[i]) > TOLERANCE){
+        if( fabs(R_Real.M[i] - R_Computed.M[i]) > TOLERANCE){
             matrix_deallocation(&A);
             matrix_deallocation(&B);
             matrix_deallocation(&R_Real);
@@ -143,7 +410,7 @@ int test_matrix_rtrans_mult(void (*mmulrtrans) (Matrix *A, Matrix *B, Matrix *R)
     mmulrtrans(&A, &B, &R_Computed);
 
     for(int i=0; i<R_Computed.n_col*R_Computed.n_row; i++){
-        if( fabs(R_Computed.M[i] - R_Computed.M[i]) > TOLERANCE){
+        if( fabs(R_Real.M[i] - R_Computed.M[i]) > TOLERANCE){
             matrix_deallocation(&A);
             matrix_deallocation(&B);
             matrix_deallocation(&R_Real);
@@ -178,10 +445,8 @@ int test_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, d
     random_matrix_init(&matrices.V,min, max);
     random_matrix_init(&matrices.W,min, max);
 
-    // random_acol_matrix_init(&b->bs1Matrices.V,&b->bs1Matrices.W, 3);
-    // random_acol_matrix_init(&b->bs2Matrices.V,&b->bs2Matrices.W, 3);
-
     random_matrix_init(&matrices.H,min, max);
+
     // copy the matrices 
     matrix_allocation(&W_temp, matrices.W.n_row, matrices.W.n_col);
     matrix_allocation(&H_temp, matrices.H.n_row, matrices.H.n_col);
@@ -272,6 +537,70 @@ myInt64 performance_analysis_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Mat
     return performance / NUM_RUNS;
 }
 
+myInt64 performance_analysis_matrix_mult_d(void (*mmuld) (double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col)) {
+    double* V; 
+    double* W;
+    double* H;
+    int return_val = 0;
+    double rand_max_r = 1 / (double)RAND_MAX;
+
+    myInt64 performance = 0;
+    int num_runs = NUM_RUNS;
+
+    int mr = M_PERF * R_PERF;
+    int nr = R_PERF * N_PERF;
+    int mn = M_PERF * N_PERF;
+
+    for (int i = 0; i < num_runs; i++) {
+
+        V = malloc(sizeof(double *) * mr);
+        W = malloc(sizeof(double *) * nr);
+        H = malloc(sizeof(double *) * mn);
+
+        #ifdef __x86_64__
+        myInt64 cycles;
+        myInt64 start;
+
+        #ifdef CALIBRATE
+        while(num_runs < (1 << 14)) {
+            start = start_tsc();
+            for (int j = 0; j < num_runs; j++) {
+
+                for (int i = 0; i < mr; i++)
+                    W[i] = rand() * rand_max_r;
+                for (int i = 0; i < nr; i++)
+                    H[i] = rand() * rand_max_r;
+                for (int i = 0; i < mn; i++)
+                    V[i] = rand() * rand_max_r;
+
+                mmuld(&V, M_PERF, R_PERF, &W, R_PERF, N_PERF, &H, M_PERF, N_PERF);
+            }
+            cycles = stop_tsc(start);
+
+            if(cycles >= CYCLES_REQUIRED) break;
+
+            num_runs *= 2;
+        }
+        #endif
+
+        start = start_tsc();
+        for (int i = 0; i < mr; i++)
+            W[i] = rand() * rand_max_r;
+        for (int i = 0; i < nr; i++)
+            H[i] = rand() * rand_max_r;
+        for (int i = 0; i < mn; i++)
+            V[i] = rand() * rand_max_r;
+
+        mmuld(&V, M_PERF, R_PERF, &W, R_PERF, N_PERF, &H, M_PERF, N_PERF);
+
+        cycles = stop_tsc(start);
+        performance += cycles;
+
+        #endif
+    }
+    return performance / NUM_RUNS;
+}
+
 myInt64 performance_analysis_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)) {
     Matrix V;
     Matrix W, H;
@@ -315,6 +644,71 @@ myInt64 performance_analysis_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H,
         random_matrix_init(&V, 0, 1);
 
         nnm(&V, &W, &H, maxIterations, epsilon);
+
+        cycles = stop_tsc(start);
+        performance += cycles;
+
+        #endif
+    }
+    return performance / NUM_RUNS;
+}
+
+myInt64 performance_analysis_nnm_d(double (*nnmd) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)) {
+    double* V; 
+    double* W;
+    double* H;
+
+    int mr = M_PERF * R_PERF;
+    int nr = R_PERF * N_PERF;
+    int mn = M_PERF * N_PERF;
+    double rand_max_r = 1 / (double)RAND_MAX;
+
+    myInt64 performance = 0;
+    int num_runs = NUM_RUNS;
+    int maxIterations = 200;
+    double epsilon = 0.05;
+
+    for (int i = 0; i < num_runs; i++) {
+
+        V = malloc(sizeof(double *) * mr);
+        W = malloc(sizeof(double *) * nr);
+        H = malloc(sizeof(double *) * mn);
+
+        #ifdef __x86_64__
+        myInt64 cycles;
+        myInt64 start;
+
+        #ifdef CALIBRATE
+        while(num_runs < (1 << 14)) {
+            start = start_tsc();
+            for (int j = 0; j < num_runs; j++) {
+
+                for (int i = 0; i < mr; i++)
+                    W[i] = rand() * rand_max_r;
+                for (int i = 0; i < nr; i++)
+                    H[i] = rand() * rand_max_r;
+                for (int i = 0; i < mn; i++)
+                    V[i] = rand() * rand_max_r;
+
+                nnmd(&V, &W, &H, maxIterations, epsilon);
+            }
+            cycles = stop_tsc(start);
+
+            if(cycles >= CYCLES_REQUIRED) break;
+
+            num_runs *= 2;
+        }
+        #endif
+
+        start = start_tsc();
+        for (int i = 0; i < mr; i++)
+            W[i] = rand() * rand_max_r;
+        for (int i = 0; i < nr; i++)
+            H[i] = rand() * rand_max_r;
+        for (int i = 0; i < mn; i++)
+            V[i] = rand() * rand_max_r;
+
+        nnmd(&V, &W, &H, maxIterations, epsilon);
 
         cycles = stop_tsc(start);
         performance += cycles;
