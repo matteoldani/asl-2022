@@ -18,16 +18,16 @@ unsigned int double_size = sizeof(double);
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_mul(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
-    
+void matrix_mul(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
     int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
         for (int j = 0; j < B_n_col; j++) {
             Rij = i * R_n_col + j;
             R[Rij] = 0;
-            for (int k = 0; k < A_n_col; k++)
+            for (int k = 0; k < A_n_col; k++) {
                 R[Rij] += A[i * A_n_col + k] * B[k * B_n_col + j];
+            }
         }
     }
 }
@@ -44,7 +44,7 @@ inline void matrix_mul(double *A, int A_n_row, int A_n_col, double*B, int B_n_ro
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_ltrans_mul(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_ltrans_mul(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
 
     int Rij;
 
@@ -70,7 +70,7 @@ inline void matrix_ltrans_mul(double* A, int A_n_row, int A_n_col, double* B, in
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_rtrans_mul(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     int Rij;
 

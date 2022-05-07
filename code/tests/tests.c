@@ -40,7 +40,7 @@ static void read_matrix_from_file(Matrix *M, FILE *f){
     }
 }
 
-static Sizes read_double_from_file(double *M, FILE *f) {
+static Sizes read_double_from_file(double **M, FILE *f) {
     int n_row;
     int n_col;
     Sizes s;
@@ -51,10 +51,11 @@ static Sizes read_double_from_file(double *M, FILE *f) {
     s.n_col = n_col;
     s.n_row = n_row;
 
-    M = malloc(sizeof(double *) * n_row * n_col);
+    *M = malloc(sizeof(double *) * n_row * n_col);
+    double* t = *M;
 
     for (int i=0; i<n_row * n_col; i++){
-        fscanf(f, "%lf", &(M[i]));
+        fscanf(f, "%lf", &(t[i]));
     }
     return s;
 }
@@ -76,18 +77,19 @@ int test_matrix_mult_d(void (*mmuld) (double* A, int A_n_row, int A_n_col, doubl
         printf("Error opening file\n");
         return 0;
     }
-    A_size = read_double_from_file(A, f);
+    A_size = read_double_from_file(&A, f);
     fclose(f);
 
     f = fopen("B_mul.matrix", "r");
-    B_size = read_double_from_file(B, f);
+    B_size = read_double_from_file(&B, f);
     fclose(f);
 
     f = fopen("R_mul.matrix", "r");
-    R_Real_size = read_double_from_file(R_Real, f);
+    R_Real_size = read_double_from_file(&R_Real, f);
     fclose(f);
 
     R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
+
     mmuld(A, A_size.n_row, A_size.n_col, B, B_size.n_row, B_size.n_col, R_Computed, R_Real_size.n_row, R_Real_size.n_col);
 
     for(int i=0; i<R_Real_size.n_col*R_Real_size.n_row; i++){
@@ -96,7 +98,7 @@ int test_matrix_mult_d(void (*mmuld) (double* A, int A_n_row, int A_n_col, doubl
             break;
         }
     }
-
+    
     free(A);
     free(B);
     free(R_Real);
@@ -121,15 +123,15 @@ int test_matrix_ltrans_mult_d(void (*mmulltransd) (double* A, int A_n_row, int A
         printf("Error opening file\n");
         return 0;
     }
-    A_size = read_double_from_file(A, f);
+    A_size = read_double_from_file(&A, f);
     fclose(f);
 
     f = fopen("B_ltrans_mul.matrix", "r");
-    B_size = read_double_from_file(B, f);
+    B_size = read_double_from_file(&B, f);
     fclose(f);
 
     f = fopen("R_ltrans_mul.matrix", "r");
-    R_Real_size = read_double_from_file(R_Real, f);
+    R_Real_size = read_double_from_file(&R_Real, f);
     fclose(f);
 
     R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
@@ -166,15 +168,15 @@ int test_matrix_rtrans_mult_d(void (*mmulrtransd) (double* A, int A_n_row, int A
         printf("Error opening file\n");
         return 0;
     }
-    A_size = read_double_from_file(A, f);
+    A_size = read_double_from_file(&A, f);
     fclose(f);
 
     f = fopen("B_rtrans_mul.matrix", "r");
-    B_size = read_double_from_file(B, f);
+    B_size = read_double_from_file(&B, f);
     fclose(f);
 
     f = fopen("R_rtrans_mul.matrix", "r");
-    R_Real_size = read_double_from_file(R_Real, f);
+    R_Real_size = read_double_from_file(&R_Real, f);
     fclose(f);
 
     R_Computed = malloc(sizeof(double *) * R_Real_size.n_col * R_Real_size.n_row);
@@ -210,12 +212,12 @@ int test_nnm_d(double (*nnmd) (double *V, double*W, double*H, int m, int n, int 
     double* H;
     double* W_temp;
     double* H_temp;
-    int mr, nr;
+    int mr, rn;
 
     double rand_max_r = 1 / (double)RAND_MAX;
 
     mr = m * r;
-    nr = n * r;
+    rn = n * r;
 
     V = malloc(sizeof(double *) * m * n);
     W = malloc(sizeof(double *) * m * r);
@@ -223,7 +225,7 @@ int test_nnm_d(double (*nnmd) (double *V, double*W, double*H, int m, int n, int 
 
     for (int i = 0; i < mr; i++)
         W[i] = rand() * rand_max_r;
-    for (int i = 0; i < nr; i++)
+    for (int i = 0; i < rn; i++)
         H[i] = rand() * rand_max_r;
 
     // copy the matrices 
@@ -235,14 +237,12 @@ int test_nnm_d(double (*nnmd) (double *V, double*W, double*H, int m, int n, int 
         W_temp[i] = W[i];
     }
 
-    for(int i=0; i<nr;i++){
+    for(int i=0; i<rn;i++){
         H_temp[i] = H[i];
     }
 
     // Setup for BS1 for comparison:
     Matrices matrices;
-    Matrix W_temp_2;
-    Matrix H_temp_2;
 
     allocate_base_matrices(&matrices, m, n, r);
 
@@ -262,44 +262,29 @@ int test_nnm_d(double (*nnmd) (double *V, double*W, double*H, int m, int n, int 
     random_matrix_init(&matrices.W,min, max);
     random_matrix_init(&matrices.H,min, max);
 
-    // copy the matrices 
-    matrix_allocation(&W_temp_2, matrices.W.n_row, matrices.W.n_col);
-    matrix_allocation(&H_temp_2, matrices.H.n_row, matrices.H.n_col);
-    
-    for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
-        W_temp_2.M[i] = matrices.W.M[i];
-    }
-
-    for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
-        H_temp_2.M[i] = matrices.H.M[i];
-    }
-
     // Run:
-
+    
     resultBS1 = nnm_factorization_bs1(&matrices.V, &matrices.W,
                                       &matrices.H, maxIteration, epsilon);
-
-    resultBS2 = nnmd(V, W_temp, H_temp, m, n, r, maxIteration, epsilon);
+    
+    resultBS2 = nnmd(V, W, H, m, n, r, maxIteration, epsilon);
     if (fabs(resultBS1 - resultBS2) > 0.000001) {
         printf("Results: error_bs1=%lf, error_implementation=%lf\t", resultBS1, resultBS2);
         return -1;
     }
-   
+
     for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
-        if (fabs(H_temp_2.M[i] - H[i]) > 0.000001){
-            printf("H_bs1[%d][%d] - H_implementation[%d][%d] diff by %lf\t", i,i/H_temp_2.n_col,i,i/H_temp_2.n_col,fabs(H_temp_2.M[i] - H[i]));
+        if (fabs(matrices.H.M[i] - H[i]) > 0.000001){
             return -1;
         }
     }
 
     for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
-        if (fabs(W_temp_2.M[i] - W[i]) > 0.000001){
-            printf("W_bs1[%d][%d] - W_implementation[%d][%d] diff by %lf\t", i,i/W_temp_2.n_col,i,i/W_temp_2.n_col,fabs(W_temp_2.M[i] - W[i]));
+        if (fabs(matrices.W.M[i] - W[i]) > 0.000001){
             return -1;
         }
     }
     return 0;
-
 }
 
 int test_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Matrix *R)){
@@ -334,6 +319,7 @@ int test_matrix_mult(void (*mmul) (Matrix *A, Matrix *B, Matrix *R)){
             matrix_deallocation(&A);
             matrix_deallocation(&B);
             matrix_deallocation(&R_Real);
+            matrix_deallocation(&R_Computed);
             return -1;
         }
     }
@@ -547,13 +533,13 @@ myInt64 performance_analysis_matrix_mult_d(void (*mmuld) (double *A, int A_n_row
     int num_runs = NUM_RUNS;
 
     int mr = M_PERF * R_PERF;
-    int nr = R_PERF * N_PERF;
+    int rn = R_PERF * N_PERF;
     int mn = M_PERF * N_PERF;
 
     for (int i = 0; i < num_runs; i++) {
 
         V = malloc(sizeof(double *) * mr);
-        W = malloc(sizeof(double *) * nr);
+        W = malloc(sizeof(double *) * rn);
         H = malloc(sizeof(double *) * mn);
 
         #ifdef __x86_64__
@@ -566,11 +552,11 @@ myInt64 performance_analysis_matrix_mult_d(void (*mmuld) (double *A, int A_n_row
             for (int j = 0; j < num_runs; j++) {
 
                 for (int i = 0; i < mr; i++)
-                    W[i] = rand() * rand_max_r;
-                for (int i = 0; i < nr; i++)
-                    H[i] = rand() * rand_max_r;
-                for (int i = 0; i < mn; i++)
                     V[i] = rand() * rand_max_r;
+                for (int i = 0; i < nr; i++)
+                    W[i] = rand() * rand_max_r;
+                for (int i = 0; i < mn; i++)
+                    H[i] = rand() * rand_max_r;
 
                 mmuld(V, M_PERF, R_PERF, W, R_PERF, N_PERF, H, M_PERF, N_PERF);
             }
@@ -584,12 +570,12 @@ myInt64 performance_analysis_matrix_mult_d(void (*mmuld) (double *A, int A_n_row
 
         start = start_tsc();
         for (int i = 0; i < mr; i++)
-            W[i] = rand() * rand_max_r;
-        for (int i = 0; i < nr; i++)
-            H[i] = rand() * rand_max_r;
-        for (int i = 0; i < mn; i++)
             V[i] = rand() * rand_max_r;
-
+        for (int i = 0; i < rn; i++)
+            W[i] = rand() * rand_max_r;
+        for (int i = 0; i < mn; i++)
+            H[i] = rand() * rand_max_r;
+        
         mmuld(V, M_PERF, R_PERF, W, R_PERF, N_PERF, H, M_PERF, N_PERF);
 
         cycles = stop_tsc(start);
@@ -658,7 +644,7 @@ myInt64 performance_analysis_nnm_d(double (*nnmd) (double *V, double*W, double*H
     double* H;
 
     int mr = M_PERF * R_PERF;
-    int nr = R_PERF * N_PERF;
+    int rn = R_PERF * N_PERF;
     int mn = M_PERF * N_PERF;
     double rand_max_r = 1 / (double)RAND_MAX;
 
@@ -670,7 +656,7 @@ myInt64 performance_analysis_nnm_d(double (*nnmd) (double *V, double*W, double*H
     for (int i = 0; i < num_runs; i++) {
 
         V = malloc(sizeof(double *) * mr);
-        W = malloc(sizeof(double *) * nr);
+        W = malloc(sizeof(double *) * rn);
         H = malloc(sizeof(double *) * mn);
 
         #ifdef __x86_64__
@@ -683,11 +669,11 @@ myInt64 performance_analysis_nnm_d(double (*nnmd) (double *V, double*W, double*H
             for (int j = 0; j < num_runs; j++) {
 
                 for (int i = 0; i < mr; i++)
-                    W[i] = rand() * rand_max_r;
-                for (int i = 0; i < nr; i++)
-                    H[i] = rand() * rand_max_r;
-                for (int i = 0; i < mn; i++)
                     V[i] = rand() * rand_max_r;
+                for (int i = 0; i < nr; i++)
+                    W[i] = rand() * rand_max_r;
+                for (int i = 0; i < mn; i++)
+                    H[i] = rand() * rand_max_r;
 
                 nnmd(V, W, H, M_PERF, N_PERF, R_PERF, maxIterations, epsilon);
             }
@@ -701,11 +687,11 @@ myInt64 performance_analysis_nnm_d(double (*nnmd) (double *V, double*W, double*H
 
         start = start_tsc();
         for (int i = 0; i < mr; i++)
-            W[i] = rand() * rand_max_r;
-        for (int i = 0; i < nr; i++)
-            H[i] = rand() * rand_max_r;
-        for (int i = 0; i < mn; i++)
             V[i] = rand() * rand_max_r;
+        for (int i = 0; i < rn; i++)
+            W[i] = rand() * rand_max_r;
+        for (int i = 0; i < mn; i++)
+            H[i] = rand() * rand_max_r;
 
         nnmd(V, W, H, M_PERF, N_PERF, R_PERF, maxIterations, epsilon);
 
@@ -770,9 +756,9 @@ void run_tests(
 
 void run_tests_d(
     int n, 
+    void (*mmuld[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col),
     void (*mmulrtransd[n]) (double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col),
     void (*mmulltransd[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col),
-    void (*mmuld[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col),
     double (*nnmd[n]) (double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon)
 ) {
     printf("################ Starting optimization tests ################\n\n");
@@ -859,9 +845,9 @@ int main(int argc, char const *argv[])
 
     run_tests(n, mmul, mmulltrans, mmulrtrans, nnm);
 
-    //mmuld[0] = matrix_mul;
-    //mmulrtransd[0] = matrix_rtrans_mul;
-    //mmulltransd[0] = matrix_ltrans_mul;
+    mmuld[0] = matrix_mul;
+    mmulrtransd[0] = matrix_rtrans_mul;
+    mmulltransd[0] = matrix_ltrans_mul;
     nnmd[0] = nnm_factorization;
     
     // END TODO
