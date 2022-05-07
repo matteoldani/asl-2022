@@ -324,14 +324,15 @@ myInt64 performance_analysis_nnm(double (*nnm) (Matrix *V, Matrix *W, Matrix *H,
     return performance / NUM_RUNS;
 }
 
-void run_tests(int n, 
-               void (*mmul[n]) (Matrix *A, Matrix *B, Matrix *R), 
-               void (*mmulltrans[n]) (Matrix *A, Matrix *B, Matrix *R), 
-               void (*mmulrtrans[n]) (Matrix *A, Matrix *B, Matrix *R),
-               double (*nnm[n]) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)
+void run_tests(
+    int n, 
+    void (*mmul[n]) (Matrix *A, Matrix *B, Matrix *R), 
+    void (*mmulltrans[n]) (Matrix *A, Matrix *B, Matrix *R), 
+    void (*mmulrtrans[n]) (Matrix *A, Matrix *B, Matrix *R),
+    double (*nnm[n]) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon)
               ) {
-        printf("################ Starting general test ################\n\n");
-        printf("Execution\t\t\t\t\tTest\tPerformance\n");
+    printf("################ Starting baseline tests ################\n\n");
+    printf("Execution\t\t\t\t\tTest\tPerformance\n");
 
     int result;
     int sum_results = 0;
@@ -374,6 +375,57 @@ void run_tests(int n,
     }
 }
 
+void run_tests_d(
+    int n, 
+    void (*mmulrtransd[n]) (double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col),
+    void (*mmulltransd[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col),
+    void (*mmuld[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col),
+    double (*nnmd[n]) (double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon)
+) {
+    printf("################ Starting optimization tests ################\n\n");
+    printf("Execution\t\t\t\t\tTest\tPerformance\n");
+
+    int result;
+    int sum_results = 0;
+    myInt64 performance = 0;
+
+    for (int i = 0; i < n; i++) {
+            printf("Matrix mult optimization %i:\t\t", i);
+            result = test_matrix_mult_d(mmuld[i]);
+            print_test_status(result);
+            sum_results += result;
+            performance = performance_analysis_matrix_mult_d(mmuld[i]);
+            printf("\tcycles: %llu\n", performance);
+
+            printf("Matrix ltrans mult optimization %i:\t", i);
+            result = test_matrix_ltrans_mult_d(mmulltransd[i]);
+            print_test_status(result);
+            sum_results += result;
+            performance = performance_analysis_matrix_mult_d(mmulltransd[i]);
+            printf("\tcycles: %llu\n", performance);
+
+            printf("Matrix rtrans mult optimization %i:\t", i);
+            result = test_matrix_rtrans_mult_d(mmulrtransd[i]);
+            print_test_status(result);
+            sum_results += result;
+            performance = performance_analysis_matrix_mult_d(mmulrtransd[i]);
+            printf("\tcycles: %llu\n", performance);
+
+            printf("NNM optimization %i:\t\t\t", i);
+            result = test_nnm_d(nnmd[i]);
+            print_test_status(result);
+            sum_results += result;
+            performance = performance_analysis_nnm_d(nnmd[i]);
+            printf("\tcycles: %llu\n", performance);
+    }
+    
+    if(sum_results == 0){
+        printf("\nTest completed. All test \e[32mPASSED\e[0m\n");
+    }else{
+        printf("\nTest completed. Numer of test \e[0;31mFAILED\e[0m: %d\n", sum_results*-1);
+    }
+}
+
 
 int main(int argc, char const *argv[])
 {
@@ -392,6 +444,12 @@ int main(int argc, char const *argv[])
     void (*mmul[n]) (Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n]) (Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
+    n = 1;  // Number of optimizations
+    void (*mmulrtransd[n]) (double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col);
+    void (*mmulltransd[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col);
+    void (*mmuld[n]) (double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col);
+    double (*nnmd[n]) (double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon);
+
     // START TODO:
     // Now add the functions you would like to test from the impleemntations:
     mmul[0] = matrix_mul_bs1;
@@ -405,9 +463,16 @@ int main(int argc, char const *argv[])
 
     nnm[0] = nnm_factorization_bs1;
     nnm[1] = nnm_factorization_bs2;
+
+    run_tests(n, mmul, mmulltrans, mmulrtrans, nnm);
+
+    mmuld[0] = matrix_mul;
+    mmulrtransd[0] = matrix_rtrans_mul;
+    mmulltransd[0] = matrix_ltrans_mul;
+    nnmd[0] = nnm_factorization;
     
     // END TODO
 
-    run_tests(n, mmul, mmulltrans, mmulrtrans, nnm);
+    run_tests_d(n, mmuld, mmulrtransd, mmulltransd, nnmd);
     return 0;
 }

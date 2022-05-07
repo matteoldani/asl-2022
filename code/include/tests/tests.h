@@ -3,6 +3,7 @@
 #include <baselines/baseline1.h>
 #include <baselines/baseline2.h>
 #include <baselines/baselines_utils.h>
+#include <optimizations/optimizations_baseline.h>
 #include<unistd.h> 
 
 #ifndef WIN32
