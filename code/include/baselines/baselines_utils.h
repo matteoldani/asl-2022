@@ -43,4 +43,8 @@ double norm(Matrix *matrix);
 
 void allocate_from_file(Matrix *matrix, int *r, FILE *file);
 
+myInt64 matrix_mul_cost(int n, int m, int r);
+myInt64 nnm_cost(int V_col, int V_row, int W_row, int W_col, int H_row, int H_col, int num_iterations);
+myInt64 matrix_rand_init_cost(int row, int col);
+
 #endif //ASL_2022_ASL_UTILS_H

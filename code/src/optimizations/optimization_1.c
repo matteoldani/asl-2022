@@ -6,19 +6,20 @@
 
 static unsigned int double_size = sizeof(double);
 
+
 /**
- * @brief compute the mul_optbstiplication of A and B
+ * @brief compute the mul_opt1tiplication of A and B
  * @param A         is the first factor
  * @param A_n_row   is the number of rows in matrix A
  * @param A_n_col   is the number of columns in matrix A
- * @param B         is the other factor of the mul_optbstiplication
+ * @param B         is the other factor of the mul_opt1tiplication
  * @param B_n_row   is the number of rows in matrix B
  * @param B_n_col   is the number of columns in matrix B
  * @param R         is the matrix that will hold the result
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_optbs(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
     int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
@@ -33,18 +34,18 @@ void matrix_mul_optbs(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
 }
 
 /**
- * @brief compute the mul_optbstiplication of A^T and B
+ * @brief compute the mul_opt1tiplication of A^T and B
  * @param A         is the matrix to be transposed
  * @param A_n_row   is the number of rows in matrix A
  * @param A_n_col   is the number of columns in matrix A
- * @param B         is the other factor of the mul_optbstiplication
+ * @param B         is the other factor of the mul_opt1tiplication
  * @param B_n_row   is the number of rows in matrix B
  * @param B_n_col   is the number of columns in matrix B
  * @param R         is the matrix that will hold the result
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_ltrans_mul_optbs(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_ltrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
 
     int Rij;
 
@@ -59,8 +60,8 @@ void matrix_ltrans_mul_optbs(double* A, int A_n_row, int A_n_col, double* B, int
 }
 
 /**
- * @brief compute the mul_optbstiplication of A and B^T
- * @param A         is the other factor of the mul_optbstiplication
+ * @brief compute the mul_opt1tiplication of A and B^T
+ * @param A         is the other factor of the mul_opt1tiplication
  * @param A_n_row   is the number of rows in matrix A
  * @param A_n_col   is the number of columns in matrix A
  * @param B         is the matrix to be transposed
@@ -70,7 +71,7 @@ void matrix_ltrans_mul_optbs(double* A, int A_n_row, int A_n_col, double* B, int
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_optbs(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     int Rij;
 
@@ -101,7 +102,7 @@ void matrix_rtrans_mul_optbs(double* A, int A_n_row, int A_n_col, double* B, int
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_optbs(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt1(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
@@ -129,7 +130,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_optbs(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int rn, rr, mr, mn;
     rn = r * n;
@@ -167,17 +168,17 @@ double nnm_factorization_optbs(double *V, double*W, double*H, int m, int n, int 
         }
 
         //computation for Hn+1
-        matrix_ltrans_mul_optbs(W, m, r, V, m, n, numerator, r, n);
-        matrix_ltrans_mul_optbs(W, m, r, W, m, r, denominator_l, r, r);
-        matrix_mul_optbs(denominator_l, r, r, H, r, n, denominator, r, n);
+        matrix_ltrans_mul_opt1(W, m, r, V, m, n, numerator, r, n);
+        matrix_ltrans_mul_opt1(W, m, r, W, m, r, denominator_l, r, r);
+        matrix_mul_opt1(denominator_l, r, r, H, r, n, denominator, r, n);
 
         for (int i = 0; i < rn; i++)
             H[i] = H[i] * numerator[i] / denominator[i];
 
         //computation for Wn+1
-        matrix_rtrans_mul_optbs(V, m, n, H, r, n, numerator_W, m, r);
-        matrix_mul_optbs(W, m, r, H, r, n, denominator_l_W, m, n);
-        matrix_rtrans_mul_optbs(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
+        matrix_rtrans_mul_opt1(V, m, n, H, r, n, numerator_W, m, r);
+        matrix_mul_opt1(W, m, r, H, r, n, denominator_l_W, m, n);
+        matrix_rtrans_mul_opt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
@@ -192,3 +193,5 @@ double nnm_factorization_optbs(double *V, double*W, double*H, int m, int n, int 
     
     return err;
 }
+
+

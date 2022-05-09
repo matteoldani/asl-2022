@@ -28,3 +28,9 @@
 	- dimensions of all matrices calculated only once and reused
 	- double loops over matrices replaced with a single loop going 	sequentially over all elements (index calc simplified)
 	- 1 / RAND_MAX was precalculated so all divisions during init are 	now multiplications
+
+*Alg_opt_1:
+	- We tried reusing matrix W in the computation of Hn+1 computing WtW and WtV in the same loop.
+	  Matrix W and V are transposed to improve cache locality. The obtained performance with 
+	  (m,n,r) = (200, 200, 5) is 0.68.
+

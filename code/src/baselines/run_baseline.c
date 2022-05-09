@@ -32,7 +32,7 @@ int main(int argc, char const *argv[]) {
         n = atoi(argv[3]);
         r = atoi(argv[4]);
 
-        srand(40);
+        srand(SEED);
 
         matrix_allocation(&V, m, n);
         random_matrix_init(&V, 0, 1); 

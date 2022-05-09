@@ -134,8 +134,10 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
         //printf("Current error_bs1: %lf\n", err);
 
         //computation for Hn+1
-        matrix_ltrans_mul_bs1(W, V, &numerator);			// 2 * W->n_col * V->n_col * V->n_row **
-        matrix_ltrans_mul_bs1(W, W, &denominator_l);		// 2 * W->n_col * W->n_col * W->n_row **
+        matrix_ltrans_mul_bs1(W, V, &numerator);			// 2 * W->n_col * V->n_col * V->n_row **  
+        matrix_ltrans_mul_bs1(W, W, &denominator_l);
+        		// 2 * W->n_col * W->n_col * W->n_row **
+        
         matrix_mul_bs1(&denominator_l, H, &denominator);	// 2 * W->n_col * W->n_col * H->n_col **
 
         for (int i = 0; i < H->n_row; i++) {			// 2 * H->n_row * H->n_col **
@@ -143,6 +145,12 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
                 H->M[i * H->n_col + j] = H->M[i * H->n_col + j] * numerator.M[i * numerator.n_col + j] / denominator.M[i * denominator.n_col + j];
             }
         }
+
+        // print_matrix(H);
+        // print_matrix(W);
+        // print_matrix(&numerator);
+        // print_matrix(&denominator);
+        // print_matrix(&denominator_l);
 
         //computation for Wn+1
         matrix_rtrans_mul_bs1(V, H, &numerator_W);					// 2 * V->n_row * H->n_row * V->n_col **

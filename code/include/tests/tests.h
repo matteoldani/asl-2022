@@ -4,6 +4,9 @@
 #include <baselines/baseline2.h>
 #include <baselines/baselines_utils.h>
 #include <optimizations/optimizations_baseline.h>
+#include <optimizations/optimizations_1.h>
+#include <optimizations/alg_opt_1.h>
+#include <optimizations/alg_opt_2.h>
 #include<unistd.h> 
 
 #ifndef WIN32

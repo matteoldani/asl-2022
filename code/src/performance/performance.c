@@ -16,13 +16,13 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
     double performance;
     
     int num_runs = NUM_RUNS;
-    int max_iterations = 10;
+    int max_iterations = MAX_ITERATIONS;
 
     int steps = (max - min) / numTests;
     for (int i = min; i < max; i += steps) {
         m = i;
         n = i; //+ steps; 
-        r = 3;
+        r = RANK;
 
         matrix_allocation(&V, m, n);
         matrix_allocation(&W, m, r);
@@ -40,7 +40,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
         myInt64 cycles;
         myInt64 start;
         #ifdef CALIBRATE
-        while(num_runs < (1 << 14)) {
+        while(num_runs < (1 << 7)) {
             start = start_tsc();
             for (int j = 0; j < num_runs; j++) {
 
@@ -129,12 +129,136 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
     }
 }
 
+void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact_function fact_function, opt_fact_cost fact_cost_function){
+    double* V;
+    double* W;
+    double* H;
+    myInt64 m, n, r;
+    printf("Opt alg %d performance evaluation\n\n", opt);
+    srand(SEED);
+
+    myInt64 cost;
+    double performance;
+    
+    int num_runs = NUM_RUNS;
+    int max_iterations = MAX_ITERATIONS;
+    double rand_max_r = 1 / (double)RAND_MAX;
+
+    int steps = (max - min) / numTests;
+    for (int i = min; i < max; i += steps) {
+        m = i;
+        n = i; //+ steps; 
+        r = RANK;
+        V = malloc(m * n * sizeof(double));
+        W = malloc(m * r * sizeof(double));
+        H = malloc(r * n * sizeof(double));
+      
+        //Call adequate cost functions
+
+        cost += matrix_rand_init_cost(n, m);
+        cost = matrix_rand_init_cost(m, r);
+        cost += matrix_rand_init_cost(r, n);
+
+        cost += fact_cost_function(m, n, m, r, r, n, max_iterations);
+
+        #ifdef __x86_64__
+        myInt64 cycles;
+        myInt64 start;
+        #ifdef CALIBRATE
+        while(num_runs < (1 << 14)) {
+            start = start_tsc();
+            for (int j = 0; j < num_runs; j++) {
+                for (int i = 0; i < m*r; i++) W[i] = rand() * rand_max_r;
+                for (int i = 0; i < n*r; i++) H[i] = rand() * rand_max_r;
+                for (int i = 0; i < m*n; i++) V[i] = rand() * rand_max_r;
+
+                fact_function(V, W, H, m, n, r, max_iterations, 0.005);
+            }
+            cycles = stop_tsc(start);
+
+            if(cycles >= CYCLES_REQUIRED) break;
+
+            num_runs *= 2;
+        }
+        #endif 
+
+        start = start_tsc();
+        for (int j = 0; j < num_runs; j++) {
+
+            for (int i = 0; i < m*r; i++) W[i] = rand() * rand_max_r;
+            for (int i = 0; i < n*r; i++) H[i] = rand() * rand_max_r;
+            for (int i = 0; i < m*n; i++) V[i] = rand() * rand_max_r;
+            fact_function(V, W, H, m, n, r, max_iterations, 0.005);
+        }
+
+        cycles = stop_tsc(start)/num_runs;
+        performance =  (double )cost / (double) cycles;
+
+        #endif
+
+        #ifndef __x86_64__
+        double cycles;
+        clock_t start, end;
+        #ifdef CALIBRATE
+        while(num_runs < (1 << 14)) {
+            start = clock();
+            for (int j = 0; j < num_runs; j++) {
+
+                random_matrix_init(&H, 0, 1);
+                random_matrix_init(&W, 0, 1);
+                random_matrix_init(&V, 0, 1);
+
+                nnm_factorization_bs1(&V, &W, &H, 100, 0.005);
+            }
+            end = clock();
+
+            cycles = (double)(end-start);
+
+            // Same as in c_clock: CYCLES_REQUIRED should be expressed accordingly to the order of magnitude of CLOCKS_PER_SEC
+            if(cycles >= CYCLES_REQUIRED/(FREQUENCY/CLOCKS_PER_SEC)) break;
+
+            num_runs *= 2;
+        }
+        #endif
+
+        start = clock();
+        for (int j = 0; j < num_runs; j++) {
+
+            random_matrix_init(&W, 0, 1);
+            random_matrix_init(&H, 0, 1);
+            random_matrix_init(&V, 0, 1);
+
+            nnm_factorization_bs1(&V, &W, &H, 100, 0.005);
+        }
+        end = clock();
+
+        cycles = (double)(end - start) / num_runs;
+        //cycles = (cycles / CLOCKS_PER_SEC) * FREQUENCY;
+        //performance = cost / cycles;
+        performance = ((cost / cycles) / FREQUENCY) * CLOCKS_PER_SEC;
+        
+        #endif
+    
+        free(V);
+        free(W);
+        free(H);
+
+
+        printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
+        printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
+         if(fout != NULL){
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",m,r,n,cost, performance);
+        }
+    }
+}
+
+
 int main(int argc, char const* argv[])
 {
     if(argc <= 1){
         printf("How to use this tool:\n");
         printf("/<path>/<to>/<binary> ");
-        printf("<baseline number [1,2]> ");
+        printf("<program number [1,2,3,4,5]> ");
         printf("<min size matrix> ");
         printf("<max size matrix> ");
         printf("<number of test>");
@@ -168,6 +292,18 @@ int main(int argc, char const* argv[])
         baseline(tests, min, max, b, fout, &nnm_factorization_bs2, &nnm_factorization_bs2_cost);
         break;
     
+    case 3:
+        optimization(tests, min, max, b, fout, &nnm_factorization_optbs ,&nnm_cost);
+        break;
+    
+    case 4:
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost);
+        break;
+
+    case 5:
+        optimization(tests, min, max, b, fout, &nnm_factorization_aopt2 ,&nnm_cost);
+        break;
+
     default:
         break;
     }
