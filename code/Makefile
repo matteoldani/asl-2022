@@ -9,6 +9,8 @@ TESTS_DIR=./tests
 BS_DIR=$(SRC_DIR)/baselines
 VF_DIR=$(BS_DIR)/verification
 PERF_DIR=$(SRC_DIR)/performance
+OPT_DIR=$(SRC_DIR)/optimizations
+
 
 CINCLUDE=-I $(IDIR_LOCALC)
 CINCLUDE+=-I $(IDIR_BLAS)
@@ -39,6 +41,20 @@ verification: .build_dir_creation
 
 tests: .build_dir_creation
 	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/tests $(BS_DIR)/baseline1/baseline1.c $(BS_DIR)/baseline2/baseline2.c $(BS_DIR)/baselines_utils/baselines_utils.c $(TESTS_DIR)/tests.c $(FLAG_LINK)
+
+
+
+least_square: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/least_square $(BS_DIR)/least_square.c $(FLAG_LINK)
+
+opt1: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/opt1 $(OPT_DIR)/opt1.c $(FLAG_LINK)
+
+optimization_baseline: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/optimization_baseline $(OPT_DIR)/optimization_baseline.c $(FLAG_LINK)
+
+
+
 
 clean:
 	rm -r $(BIN_DIR)/*
