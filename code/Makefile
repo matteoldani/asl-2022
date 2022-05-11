@@ -61,6 +61,20 @@ tests: .build_dir_creation
 optimisations: .build_dir_creation
 	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/optimisations $(OPT_DIR)/*.c $(FLAG_LINK)
 
+
+
+least_square: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/least_square $(BS_DIR)/least_square.c $(FLAG_LINK)
+
+opt1: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/opt1 $(OPT_DIR)/opt1.c $(FLAG_LINK)
+
+optimization_baseline: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/optimization_baseline $(OPT_DIR)/optimization_baseline.c $(FLAG_LINK)
+
+
+
+
 clean:
 	rm -r $(BIN_DIR)/*
 
