@@ -1,4 +1,3 @@
-#include <optimizations/optimizations_baseline.h>
 #include <optimizations/optimizations_1.h>
 #include <optimizations/alg_opt_1.h>
 #include <optimizations/alg_opt_2.h>
@@ -80,7 +79,6 @@ int main(int argc, char const* argv[]) {
 
         // add here the optimisation descriptions
         printf("List of optimisations available:\n");
-        printf("\t0 - Baseline optimisation\n");
         printf("\t1 - Optimisation 1\n");
         printf("\t2 - Algoritmh opt 1\n");
         printf("\t3 - Algoritmh opt 2\n");
@@ -125,11 +123,8 @@ int main(int argc, char const* argv[]) {
 
     switch (opt_num)
     {
-    case 0:
-        run_factorization = &nnm_factorization_optbs;
-        break;
     case 1:
-        run_factorization = &nnm_factorization_optbs;
+        run_factorization = &nnm_factorization_opt1;
         break;
     case 2:
         run_factorization = &nnm_factorization_aopt1;
@@ -142,7 +137,7 @@ int main(int argc, char const* argv[]) {
         return -1;
     }
 
-    double err = run_factorization(V, W, H, m, n, r, MAX_ITERATIONS, 0.005);
+    double err = run_factorization(V, W, H, m, n, r, MAX_ITERATIONS, EPSILON);
     printf("Error: %lf\n", err);
 
     free(V);

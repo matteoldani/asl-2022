@@ -131,7 +131,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 double nnm_factorization_aopt2(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
-    double *Wt, *Ht;
+    double *Wt;
     double *H_tmp, *H_switch;
     double *W_tmp, *W_switch;
     double *V_colM;
@@ -141,7 +141,6 @@ double nnm_factorization_aopt2(double *V_rowM, double*W, double*H, int m, int n,
     mr = m * r;
     mn = m * n;
     Wt = malloc(double_size * mr);
-    Ht = malloc(double_size * rn);
     W_tmp = malloc(double_size * mr);
     H_tmp = malloc(double_size * rn);
     V_colM = malloc(double_size * mn);
@@ -199,8 +198,6 @@ double nnm_factorization_aopt2(double *V_rowM, double*W, double*H, int m, int n,
         matrix_rtrans_mul_aopt2(Wt, r, m, Wt, r, m, denominator_l, r, r);
 
         int nij;
-        int dij;
-        double h_ij;
 
         double num_ij, den_ij;
         for (int i = 0; i < r; i++) {
