@@ -5,7 +5,6 @@
 #include <optimizations/alg_opt_1.h>
 #include <optimizations/alg_opt_2.h>
 #include <optimizations/optimizations_1.h>
-#include <optimizations/optimizations_baseline.h>
 
 #ifndef WIN32
 #include <sys/time.h>
