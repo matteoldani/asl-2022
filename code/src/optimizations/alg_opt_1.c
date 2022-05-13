@@ -75,34 +75,6 @@ void matrix_mul_aopt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
     }
 }
 
-/**
- * @brief compute the multiplication of A^T and B
- * @param A         is the matrix to be transposed
- * @param A_n_row   is the number of rows in matrix A
- * @param A_n_col   is the number of columns in matrix A
- * @param B         is the other factor of the multiplication
- * @param B_n_row   is the number of rows in matrix B
- * @param B_n_col   is the number of columns in matrix B
- * @param R         is the matrix that will hold the result
- * @param R_n_row   is the number of rows in the result
- * @param R_n_col   is the number of columns in the result
- */
-void matrix_ltrans_mul_aopt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
-
-    int Rij;
-
-    for (int i = 0; i < A_n_col; i++) {
-        for (int j = 0; j < B_n_col; j++) {
-            Rij = i * R_n_col + j;
-            R[Rij] = 0;
-            for (int k = 0; k < B_n_row; k++){
-                R[Rij] += A[k * A_n_col + i] * B[k * B_n_col + j];
-
-
-            }
-        }
-    }
-}
 
 /**
  * @brief compute the multiplication of A and B^T

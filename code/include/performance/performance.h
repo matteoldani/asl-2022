@@ -22,8 +22,6 @@
 #define CYCLES_REQUIRED 1e8
 #define FREQUENCY 3.5e9	
 #define CALIBRATE
-#define RANK 5
-
 
 typedef myInt64 (*fact_cost) (Matrix *, Matrix *, Matrix *, int);
 typedef double (*fact_function) (Matrix *, Matrix *, Matrix *, int, double);

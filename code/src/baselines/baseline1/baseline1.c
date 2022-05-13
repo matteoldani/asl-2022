@@ -146,12 +146,6 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
             }
         }
 
-        // print_matrix(H);
-        // print_matrix(W);
-        // print_matrix(&numerator);
-        // print_matrix(&denominator);
-        // print_matrix(&denominator_l);
-
         //computation for Wn+1
         matrix_rtrans_mul_bs1(V, H, &numerator_W);					// 2 * V->n_row * H->n_row * V->n_col **
         matrix_mul_bs1(W, H, &denominator_l_W);						// 2 * W->n_row * H->n_col * W->n_col **
@@ -162,7 +156,6 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
                 W->M[i * W->n_col + j] = W->M[i * W->n_col + j] * numerator_W.M[i * numerator_W.n_col + j] / denominator_W.M[i * denominator_W.n_col + j];
             }
         }
-    //printf("Baseline 1 err: %lf\n", err);
     }
 
     matrix_deallocation(&numerator);

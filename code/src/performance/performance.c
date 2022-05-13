@@ -257,12 +257,20 @@ int main(int argc, char const* argv[])
 {
     if(argc <= 1){
         printf("How to use this tool:\n");
-        printf("/<path>/<to>/<binary> ");
+        printf("./build/performance ");
         printf("<program number [1,2,3,4,5]> ");
         printf("<min size matrix> ");
         printf("<max size matrix> ");
         printf("<number of test>");
         printf("<output_file>[?]\n\n");
+
+        printf("Program index:\n");
+        printf("\t1. Baseline 1\n");
+        printf("\t2. Baseline 2\n");
+        printf("\t3. Optimisation 1\n");
+        printf("\t4. Alg Opt 1\n");
+        printf("\t5. Alg Opt 2\n");
+
         return 0;
     }
 
@@ -293,11 +301,11 @@ int main(int argc, char const* argv[])
         break;
     
     case 3:
-        optimization(tests, min, max, b, fout, &nnm_factorization_optbs ,&nnm_cost);
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost);
         break;
     
     case 4:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost);
+        optimization(tests, min, max, b, fout, &nnm_factorization_aopt1 ,&nnm_cost);
         break;
 
     case 5:
