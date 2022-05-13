@@ -134,8 +134,10 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
         //printf("Current error_bs1: %lf\n", err);
 
         //computation for Hn+1
-        matrix_ltrans_mul_bs1(W, V, &numerator);			// 2 * W->n_col * V->n_col * V->n_row **
-        matrix_ltrans_mul_bs1(W, W, &denominator_l);		// 2 * W->n_col * W->n_col * W->n_row **
+        matrix_ltrans_mul_bs1(W, V, &numerator);			// 2 * W->n_col * V->n_col * V->n_row **  
+        matrix_ltrans_mul_bs1(W, W, &denominator_l);
+        		// 2 * W->n_col * W->n_col * W->n_row **
+        
         matrix_mul_bs1(&denominator_l, H, &denominator);	// 2 * W->n_col * W->n_col * H->n_col **
 
         for (int i = 0; i < H->n_row; i++) {			// 2 * H->n_row * H->n_col **
@@ -154,7 +156,6 @@ double nnm_factorization_bs1(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
                 W->M[i * W->n_col + j] = W->M[i * W->n_col + j] * numerator_W.M[i * numerator_W.n_col + j] / denominator_W.M[i * denominator_W.n_col + j];
             }
         }
-    //printf("Baseline 1 err: %lf\n", err);
     }
 
     matrix_deallocation(&numerator);

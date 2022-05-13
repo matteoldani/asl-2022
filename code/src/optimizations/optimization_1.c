@@ -4,47 +4,48 @@
 #include <time.h>
 #include <string.h>
 
-unsigned int double_size = sizeof(double);
+static unsigned int double_size = sizeof(double);
+
 
 /**
- * @brief compute the multiplication of A and B
+ * @brief compute the mul_opt1tiplication of A and B
  * @param A         is the first factor
  * @param A_n_row   is the number of rows in matrix A
  * @param A_n_col   is the number of columns in matrix A
- * @param B         is the other factor of the multiplication
+ * @param B         is the other factor of the mul_opt1tiplication
  * @param B_n_row   is the number of rows in matrix B
  * @param B_n_col   is the number of columns in matrix B
  * @param R         is the matrix that will hold the result
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_mul(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
-    
+void matrix_mul_opt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
     int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
         for (int j = 0; j < B_n_col; j++) {
             Rij = i * R_n_col + j;
             R[Rij] = 0;
-            for (int k = 0; k < A_n_col; k++)
+            for (int k = 0; k < A_n_col; k++) {
                 R[Rij] += A[i * A_n_col + k] * B[k * B_n_col + j];
+            }
         }
     }
 }
 
 /**
- * @brief compute the multiplication of A^T and B
+ * @brief compute the mul_opt1tiplication of A^T and B
  * @param A         is the matrix to be transposed
  * @param A_n_row   is the number of rows in matrix A
  * @param A_n_col   is the number of columns in matrix A
- * @param B         is the other factor of the multiplication
+ * @param B         is the other factor of the mul_opt1tiplication
  * @param B_n_row   is the number of rows in matrix B
  * @param B_n_col   is the number of columns in matrix B
  * @param R         is the matrix that will hold the result
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_ltrans_mul(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_ltrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
 
     int Rij;
 
@@ -59,8 +60,8 @@ inline void matrix_ltrans_mul(double* A, int A_n_row, int A_n_col, double* B, in
 }
 
 /**
- * @brief compute the multiplication of A and B^T
- * @param A         is the other factor of the multiplication
+ * @brief compute the mul_opt1tiplication of A and B^T
+ * @param A         is the other factor of the mul_opt1tiplication
  * @param A_n_row   is the number of rows in matrix A
  * @param A_n_col   is the number of columns in matrix A
  * @param B         is the matrix to be transposed
@@ -70,7 +71,7 @@ inline void matrix_ltrans_mul(double* A, int A_n_row, int A_n_col, double* B, in
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_rtrans_mul(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     int Rij;
 
@@ -101,7 +102,7 @@ inline void matrix_rtrans_mul(double* A, int A_n_row, int A_n_col, double* B, in
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt1(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
@@ -129,7 +130,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int rn, rr, mr, mn;
     rn = r * n;
@@ -167,17 +168,17 @@ double nnm_factorization(double *V, double*W, double*H, int m, int n, int r, int
         }
 
         //computation for Hn+1
-        matrix_ltrans_mul(W, m, r, V, m, n, numerator, r, n);
-        matrix_ltrans_mul(W, m, r, W, m, r, denominator_l, r, r);
-        matrix_mul(denominator_l, r, r, H, r, n, denominator, r, n);
+        matrix_ltrans_mul_opt1(W, m, r, V, m, n, numerator, r, n);
+        matrix_ltrans_mul_opt1(W, m, r, W, m, r, denominator_l, r, r);
+        matrix_mul_opt1(denominator_l, r, r, H, r, n, denominator, r, n);
 
         for (int i = 0; i < rn; i++)
             H[i] = H[i] * numerator[i] / denominator[i];
 
         //computation for Wn+1
-        matrix_rtrans_mul(V, m, n, H, r, n, numerator_W, m, r);
-        matrix_mul(W, m, r, H, r, n, denominator_l_W, m, n);
-        matrix_rtrans_mul(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
+        matrix_rtrans_mul_opt1(V, m, n, H, r, n, numerator_W, m, r);
+        matrix_mul_opt1(W, m, r, H, r, n, denominator_l_W, m, n);
+        matrix_rtrans_mul_opt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
@@ -193,114 +194,4 @@ double nnm_factorization(double *V, double*W, double*H, int m, int n, int r, int
     return err;
 }
 
-/**
- * @brief prints the matrix
- * @param matrix    the matrix to be printed
- * @param n_row     number of rows in the matrix
- * @param n_col     number of columns in the martix
- */
-void print_matrix(double* matrix, int n_row, int n_col) {
 
-    printf("Printing a matrix with %d rows and %d cols\n\n", n_row, n_col);
-    for (int row = 0; row < n_row; row++) {
-        for (int col = 0; col < n_col; col++) {
-            fprintf(stdout, "%.2lf\t", matrix[row * n_col + col]);
-        }
-        fprintf(stdout, "\n\n");
-    }
-    fprintf(stdout, "\n\n");
-}
-
-/**
- * @brief   allocates the correspondin matrix
- *          and fill the matrix with the values
- *          read from the file
- *
- * @param matrix    the matrix that will be filled
- * @param m         is the number of rows in the matrix to be factorized
- * @param n         is the nunmber of columns in the matrix to be factorized
- * @param r         is the factorization parameter
- * @param file      is the file to read the matrix from
- */
-void allocate_from_file(double* matrix, int* m, int* n, int* r, FILE* file) {
-
-    printf("Reading matrix information: \n");
-
-    fscanf(file, "%d", r);
-    printf("\tr: %d\n", *r);
-    fscanf(file, "%d", m);
-    printf("\tn_row: %d\n", *m);
-    fscanf(file, "%d", n);
-    printf("\tn_col: %d\n", *n);
-
-    int mn = (*m) * (*n);
-
-    matrix = malloc(sizeof(double) * mn);
-
-    for (int i = 0; i < mn; i++)
-        fscanf(file, "%lf", matrix + i);
-}
-
-int main(int argc, char const* argv[]) {
-
-    double *V;      //m x n
-    double *W, *H;  //m x r and r x n
-
-    int m, n, r;
-    m = 1000;
-    n = 1000;
-    r = 12;
-
-    int mn, nr, mr;
-
-    double rand_max_r = 1 / (double)RAND_MAX;
-
-    if (argc != 2 && argc != 4) {
-        printf("This program can be run in tow different modes:\n");
-        printf("\t./ <m> <n> <r>\n");
-        printf("\t./ <file-path>\n");
-        return -1;
-    }
-    FILE* fp = NULL;
-    if (argc == 4) {
-        m = atoi(argv[1]);
-        n = atoi(argv[2]);
-        r = atoi(argv[3]);
-
-        srand(40);
-
-        mn = m * n;
-        V = malloc(double_size * mn);
-        for (int i = 0; i < mn; i++)
-            V[i] = rand() * rand_max_r;
-    }
-
-    if (argc == 2) {
-        fp = fopen(argv[1], "r");
-        if (fp == NULL) {
-            printf("File not found, exiting\n");
-            return -1;
-        }
-
-        allocate_from_file(V, &m, &n, &r, fp);
-    }
-
-    mr = m * r;
-    nr = n * r;
-    W = malloc(double_size * mr);
-    H = malloc(double_size * nr);
-
-    for (int i = 0; i < mr; i++)
-        W[i] = rand() * rand_max_r;
-    for (int i = 0; i < nr; i++)
-        H[i] = rand() * rand_max_r;
-
-    double err = nnm_factorization(V, W, H, m, n, r, 10000, 0.005);
-    printf("Error: %lf\n", err);
-
-    free(V);
-    free(W);
-    free(H);
-
-    return 0;
-}

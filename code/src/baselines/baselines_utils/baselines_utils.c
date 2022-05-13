@@ -1,5 +1,28 @@
 #include <baselines/baselines_utils.h>
 
+
+myInt64 matrix_mul_cost(int n, int m, int r){
+    return (myInt64)(2 * n * m * r);
+}
+
+myInt64 nnm_cost(int V_row, int V_col, int W_row, int W_col, int H_row, int H_col, int num_iterations){
+
+    return (myInt64)(2 * W_row * H_col * W_col + 5 * V_row * V_col + 3) +
+           (myInt64)num_iterations * (myInt64) (4 * W_row * H_col * W_col + 5 * V_row * V_col +
+                            2 * W_col * V_col * V_row +
+                            2 * W_col * W_col * W_row +
+                            2 * W_col * W_col * H_col +
+                            2 * V_row * H_row * V_col +
+                            2 * W_row * H_row * H_col +
+                            2 * H_row * H_col +
+                            2 * W_row * W_col + 3);
+
+}
+
+myInt64 matrix_rand_init_cost(int row, int col){
+    return (myInt64) (5 * row * col);
+}
+
 /**
  * @brief generate a random floating point number from min to max
  * @param min   the minumum possible value
@@ -67,7 +90,7 @@ void random_matrix_init(Matrix *matrix, double min, double max) {
  * @param W    factorizing matrix, initialized here
  * @param q    number of columns of X averaged to obtsain a column of W
  */
-void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {		// W->n_col * (2 * q + V->n_row * q + V->n_row)
+void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {		// W_col * (2 * q + V_row * q + V_row)
 
     int r;
 
@@ -78,7 +101,7 @@ void random_acol_matrix_init(Matrix *V, Matrix *W, int q) {		// W->n_col * (2 * 
 
         //average q random columns of X into W
         for (int i = 0; i < q; i++){
-            r = rand() % V->n_col;					                    // 2 * W->n_col * q
+            r = rand() % V->n_col;					                    // 2 * W_col * q
             for (int j = 0; j < V -> n_row; j++)
                 W->M[j * W->n_col + k] += V->M[j * V->n_col + r];   //W->M[j][k] += V->M[j][r];		
         }
