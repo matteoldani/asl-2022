@@ -149,7 +149,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
-    double *Wt, *Ht;
+    double *Wt, *Wtmp, *Ht, *Htmp, *tmp;
     double *V_colM;
     int rn, rr, mr, mn;
     rn = r * n;
@@ -157,9 +157,10 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
     mr = m * r;
     mn = m * n;
     Wt = malloc(double_size * mr);
+    Wtmp = malloc(double_size * mr);
     Ht = malloc(double_size * rn);
+    Htmp = malloc(double_size * rn);
     V_colM = malloc(double_size * mn);
-    
   
     // this is required to be done here to reuse the same run_opt.
     // does not changhe the number of flops
@@ -228,26 +229,81 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
             }
         }
         transpose(Wt, W, r, m);
-        // print_matrix_helper(V_rowM, m, n);
-        // print_matrix_helper(W, m, r );
-        // print_matrix_helper(numerator, r, n);
-        // print_matrix_helper(denominator_l, r,r );
-
-        //matrix_mul_aopt1(denominator_l, r, r, H, r, n, denominator, r, n);
-        
         transpose(H, Ht, r, n);
-        matrix_rtrans_mul_aopt1(denominator_l, r, r, Ht, n, r, denominator, r, n);
 
-        for (int i = 0; i < rn; i++)
-            H[i] = H[i] * numerator[i] / denominator[i];
+        //matrix_rtrans_mul_aopt1(denominator_l, r, r, Ht, n, r, denominator, r, n);
+        // for (int i = 0; i < rn; i++)
+        //     H[i] = H[i] * numerator[i] / denominator[i];
+        int Rij;
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < n; j++) {
+                Rij = i * n + j;
+                denominator[Rij] = 0;
+                for (int k = 0; k < r; k++){
+                    denominator[Rij] += denominator_l[i * r + k] * Ht[j * r + k];
+                }
+                Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
+            }
+        }
+        
+        tmp = Htmp;
+        Htmp = H;
+        H = tmp;  
 
+
+
+        
+        // printf("H\n");
+
+        // print_matrix_helper(H, r, n);
         //computation for Wn+1
-        matrix_rtrans_mul_aopt1(V_rowM, m, n, H, r, n, numerator_W, m, r);
-        matrix_mul_aopt1(W, m, r, H, r, n, denominator_l_W, m, n);
-        matrix_rtrans_mul_aopt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
 
-        for (int i = 0; i < mr; i++)
-            W[i] = W[i] * numerator_W[i] / denominator_W[i];
+        //matrix_rtrans_mul_aopt1(V_rowM, m, n, H, r, n, numerator_W, m, r);
+        //matrix_mul_aopt1(W, m, r, H, r, n, denominator_l_W, m, n);
+      
+        double h;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < r; j++) {
+                Rij = i * r + j;
+                numerator_W[Rij] = 0;
+                if(i < r){
+                    denominator_l[Rij] = 0;
+                }
+                for (int k = 0; k < n; k++){
+                    h = H[j * n + k];
+                    numerator_W[Rij] += V_rowM[i * n + k] * h;
+                    if(i < r){
+                        denominator_l[Rij] += H[i * n + k] * h;
+                    }
+                }
+            }
+        }
+
+        //matrix_rtrans_mul_aopt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < r; j++) {
+                Rij = i * r + j;
+                denominator_W[Rij] = 0;
+                for (int k = 0; k < r; k++) {
+                    denominator_W[Rij] += W[i * r + k] * denominator_l[k * r + j];
+
+                }
+                Wtmp[Rij] = W[Rij] * numerator_W[Rij] / denominator_W[Rij];
+            }
+        }
+
+        tmp = Wtmp;
+        Wtmp = W;
+        W = tmp; 
+
+
+
+
+        //matrix_mul_aopt1(W, m, r, denominator_l, r, r, denominator_W, m, r);
+
+        // for (int i = 0; i < mr; i++)
+        //     W[i] = W[i] * numerator_W[i] / denominator_W[i];
 
         // printf("MAtrix at iteration %d\n", count);
         // print_matrix_helper(V_rowM, m, n);
@@ -268,6 +324,7 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
     free(Wt);
     free(V_colM);
     free(approximation);
+    free(Htmp);
     return err;
 }
 

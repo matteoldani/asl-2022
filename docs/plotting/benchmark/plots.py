@@ -12,7 +12,7 @@ def read_settings(input_path):
 
 def plot():
     sns.set_theme()
-    settings = read_settings("C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/plotting/benchmark/settings.json")
+    settings = read_settings("C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/plotting/benchmark/settings.json")
     fig = plt.figure(figsize = (9.5,5.5), dpi = 80)
     ax = plt.subplot(111)
     for line in settings["lines"]:
