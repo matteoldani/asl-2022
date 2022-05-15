@@ -26,13 +26,13 @@ CFLAGS+=-fno-tree-vectorize
 
 
 FLAG_LINK=-lm
-#FLAG_LINK+=-L/opt/openblas/lib
-#FLAG_LINK+=-lopenblas_nonthreaded
+FLAG_LINK+=-L/opt/openblas/lib
+FLAG_LINK+=-lopenblas_nonthreaded
 
 MKLROOT=/opt/intel/oneapi/mkl/latest
 
-INTEL_LINK=${MKLROOT}/lib/intel64/libmkl_scalapack_ilp64.a -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_ilp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a ${MKLROOT}/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_ilp64.a -Wl,--end-group -lpthread -lm -ldl
-INTEL_FLAG= -DMKL_ILP64  -m64  -I"$(MKLROOT)/include"
+#INTEL_LINK=${MKLROOT}/lib/intel64/libmkl_scalapack_ilp64.a -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_ilp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a ${MKLROOT}/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_ilp64.a -Wl,--end-group -lpthread -lm -ldl
+#INTEL_FLAG= -DMKL_ILP64  -m64  -I"$(MKLROOT)/include"
 
 
 all: baseline performance verification optimisations tests

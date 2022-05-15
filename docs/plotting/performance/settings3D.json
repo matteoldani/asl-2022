@@ -1,0 +1,31 @@
+{
+    "title" : "Baseline 1 Performance",
+    "type"  : "performance",
+    "action": "save",
+    "output_file":"/home/asl/asl-2022/docs/outputs/performance_bs1_3D.pdf",
+    "xlabel": "Input matrix size",
+    "ylabel": "Flops/Cycle",
+    "zlabel": "k",
+    
+    "lines" : [
+
+        {
+            "input_file" : "/home/asl/asl-2022/docs/outputs/bs1_r2.out"
+        },
+        {
+            "input_file" : "/home/asl/asl-2022/docs/outputs/bs1_r4.out"
+        },
+        {
+            "input_file" : "/home/asl/asl-2022/docs/outputs/bs1_r6.out"
+        },
+        {
+            "input_file" : "/home/asl/asl-2022/docs/outputs/bs1_r8.out"
+        },
+        {
+            "input_file" : "/home/asl/asl-2022/docs/outputs/bs1_r10.out"
+        },
+        {
+            "input_file" : "/home/asl/asl-2022/docs/outputs/bs1_r12.out"
+        }
+    ]
+}
