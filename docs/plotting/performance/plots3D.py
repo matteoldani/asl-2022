@@ -53,7 +53,8 @@ def plot():
     plt.ylabel(settings["ylabel"], fontsize = 12)
     ax.set_zlabel(settings["zlabel"], fontsize = 12)
 
-    plt.yticks(np.arange(2, settings["maxR"]+1, 4.0))
+    plt.yticks(np.arange(2, settings["maxR"]+1, 10.0))
+    ax.view_init(30, 150)
    
     plt.title(settings["title"])
 
