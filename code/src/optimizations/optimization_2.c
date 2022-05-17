@@ -34,7 +34,8 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  */
 void matrix_mul_opt2(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
     int Rij;
-    int nB = BLOCK_SIZE;
+    int nB = BLOCK_SIZE_MMUL;
+
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
             Rij = i * R_n_col + j;
@@ -68,7 +69,7 @@ void matrix_mul_opt2(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
 void matrix_rtrans_mul_opt2(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     int Rij;
-    int nB = BLOCK_SIZE;
+    int nB = BLOCK_SIZE_RTRANSMUL;
 
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_row; j+=nB) {

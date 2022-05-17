@@ -213,7 +213,7 @@ int test_nnm_d(double (*nnmd)(double *V, double *W, double *H, int m, int n, int
     srand(SEED);
     int m = 400;
     int n = 400;
-    int r = 3;
+    int r = 24;
 
     double *V;
     double *W;
