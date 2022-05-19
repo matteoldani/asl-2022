@@ -4,9 +4,9 @@
 #include <time.h>
 #include <string.h>
 
-//NEW - optimization done on optimization_0
+//NEW - optimization done on baseline1
 
-unsigned int double_size = sizeof(double);
+static unsigned int double_size = sizeof(double);
 
 /**
  * @brief compute the multiplication of A and B
@@ -20,21 +20,17 @@ unsigned int double_size = sizeof(double);
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_mul_opt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
-    
-    int Rij = 0, Ri = 0, Ai = 0; //NEW - simplified index calculations by code motion and strength reduction
-    double R_Rij; //NEW - scalar replacement, aggregation into a local variable and only a single access to R[Rij] through a pointer
+void matrix_mul_opt0(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+    int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
         for (int j = 0; j < B_n_col; j++) {
-            Rij = Ri + j; //NEW - moved outside of the loop since it depends only on i and j (also uses the precalculated value dependant on i)
-            R_Rij = 0;
-            for (int k = 0; k < A_n_col; k++)
-                R_Rij += A[Ai + k] * B[k * B_n_col + j]; //NEW - the remaining calculations depend on k so they have to remain
-            R[Rij] = R_Rij;
+            Rij = i * R_n_col + j;
+            R[Rij] = 0;
+            for (int k = 0; k < A_n_col; k++) {
+                R[Rij] += A[i * A_n_col + k] * B[k * B_n_col + j];
+            }
         }
-        Ri += R_n_col; //NEW - no more mul, just a single add per iteration of i
-        Ai += A_n_col; //NEW - no more mul, just a single add per iteration of i 
     }
 }
 
@@ -50,21 +46,17 @@ inline void matrix_mul_opt1(double *A, int A_n_row, int A_n_col, double*B, int B
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_ltrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_ltrans_mul_opt0(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
 
-    //NEW - similar changes made as in regular matrix mul
-    int Rij = 0, Ri = 0;
-    double R_Rij;
+    int Rij;
 
     for (int i = 0; i < A_n_col; i++) {
         for (int j = 0; j < B_n_col; j++) {
-            Rij = Ri + j;
-            R_Rij = 0;
+            Rij = i * R_n_col + j;
+            R[Rij] = 0;
             for (int k = 0; k < B_n_row; k++)
-                R_Rij += A[k * A_n_col + i] * B[k * B_n_col + j];
-            R[Rij] = R_Rij;
+                R[Rij] += A[k * A_n_col + i] * B[k * B_n_col + j];
         }
-        Ri += R_n_col;
     }
 }
 
@@ -80,24 +72,17 @@ inline void matrix_ltrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* 
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_rtrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt0(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
-    //NEW - similar changes made as in regular matrix mul
-    int Rij = 0, Ri = 0, Ai = 0, Bj;
-    double R_Rij;
+    int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
-        Bj = 0;
         for (int j = 0; j < B_n_row; j++) {
-            Rij = Ri + j;
-            R_Rij = 0;
+            Rij = i * R_n_col + j;
+            R[Rij] = 0;
             for (int k = 0; k < A_n_col; k++)
-                R_Rij += A[Ai + k] * B[Bj + k];
-            R[Rij] = R_Rij;
-            Bj += B_n_col;
+                R[Rij] += A[i * A_n_col + k] * B[j * B_n_col + k];
         }
-        Ri += R_n_col;
-        Ai += A_n_col;
     }
 }
 
@@ -118,7 +103,7 @@ inline void matrix_rtrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* 
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt1(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt0(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
@@ -146,7 +131,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int rn, rr, mr, mn;
     rn = r * n;
@@ -172,7 +157,7 @@ double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r
     double norm_V = 0;
     for (int i = 0; i < mn; i++)
         norm_V += V[i] * V[i];
-    norm_V = (double) 1 / sqrt(norm_V);
+    norm_V = 1 / sqrt(norm_V);
 
     //real convergence computation
     double err = -1;											
@@ -184,17 +169,17 @@ double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r
         }
 
         //computation for Hn+1
-        matrix_ltrans_mul_opt1(W, m, r, V, m, n, numerator, r, n);
-        matrix_ltrans_mul_opt1(W, m, r, W, m, r, denominator_l, r, r);
-        matrix_mul_opt1(denominator_l, r, r, H, r, n, denominator, r, n);
+        matrix_ltrans_mul_opt0(W, m, r, V, m, n, numerator, r, n);
+        matrix_ltrans_mul_opt0(W, m, r, W, m, r, denominator_l, r, r);
+        matrix_mul_opt0(denominator_l, r, r, H, r, n, denominator, r, n);
 
         for (int i = 0; i < rn; i++)
             H[i] = H[i] * numerator[i] / denominator[i];
 
         //computation for Wn+1
-        matrix_rtrans_mul_opt1(V, m, n, H, r, n, numerator_W, m, r);
-        matrix_mul_opt1(W, m, r, H, r, n, denominator_l_W, m, n);
-        matrix_rtrans_mul_opt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
+        matrix_rtrans_mul_opt0(V, m, n, H, r, n, numerator_W, m, r);
+        matrix_mul_opt0(W, m, r, H, r, n, denominator_l_W, m, n);
+        matrix_rtrans_mul_opt0(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
@@ -210,20 +195,4 @@ double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r
     return err;
 }
 
-/**
- * @brief prints the matrix
- * @param matrix    the matrix to be printed
- * @param n_row     number of rows in the matrix
- * @param n_col     number of columns in the martix
- */
-void print_matrix(double* matrix, int n_row, int n_col) {
 
-    printf("Printing a matrix with %d rows and %d cols\n\n", n_row, n_col);
-    for (int row = 0; row < n_row; row++) {
-        for (int col = 0; col < n_col; col++) {
-            fprintf(stdout, "%.2lf\t", matrix[row * n_col + col]);
-        }
-        fprintf(stdout, "\n\n");
-    }
-    fprintf(stdout, "\n\n");
-}

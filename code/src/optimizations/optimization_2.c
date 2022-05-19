@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <optimizations/optimizations_2.h>
 
+//NEW - optimization done on optimization_1 and alg_opt_2
+
 typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
@@ -33,24 +35,44 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_mul_opt2(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
-    int Rij;
-    int nB = BLOCK_SIZE_MMUL;
+    //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
+    //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
+    
+    int Rij = 0, Ri = 0, Ai = 0, Aii, Rii; //NEW - ensured strength reduction and code motion for the blocked accesses as well
+    int nB = BLOCK_SIZE_MMUL; //NEW - introduced martix blocking for cache
+
+    double R_Rij;
+
+    memset(R, 0, double_size * R_n_row * R_n_col); //NEW - added memset for init of R, instead of the inner double loop
 
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
-            Rij = i * R_n_col + j;
-            R[Rij] = 0;
+            //Initialize the whole block of R to zero
+            /*for (int ii = i; ii < i + nB; ii++) {
+                for (int jj = j; jj < j + nB; jj++) {
+                    R[ii * R_n_col + jj] = 0;
+                }
+            }*/
+
+            //The k loop goes over the same block multiple times so the init to 0 needs to be beforehand
             for (int k = 0; k < A_n_col; k+=nB) {
+                Rii = Ri;
+                Aii = Ai;
                 for (int ii = i; ii < i + nB; ii++) {
                     for (int jj = j; jj < j + nB; jj++) {
-                        Rij = ii * R_n_col + jj;
-                        for (int kk = k; kk < k + nB; kk++) {
-                            R[Rij] += A[ii * A_n_col + kk] * B[kk * B_n_col + jj];
-                        }
+                        Rij = Rii + jj;
+                        R_Rij = 0;
+                        for (int kk = k; kk < k + nB; kk++)
+                            R_Rij += A[Aii + kk] * B[kk * B_n_col + jj];
+                        R[Rij] += R_Rij;
                     }
+                    Rii += R_n_col;
+                    Aii += A_n_col;
                 }
             }
         }
+        Ri += R_n_col;
+        Ai += A_n_col;
     }
 }
 
@@ -68,24 +90,38 @@ void matrix_mul_opt2(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
  */
 void matrix_rtrans_mul_opt2(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
-    int Rij;
+    //NEW - similar improvements made as in basic matrix multiplication
+    int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
     int nB = BLOCK_SIZE_RTRANSMUL;
 
+    double R_Rij;
+
+    memset(R, 0, double_size * R_n_row * R_n_col);
+
     for (int i = 0; i < A_n_row; i+=nB) {
+        Bj = 0;
         for (int j = 0; j < B_n_row; j+=nB) {
-            Rij = i * R_n_col + j;
-            R[Rij] = 0;
             for (int k = 0; k < A_n_col; k+=nB){
+                Aii = Ai;
+                Rii = Ri;
                 for (int ii = i; ii < i + nB; ii++) {
+                    Bjj = Bj;
                     for (int jj = j; jj < j + nB; jj++) {
-                        Rij = ii * R_n_col + jj;
-                        for (int kk = k; kk < k + nB; kk++) {
-                            R[Rij] += A[ii * A_n_col + kk] * B[jj * B_n_col + kk];
-                        }
+                        Rij = Rii + jj;
+                        R_Rij = 0;
+                        for (int kk = k; kk < k + nB; kk++)
+                            R_Rij += A[Aii + kk] * B[Bjj + kk];
+                        R[Rij] += R_Rij;
+                        Bjj += B_n_col;
                     }
+                    Aii += A_n_col;
+                    Rii += R_n_col;
                 }
             }
+            Bj += B_n_col;
         }
+        Ai += A_n_col;
+        Ri += R_n_col;
     }
 }
 
