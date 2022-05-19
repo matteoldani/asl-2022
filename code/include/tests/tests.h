@@ -3,6 +3,7 @@
 #include <baselines/baseline1.h>
 #include <baselines/baseline2.h>
 #include <baselines/baselines_utils.h>
+#include <optimizations/optimizations_0.h>
 #include <optimizations/optimizations_1.h>
 #include <optimizations/alg_opt_1.h>
 #include <optimizations/alg_opt_2.h>
