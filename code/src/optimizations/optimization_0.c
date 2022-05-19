@@ -6,7 +6,9 @@
 
 //NEW - optimization done on baseline1
 
-static unsigned int double_size = sizeof(double);
+//NEW - all functions moved to the same file and marked as inline
+
+static unsigned int double_size = sizeof(double); //NEW - call sizeof only once and then just use the local variable
 
 /**
  * @brief compute the multiplication of A and B
@@ -107,6 +109,8 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
 
     double norm_approx, temp;
 
+    //NEW - removed calls to the norm function, norm now calculated in place
+    //NEW - two loops over the approx matrix were replaced with one + scalar replacement added and number of accesses to memory reduced by 1/3 per function call
     norm_approx = 0;
     for (int i = 0; i < mn; i++)
     {
@@ -115,7 +119,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
     }
     norm_approx = sqrt(norm_approx);
 
-    return norm_approx * norm_V;
+    return norm_approx * norm_V; //NEW - div replaced with mul thanks to precomputing
 }
 
 /**
@@ -131,17 +135,18 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
+//NEW - removed the usage of structs, a matrix is now just a double*, also m,n,r are just sent once (no more row and col information for each matrix separately)
 double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int rn, rr, mr, mn;
-    rn = r * n;
+    rn = r * n;  //NEW - reduced the number of mul ops by precomputing these values
     rr = r * r;
     mr = m * r;
     mn = m * n;
 
     //Operands needed to compute Hn+1
     double *numerator, *denominator_l, *denominator;    //r x n, r x r, r x n
-    numerator = malloc(double_size * rn);
+    numerator = malloc(double_size * rn);  //NEW - removed calls to allocate functions, allocation is now done directly in place
     denominator_l = malloc(double_size * rr);
     denominator = malloc(double_size * rn);
 
@@ -152,12 +157,12 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
     denominator_l_W = malloc(double_size * mn);
 
     double* approximation; //m x n
-    approximation = malloc(double_size * mn);
+    approximation = malloc(double_size * mn); //NEW - allocate the approximation matrix only once and send it into the error function
 
-    double norm_V = 0;
+    double norm_V = 0; //NEW - norm for V calculated only once and sent into the error function
     for (int i = 0; i < mn; i++)
         norm_V += V[i] * V[i];
-    norm_V = 1 / sqrt(norm_V);
+    norm_V = 1 / sqrt(norm_V); //NEW - calculate 1/norm here and avoid having a div instruction inside the error function
 
     //real convergence computation
     double err = -1;											
@@ -173,6 +178,7 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
         matrix_ltrans_mul_opt0(W, m, r, W, m, r, denominator_l, r, r);
         matrix_mul_opt0(denominator_l, r, r, H, r, n, denominator, r, n);
 
+        //NEW - double loop replaced with a single loop, index calc simplified
         for (int i = 0; i < rn; i++)
             H[i] = H[i] * numerator[i] / denominator[i];
 
@@ -185,7 +191,7 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
     }
 
-    free(numerator);
+    free(numerator);    //NEW - removed calls to deallocate function, deallocation now done directly in place
     free(denominator);
     free(denominator_l);
     free(numerator_W);
