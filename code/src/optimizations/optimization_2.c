@@ -47,14 +47,6 @@ void matrix_mul_opt2(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
 
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
-            //Initialize the whole block of R to zero
-            /*for (int ii = i; ii < i + nB; ii++) {
-                for (int jj = j; jj < j + nB; jj++) {
-                    R[ii * R_n_col + jj] = 0;
-                }
-            }*/
-
-            //The k loop goes over the same block multiple times so the init to 0 needs to be beforehand
             for (int k = 0; k < A_n_col; k+=nB) {
                 Rii = Ri;
                 Aii = Ai;
@@ -71,8 +63,8 @@ void matrix_mul_opt2(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
                 }
             }
         }
-        Ri += R_n_col;
-        Ai += A_n_col;
+        Ri += nB * R_n_col;
+        Ai += nB * A_n_col;
     }
 }
 
@@ -118,10 +110,10 @@ void matrix_rtrans_mul_opt2(double* A, int A_n_row, int A_n_col, double* B, int 
                     Rii += R_n_col;
                 }
             }
-            Bj += B_n_col;
+            Bj += nB * B_n_col;
         }
-        Ai += A_n_col;
-        Ri += R_n_col;
+        Ai += nB * A_n_col;
+        Ri += nB * R_n_col;
     }
 }
 

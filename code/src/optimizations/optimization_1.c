@@ -20,7 +20,7 @@ unsigned int double_size = sizeof(double);
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_mul_opt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
     
     int Rij = 0, Ri = 0, Ai = 0; //NEW - simplified index calculations by code motion and strength reduction
     double R_Rij; //NEW - scalar replacement, aggregation into a local variable and only a single access to R[Rij] through a pointer
@@ -50,7 +50,7 @@ inline void matrix_mul_opt1(double *A, int A_n_row, int A_n_col, double*B, int B
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_ltrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_ltrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
 
     //NEW - similar changes made as in regular matrix mul
     int Rij = 0, Ri = 0;
@@ -80,7 +80,7 @@ inline void matrix_ltrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* 
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_rtrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     //NEW - similar changes made as in regular matrix mul
     int Rij = 0, Ri = 0, Ai = 0, Bj;
@@ -208,22 +208,4 @@ double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r
     free(denominator_l_W);
     
     return err;
-}
-
-/**
- * @brief prints the matrix
- * @param matrix    the matrix to be printed
- * @param n_row     number of rows in the matrix
- * @param n_col     number of columns in the martix
- */
-void print_matrix(double* matrix, int n_row, int n_col) {
-
-    printf("Printing a matrix with %d rows and %d cols\n\n", n_row, n_col);
-    for (int row = 0; row < n_row; row++) {
-        for (int col = 0; col < n_col; col++) {
-            fprintf(stdout, "%.2lf\t", matrix[row * n_col + col]);
-        }
-        fprintf(stdout, "\n\n");
-    }
-    fprintf(stdout, "\n\n");
 }
