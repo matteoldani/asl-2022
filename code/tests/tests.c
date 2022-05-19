@@ -4,8 +4,8 @@
 #include <tests/tests.h>
 
 
-#define M_PERF 300
-#define N_PERF 300
+#define M_PERF 400
+#define N_PERF 400
 #define R_PERF RANK
 #define TOLERANCE 0.000001
 

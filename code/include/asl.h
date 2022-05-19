@@ -1,7 +1,7 @@
 #define EPSILON 0.05
 #define MAX_ITERATIONS 100
 #define SEED 42
-#define RANK 12
+#define RANK 24 //needs to be divisible by BLOCK_SIZE_MMUL*2
 #define NUM_RUNS 10
 #define CLALIBRATE_ITERATIONS 100
 #define BLOCK_SIZE_MMUL 4
