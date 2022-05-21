@@ -1,8 +1,9 @@
 #include <optimizations/optimizations_0.h>
 #include <optimizations/optimizations_1.h>
-#include <optimizations/optimizations_2.h>
 #include <optimizations/alg_opt_1.h>
 #include <optimizations/alg_opt_2.h>
+#include <optimizations/optimizations_2.h>
+#include <optimizations/optimizations_3.h>
 #include <asl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -86,6 +87,7 @@ int main(int argc, char const* argv[]) {
         printf("\t2 - Algoritmh opt 1\n");
         printf("\t3 - Algoritmh opt 2\n");
         printf("\t4 - Optimization 2\n");
+        printf("\t5 - Optimization 3\n");
         return -1;
     }
     FILE* fp = NULL;
@@ -141,6 +143,9 @@ int main(int argc, char const* argv[]) {
         break;
     case 4:
         run_factorization = &nnm_factorization_opt2;
+        break;
+    case 5:
+        run_factorization = &nnm_factorization_opt3;
         break;
     default:
         printf("Invalid opt number. Quitting\n");

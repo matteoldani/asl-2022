@@ -4,8 +4,8 @@
 #include <tests/tests.h>
 
 
-#define M_PERF 400
-#define N_PERF 400
+#define M_PERF M_TEST
+#define N_PERF N_TEST
 #define R_PERF RANK
 #define TOLERANCE 0.000001
 
@@ -211,9 +211,9 @@ int test_nnm_d(double (*nnmd)(double *V, double *W, double *H, int m, int n, int
 
     double resultBS1, resultBS2;
     srand(SEED);
-    int m = 400;
-    int n = 400;
-    int r = 24;
+    int m = M_PERF;
+    int n = N_PERF;
+    int r = R_PERF;
 
     double *V;
     double *W;
