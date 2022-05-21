@@ -4,8 +4,8 @@
 #include <tests/tests.h>
 
 
-#define M_PERF 300
-#define N_PERF 300
+#define M_PERF M_TEST
+#define N_PERF N_TEST
 #define R_PERF RANK
 #define TOLERANCE 0.000001
 
@@ -211,9 +211,9 @@ int test_nnm_d(double (*nnmd)(double *V, double *W, double *H, int m, int n, int
 
     double resultBS1, resultBS2;
     srand(SEED);
-    int m = 400;
-    int n = 400;
-    int r = 3;
+    int m = M_PERF;
+    int n = N_PERF;
+    int r = R_PERF;
 
     double *V;
     double *W;
@@ -886,10 +886,10 @@ int main(int argc, char const *argv[]) {
     void (*mmul[n_mmul])(Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n_nnm])(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    int n_mmulrtrans_opt = 3;
-    int n_mmulltrans_opt = 1;
-    int n_mmul_opt = 3;
-    int n_nnm_opt = 3;
+    int n_mmulrtrans_opt = 6;
+    int n_mmulltrans_opt = 0;
+    int n_mmul_opt = 6;
+    int n_nnm_opt = 6;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -910,21 +910,28 @@ int main(int argc, char const *argv[]) {
     nnm[0] = nnm_factorization_bs1;
     nnm[1] = nnm_factorization_bs2;
 
-    run_tests(n_mmul, mmul, n_mmulltrans, mmulltrans, n_mmulrtrans, mmulrtrans, n_nnm, nnm);
+    //run_tests(n_mmul, mmul, n_mmulltrans, mmulltrans, n_mmulrtrans, mmulrtrans, n_nnm, nnm);
 
-    mmuld[0] = matrix_mul_opt1;
-    mmuld[1] = matrix_mul_aopt1;
-    mmuld[2] = matrix_mul_aopt2;
+    mmuld[0] = matrix_mul_opt0;
+    mmuld[1] = matrix_mul_opt1;
+    mmuld[2] = matrix_mul_aopt1;
+    mmuld[3] = matrix_mul_aopt2;
+    mmuld[4] = matrix_mul_opt2;
+    mmuld[5] = matrix_mul_opt3;
 
-    mmulltransd[0] = matrix_ltrans_mul_opt1;
-
-    mmulrtransd[0] = matrix_rtrans_mul_opt1;
-    mmulrtransd[1] = matrix_rtrans_mul_aopt1;
-    mmulrtransd[2] = matrix_rtrans_mul_aopt2;
+    mmulrtransd[0] = matrix_rtrans_mul_opt0;
+    mmulrtransd[1] = matrix_rtrans_mul_opt1;
+    mmulrtransd[2] = matrix_rtrans_mul_aopt1;
+    mmulrtransd[3] = matrix_rtrans_mul_aopt2;
+    mmulrtransd[4] = matrix_rtrans_mul_opt2;
+    mmulrtransd[5] = matrix_rtrans_mul_opt3;
     
-    nnmd[0] = nnm_factorization_opt1;
-    nnmd[1] = nnm_factorization_aopt1;
-    nnmd[2] = nnm_factorization_aopt2;
+    nnmd[0] = nnm_factorization_opt0;
+    nnmd[1] = nnm_factorization_opt1;
+    nnmd[2] = nnm_factorization_aopt1;
+    nnmd[3] = nnm_factorization_aopt2;
+    nnmd[4] = nnm_factorization_opt2;
+    nnmd[5] = nnm_factorization_opt3;
 
     // END TODO
 

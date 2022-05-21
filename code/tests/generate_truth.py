@@ -54,10 +54,10 @@ def generate_rtrans_mul(m, n):
 def generate_matrix(r,c, max_val = 1000):
     return np.random.rand(r,c) * max_val
 
-r = 100
+r = 400
 c = 200
 
 generate_mul(r, c)
 generate_ltrans_mul(r, c)
 generate_rtrans_mul(r, c)
-generate_factorization(100, 100, 10)
+generate_factorization(400, 400, 10)
