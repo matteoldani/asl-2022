@@ -8,8 +8,6 @@
 
 //NEW - optimization done on optimization_3
 
-//NOTE - this file contains some changes that need to be propagated everywhere as well (moving nB*x_n_col up and saving a lot of multiplications)
-
 typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
@@ -29,7 +27,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
                 src_ii += M;
             }
         }
-        src_i += nBM; //NEW - moved nb*M up so we save N-1 mults
+        src_i += nBM;
     }   
 }
 
@@ -95,8 +93,8 @@ void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
                 Bk += nBB_n_col;
             }
         }
-        Ri += nBR_n_col; //NEW - moved up nB * R_n_col so we save A_n_row-1 mults
-        Ai += nBA_n_col; //NEW - moved up nB * A_n_col so we save A_n_row-1 mults
+        Ri += nBR_n_col;
+        Ai += nBA_n_col;
     }
 }
 
@@ -158,10 +156,10 @@ void matrix_rtrans_mul_opt31(double* A, int A_n_row, int A_n_col, double* B, int
                     Rii += nRR_n_col;
                 }
             }
-            Bj += nBB_n_col; //NEW - moved up nB * B_n_col so we save (A_n_row*B_n_row)-1 mults
+            Bj += nBB_n_col;
         }
-        Ai += nBA_n_col; //NEW - moved up nB * R_n_col so we save A_n_row-1 mults
-        Ri += nBR_n_col; //NEW - moved up nB * A_n_col so we save A_n_row-1 mults
+        Ai += nBA_n_col;
+        Ri += nBR_n_col;
     }
 }
 

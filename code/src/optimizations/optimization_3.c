@@ -7,6 +7,7 @@
 #include <optimizations/optimizations_2.h>
 
 //NEW - optimization done on optimization_2 (includes alg_opt_2)
+//NOTE - changes marked PROPAGATE need to be propagated to all files dependant on optimization_3
 
 typedef unsigned long long myInt64;
 
@@ -16,6 +17,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
 
     //NEW - introduced blocking and simlified index calcs (code motion, strength reduction)
     int nB = BLOCK_SIZE_TRANS;
+    int nBM = nB * M;
     int src_i = 0, src_ii;
 
     //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
@@ -31,7 +33,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
                 src_ii += M;
             }
         }
-        src_i += nB * M;
+        src_i += nBM; //PROPAGATE - moved nb*M up so we save N-1 mults
     }   
 }
 
@@ -54,6 +56,8 @@ void matrix_mul_opt3(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
     
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
+    int nBR_n_col = nB * R_n_col;
+    int nBA_n_col = nB * A_n_col;
 
     double R_Rij;
 
@@ -77,8 +81,8 @@ void matrix_mul_opt3(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
                 }
             }
         }
-        Ri += nB * R_n_col;
-        Ai += nB * A_n_col;
+        Ri += nBR_n_col;
+        Ai += nBA_n_col;
     }
 }
 
@@ -98,6 +102,9 @@ void matrix_rtrans_mul_opt3(double* A, int A_n_row, int A_n_col, double* B, int 
     
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
     int nB = BLOCK_SIZE_RTRANSMUL;
+    int nBR_n_col = nB * R_n_col;
+    int nBA_n_col = nB * A_n_col;
+    int nBB_n_col = nB * B_n_col;
 
     double R_Rij;
 
@@ -123,10 +130,10 @@ void matrix_rtrans_mul_opt3(double* A, int A_n_row, int A_n_col, double* B, int 
                     Rii += R_n_col;
                 }
             }
-            Bj += nB * B_n_col;
+            Bj += nBB_n_col;
         }
-        Ai += nB * A_n_col;
-        Ri += nB * R_n_col;
+        Ai += nBA_n_col;
+        Ri += nBR_n_col;
     }
 }
 
