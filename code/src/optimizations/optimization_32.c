@@ -160,7 +160,7 @@ void matrix_rtrans_mul_opt32(double* A, int A_n_row, int A_n_col, double* B, int
                     Bjj = Bj;
                     for (int jj = j; jj < j + nB; jj++) {
                         Rij = Rii + jj;
-                        R_Rij = 0;
+                        R_Rij1 = R_Rij2 = R_Rij3 = R_Rij4 = 0;
                         for (int kk = k; kk < k + nB; kk+=4){
                             kk1 = kk + 1;
                             kk2 = kk + 2;
