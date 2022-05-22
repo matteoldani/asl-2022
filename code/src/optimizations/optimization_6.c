@@ -9,7 +9,7 @@
 #include "cblas.h"
 
 
-//NEW - optimization done on optimization_3, scalar replacement and unrolling
+//NEW - optimization done on algopt_1, unrolling from opt_4
 
 typedef unsigned long long myInt64;
 
@@ -192,8 +192,8 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
 
     int nB = BLOCK_SIZE_MMUL;
 
-      // this is required to be done here to reuse the same run_opt.
-    // does not changhe the number of flops
+    // this is required to be done here to reuse the same run_opt.
+    // does not change the number of flops
     for (int i = 0; i < m; i++){
         for(int j = 0; j < n; j++){
            V_colM[j*m + i] = V_rowM[i*n + j]; 
@@ -282,14 +282,15 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
 
         memset(denominator_l, 0, double_size * r * r);
         memset(numerator, 0, double_size * r * n);
-        
+        //NEW blocking using blas for inner multiplication
         for (int j = 0; j < n; j+= nB) {
+            
             for (int i = 0; i < r; i+= nB) {
-                nij = i * n + j;
-                dij = i * r + j;
-
+                //nij = i * n + j;
+                //dij = i * r + j;
+           
+                
                 for (int k = 0; k < m; k+= nB){  
-                    
                     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                             nB, nB, nB, 1,
                             (&(Wt[i*m + k])), m, &(V_rowM[k*n + j]), n,
@@ -297,10 +298,10 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
 
 
                     if(j<r){
-
+                          
                         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                             nB, nB, nB, 1,
-                            (&(Wt[i*m + k])), m, &(W[k*n + j]), r,
+                            (&(Wt[i*m + k])), m, &(W[k*r + j]), r,
                             1, &(denominator_l[i*r + j]), r);                    
                     }
                     
@@ -309,89 +310,102 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
         }
         transpose(Wt, W, r, m);
         transpose(H, Ht, r, n);
-
-        //matrix_rtrans_mul_aopt1(denominator_l, r, r, Ht, n, r, denominator, r, n);
-        // for (int i = 0; i < rn; i++)
-        //     H[i] = H[i] * numerator[i] / denominator[i];
-        int Rij;
-
-        for (int i = 0; i < r; i++) {
-            for (int j = 0; j < n; j++) {
-                Rij = i * n + j;
-                denominator[Rij] = 0;
-                for (int k = 0; k < r; k++){
-                    denominator[Rij] += denominator_l[i * r + k] * Ht[j * r + k];
+        int Rij, Rii;
+        // for (int i = 0; i < r; i++) {
+        //     for (int j = 0; j < n; j++) {
+        //         Rij = i * n + j;
+        //         denominator[Rij] = 0;
+        //         for (int k = 0; k < r; k++){
+        //             denominator[Rij] += denominator_l[i * r + k] * Ht[j * r + k];
+        //         }
+        //         Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
+        //     }
+        // }
+        memset(denominator, 0, double_size * r * n);
+        //printf("Denominator_l %.2lf", denominator_l[0]);
+        for (int i = 0; i < r; i+= nB) {
+            for (int j = 0; j < n; j+= nB) {
+                for (int k = 0; k < r; k+= nB){
+                    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                        nB, nB, nB, 1,
+                        (&(denominator_l[i*r + k])), r,
+                         &(H[k*n + j]), n,
+                        1, &(denominator[i*n + j]), n); 
                 }
-                Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
+                Rii = i * n + j;
+                for (int ii = 0; ii < nB; ii++) {
+                    for (int jj = 0; jj < nB; jj++) {
+                        Rij = Rii + jj;
+                        Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
+                    }
+                    Rii += n;
+                }
             }
         }
+  
+
+
         
         tmp = Htmp;
         Htmp = H;
         H = tmp;  
 
+        transpose(H, Ht, r, n);
 
-
-        
-        // printf("H\n");
-
-        // print_matrix_helper(H, r, n);
-        //computation for Wn+1
-
-        //matrix_rtrans_mul_aopt1(V_rowM, m, n, H, r, n, numerator_W, m, r);
-        //matrix_mul_aopt1(W, m, r, H, r, n, denominator_l_W, m, n);
-      
         double h;
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < r; j++) {
-                Rij = i * r + j;
-                numerator_W[Rij] = 0;
-                if(i < r){
-                    denominator_l[Rij] = 0;
-                }
-                for (int k = 0; k < n; k++){
-                    h = H[j * n + k];
-                    numerator_W[Rij] += V_rowM[i * n + k] * h;
+        memset(denominator_l, 0, double_size * r * r);
+        memset(numerator_W, 0, double_size * m * r);
+
+        //NEW blocking using blas for inner multiplication
+        for (int i = 0; i < m; i += nB) {
+            for (int j = 0; j < r; j+= nB) {
+                for (int k = 0; k < n; k+= nB){
+
+                    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                            nB, nB, nB, 1,
+                            &(V_rowM[i*n + k]), n,
+                            &(Ht[k*r + j]), r,
+                            1, &(numerator_W[i*r + j]), r);
+
                     if(i < r){
-                        denominator_l[Rij] += H[i * n + k] * h;
+
+                        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                            nB, nB, nB, 1,
+                            &(H[i*n + k]), n,
+                            &(Ht[k*r + j]), r,
+                            1, &(denominator_l[i*r + j]), r);
+
                     }
                 }
             }
         }
 
-        //matrix_rtrans_mul_aopt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
-
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < r; j++) {
-                Rij = i * r + j;
-                denominator_W[Rij] = 0;
-                for (int k = 0; k < r; k++) {
-                    denominator_W[Rij] += W[i * r + k] * denominator_l[k * r + j];
-
+        memset(denominator_W, 0, double_size * m * r);
+        for (int i = 0; i < m; i+= nB) {
+            for (int j = 0; j < r; j+= nB) {
+                for (int k = 0; k < r; k+= nB){
+                    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                        nB, nB, nB, 1,
+                        (&(W[i*r + k])), r,
+                         &(denominator_l[k*r + j]), r,
+                        1, &(denominator_W[i*r + j]), r); 
                 }
-                Wtmp[Rij] = W[Rij] * numerator_W[Rij] / denominator_W[Rij];
+                Rii = i*r + j;
+                for (int ii = 0; ii < nB; ii++) {
+                    for (int jj = 0; jj < nB; jj++) {
+                        Rij = Rii + jj;
+                        Wtmp[Rij] = W[Rij] * numerator_W[Rij] / denominator_W[Rij];
+                    }
+                    Rii += r;
+                }
+       
             }
+     
         }
 
         tmp = Wtmp;
         Wtmp = W;
         W = tmp; 
-
-
-
-
-        //matrix_mul_aopt1(W, m, r, denominator_l, r, r, denominator_W, m, r);
-
-        // for (int i = 0; i < mr; i++)
-        //     W[i] = W[i] * numerator_W[i] / denominator_W[i];
-
-        // printf("MAtrix at iteration %d\n", count);
-        // print_matrix_helper(V_rowM, m, n);
-        // print_matrix_helper(W, m, r);
-        // print_matrix_helper(H, r, n);
-        // print_matrix_helper(numerator_W, m, r);
-        // print_matrix_helper(denominator_l_W, m, n);
-        // print_matrix_helper(denominator_W, m, r);
 
     }
 
