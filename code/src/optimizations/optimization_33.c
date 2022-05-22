@@ -177,13 +177,15 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
-    double *Wt;
+    double *Wt, *H_new;
     int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;
     mr = m * r;
     mn = m * n;
+    
     Wt = malloc(double_size * mr);
+    H_new = malloc(double_size * rn);
 
     //Operands needed to compute Hn+1
     double *numerator;      //r x n
@@ -239,8 +241,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 {
                     for (int i1 = i; i1 < i + nB; i1++) {
                         for (int j1 = 0; j1 < r; j1++) {
-                            for (int k1 = 0; k1 < r; k1++) {
-                                denominator_l[i1 * r + j1] += Wt[i1 * r + k1] * Wt[j1 * r + k1];
+                            for (int k1 = 0; k1 < m; k1++) {
+                                denominator_l[i1 * r + j1] += Wt[i1 * m + k1] * Wt[j1 * m + k1];
                             }
                         }
                     }
@@ -250,41 +252,34 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 for (int i1 = i; i1 < i + nB; i1++) {
                     for (int j1 = j; j1 < j + nB; j1++) {
                         for (int k1 = 0; k1 < m; k1++) {
-                            numerator[i1 * n + j1] = Wt[i1 * m + k1] * V[k1 * n + j1];
+                            numerator[i1 * n + j1] += Wt[i1 * m + k1] * V[k1 * n + j1];
                         }
                     }
                 }
 
-                //Wt*V mul
+                //(WtW)*H mul
                 for (int i1 = i; i1 < i + nB; i1++) {
                     for (int j1 = j; j1 < j + nB; j1++) {
                         for (int k1 = 0; k1 < r; k1++) {
-                            denominator[i1 * n + j1] = denominator_l[i1 * r + k1] * H[k1 * n + j1];
+                            denominator[i1 * n + j1] += denominator_l[i1 * r + k1] * H[k1 * n + j1];
                         }
                     }
                 }
                 
                 for (int i1 = i; i1 < i + nB; i1++) {
                     for (int j1 = j; j1 < j + nB; j1++) {
-                        H[i1 * n + j1] = H[i1 * n + j1] * numerator[i1 * n + j1] / denominator[i1 * n + j1];
+                        H_new[i1 * n + j1] = H[i1 * n + j1] * numerator[i1 * n + j1] / denominator[i1 * n + j1];
                     }
                 }
             }
         }
 
-
-
-        /*matrix_rtrans_mul_opt33(Wt, r, m, Wt, r, m, denominator_l, r, r);
-        matrix_mul_opt33(Wt, r, m, V, m, n, numerator, r, n);
-        matrix_mul_opt33(denominator_l, r, r, H, r, n, denominator, r, n);
-
-        for (int i = 0; i < rn; i++)
-            H[i] = H[i] * numerator[i] / denominator[i];*/
-
         //computation for Wn+1
-        matrix_rtrans_mul_opt33(H, r, n, H, r, n, denominator_r, r, r);
-        matrix_rtrans_mul_opt33(V, m, n, H, r, n, numerator_W, m, r);
+        matrix_rtrans_mul_opt33(H_new, r, n, H_new, r, n, denominator_r, r, r);
+        matrix_rtrans_mul_opt33(V, m, n, H_new, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
+
+        memcpy(H, H_new, double_size * rn);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
@@ -298,6 +293,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     free(numerator_W);
     free(denominator_W);
     free(Wt);
+    free(H_new);
     free(approximation);
     return err;
 }
