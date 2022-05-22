@@ -297,18 +297,9 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
         transpose(Wt, W, r, m);
         transpose(H, Ht, r, n);
         int Rij, Rii;
-        // for (int i = 0; i < r; i++) {
-        //     for (int j = 0; j < n; j++) {
-        //         Rij = i * n + j;
-        //         denominator[Rij] = 0;
-        //         for (int k = 0; k < r; k++){
-        //             denominator[Rij] += denominator_l[i * r + k] * Ht[j * r + k];
-        //         }
-        //         Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
-        //     }
-        // }
+
         memset(denominator, 0, double_size * r * n);
-        //printf("Denominator_l %.2lf", denominator_l[0]);
+       
         for (int i = 0; i < r; i+= nB) {
             for (int j = 0; j < n; j+= nB) {
                 for (int k = 0; k < r; k+= nB){
@@ -393,7 +384,8 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
         W = tmp; 
 
     }
-
+    free(Wtmp);
+    free(Htmp);
     free(numerator);
     free(denominator);
     free(denominator_l);
@@ -401,9 +393,9 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
     free(denominator_W);
     free(denominator_l_W);
     free(Wt);
+    free(Ht);
     free(V_colM);
     free(approximation);
-    free(Htmp);
     return err;
 }
 
