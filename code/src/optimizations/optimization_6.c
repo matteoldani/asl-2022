@@ -17,11 +17,9 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
-    //NEW - introduced blocking and simlified index calcs (code motion, strength reduction)
     int nB = BLOCK_SIZE_TRANS;
     int src_i = 0, src_ii;
 
-    //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
     for(int i = 0; i < N; i += nB)
     {
         for(int j = 0; j < M; j += nB)
@@ -303,6 +301,8 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
         for (int i = 0; i < r; i+= nB) {
             for (int j = 0; j < n; j+= nB) {
                 for (int k = 0; k < r; k+= nB){
+                     //NEW every time a block is completed in the denominator,
+                     //the corresponding Hn+1 block is computed
                     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                         nB, nB, nB, 1,
                         (&(denominator_l[i*r + k])), r,

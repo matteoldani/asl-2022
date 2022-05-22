@@ -43,5 +43,24 @@
 *Optimizations 4
 	- Loop unrolling for norm calculation to optimize error function
 		- No improve (as expected since I was opitimizing lower terms in the cost)
+
+
+*Optimization 5:
+	- still to be finished, the goal was to apply an optimization similar to
+	  opt 6 on alg opt 2. We believe it might not be applicable. 
+	  
+
+
+*Optimization 6:
+	- blocking for cache and using BLAS for inner multiplitcation
+	- some transpose can be avoided but we tested and the transpose is	
+	  time is negligible
+	- performance highly depends on the rank (the higher the better) to	
+	  use blas the most
 	
+
+*Optimization 7:
+	- the basic optimizations made in opt1 were transfered on baseline2 
+	  as well. Loop unrolling for the norm is also used. 
+
 

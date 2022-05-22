@@ -14,11 +14,9 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
-    //NEW - introduced blocking and simlified index calcs (code motion, strength reduction)
     int nB = BLOCK_SIZE_TRANS;
     int src_i = 0, src_ii;
 
-    //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
     for(int i = 0; i < N; i += nB)
     {
         for(int j = 0; j < M; j += nB)
