@@ -15,7 +15,7 @@ static unsigned int double_size = sizeof(double);
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
     int nB = BLOCK_SIZE_TRANS;
-    int nBM = nb * M;
+    int nBM = nB * M;
     int src_i = 0, src_ii;
 
     for(int i = 0; i < N; i += nB) {
@@ -64,6 +64,7 @@ void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
 
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
+            Bk = 0;
             for (int k = 0; k < A_n_col; k+=nB) {
                 Rii = Ri;
                 Aii = Ai;
