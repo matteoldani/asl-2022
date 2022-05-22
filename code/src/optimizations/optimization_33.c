@@ -274,6 +274,11 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             }
         }
 
+        //TO DO:
+        //Make all steps in upper part more efficient
+        //Introduce blocking when you go over longer parts
+        //Intergate second part too
+
         //computation for Wn+1
         matrix_rtrans_mul_opt33(H_new, r, n, H_new, r, n, denominator_r, r, r);
         matrix_rtrans_mul_opt33(V, m, n, H_new, r, n, numerator_W, m, r);
