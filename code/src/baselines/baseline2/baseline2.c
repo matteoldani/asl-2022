@@ -43,7 +43,7 @@ void matrix_mul_bs2_s(Matrix *A, Matrix *B, Matrix *R) {
 
 // Working impl
 void matrix_mul_bs2(Matrix *A, Matrix *B, Matrix *R) {
-     // cost: B_col*A_col + 2*A_row*A_col*B_col
+    // cost: B_col*A_col + 2*A_row*A_col*B_col
     matrix_mul_bs2_rm(A, B, R);
 }
 //_____________________________________________________________________________
@@ -69,7 +69,7 @@ void matrix_ltrans_mul_bs2_cm(Matrix *A, Matrix *B, Matrix *R) {
 
 // RowMajor impl (0.47)
 void matrix_ltrans_mul_bs2_rm(Matrix *A, Matrix *B, Matrix *R) {
-     // cost: B_col*B_row + 2*B_row*A_col*B_col
+    // cost: B_col*B_row + 2*B_row*A_col*B_col
     cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                 A->n_col, B->n_col, B->n_row, 1, //r=A->n_row = B->n_row
                 A->M, A->n_col, B->M, B->n_col,
@@ -91,7 +91,7 @@ void matrix_ltrans_mul_bs2_s(Matrix *A, Matrix *B, Matrix *R) {
 
 // Working impl
 void matrix_ltrans_mul_bs2(Matrix *A, Matrix *B, Matrix *R) {
-   
+
     matrix_ltrans_mul_bs2_rm(A, B, R);
 }
 //_____________________________________________________________________________
@@ -127,7 +127,7 @@ void matrix_rtrans_mul_bs2_rm(Matrix *A, Matrix *B, Matrix *R) {
     //         A->n_row, B->n_row, A->n_col, 1,
     //         A->M, A->n_row, B->M, B->n_col,
     //         0, R->M, A->n_row);
-    
+
 }
 
 //  Straightforward implementation (no BLAS)
@@ -190,14 +190,14 @@ double nnm_factorization_bs2(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     //real convergence computation
     double err = -1;
 
-    for (int count = 0; count<maxIteration; count++) {
+    for (int count = 0; count < maxIteration; count++) {
         err = error_bs2(V, W, H);     //cost: 3 + n*r + 5*m*n + 2*m*r*n
 
         //printf("%lf\n", err);
         if (err <= epsilon) {
             break;
         }
-        
+
         //printf("Current error_bs2: %lf\n", err);
 
         //computation for Hn+1
@@ -209,9 +209,12 @@ double nnm_factorization_bs2(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
             H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i]; // 2*r*n
 
         //computation for Wn+1
-        matrix_rtrans_mul_bs2(V, H, &numerator_W);                   // cost: A_col*B_row + 2*A_row*A_col*B_row = n*r + 2*m*n*r
-        matrix_mul_bs2(W, H, &denominator_l_W);                      // cost: B_col*A_col + 2*A_row*A_col*B_col = n*r + 2*m*r*n
-        matrix_rtrans_mul_bs2(&denominator_l_W, H, &denominator_W);  // cost: A_col*B_row + 2*A_row*A_col*B_row = n*r + 2*m*n*r
+        matrix_rtrans_mul_bs2(V, H,
+                              &numerator_W);                   // cost: A_col*B_row + 2*A_row*A_col*B_row = n*r + 2*m*n*r
+        matrix_mul_bs2(W, H,
+                       &denominator_l_W);                      // cost: B_col*A_col + 2*A_row*A_col*B_col = n*r + 2*m*r*n
+        matrix_rtrans_mul_bs2(&denominator_l_W, H,
+                              &denominator_W);  // cost: A_col*B_row + 2*A_row*A_col*B_row = n*r + 2*m*n*r
 
         for (int i = 0; i < W->n_row * W->n_col; i++)
             W->M[i] = W->M[i] * numerator_W.M[i] / denominator_W.M[i]; // 2*m*r
@@ -226,7 +229,7 @@ double nnm_factorization_bs2(Matrix *V, Matrix *W, Matrix *H, int maxIteration, 
     matrix_deallocation(&denominator_W);
     matrix_deallocation(&denominator_l_W);
 
-    
+
     return err;
 }
 
@@ -274,12 +277,13 @@ double error_bs2(Matrix *V, Matrix *W, Matrix *H) {
  * @param H     the second matrix in which V will be factorized
  */
 myInt64 nnm_factorization_bs2_cost(Matrix *V, Matrix *W, Matrix *H, int numIterations) {
-    
+
     myInt64 n, m, r;
     m = V->n_row;
     n = V->n_col;
     r = W->n_col;
-    return (myInt64) (3 + 7*r*n + 3*m*r + 6*n*m + 10*m*r*n + 2*m*r*r + 2*r*r*n) * numIterations;
+    return (myInt64)(3 + 7 * r * n + 3 * m * r + 6 * n * m + 10 * m * r * n + 2 * m * r * r + 2 * r * r * n) *
+           numIterations;
 }
 
 /**
@@ -288,8 +292,7 @@ myInt64 nnm_factorization_bs2_cost(Matrix *V, Matrix *W, Matrix *H, int numItera
  * @param W    factorizing matrix, initialized here
  * @param q    number of columns of X averaged to obtsain a column of W
  */
-myInt64 random_acol_v_matrix_init_cost(Matrix* V, Matrix* W, int q)
-{
+myInt64 random_acol_v_matrix_init_cost(Matrix *V, Matrix *W, int q) {
     return W->n_col * (2 * q + V->n_row * q + V->n_row);
 }
 
@@ -297,8 +300,7 @@ myInt64 random_acol_v_matrix_init_cost(Matrix* V, Matrix* W, int q)
  * @brief returns the cost of the funcion random_matrix_init
  * @param matrix    the matrix to be initialized, containing the info on its size
  */
-myInt64 random_v_matrix_init_cost(Matrix* matrix)
-{
+myInt64 random_v_matrix_init_cost(Matrix *matrix) {
     return 5 * matrix->n_row * matrix->n_col;
 }
 
