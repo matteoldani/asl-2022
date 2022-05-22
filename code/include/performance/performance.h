@@ -1,5 +1,6 @@
 #include <asl.h>
 
+#include <optimizations/optimizations_utils.h>
 #include <baselines/baseline1.h>
 #include <baselines/baseline2.h>
 #include <optimizations/alg_opt_1.h>

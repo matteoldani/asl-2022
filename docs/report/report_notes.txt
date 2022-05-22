@@ -14,6 +14,12 @@
 	- ran impls up to the sizes it could handle
 - note the R value for each plot
 
+- Blas performance:
+	- MMM performance drastically decreases when the matrix size is such that the common dimension is small. The MMM is in fact closer to a matrix vector
+	  multiplication. In tests when multiplying matrices (400 x 3) (3 x 400) the performance drops from 12 f/c to 2 f/c. This is expected because the computation
+	  now basically have a constant opertational intensity. 
+
+
 - Optimizations:
 *Basic optimizations:
 	- everything was put into a single file

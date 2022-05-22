@@ -301,15 +301,15 @@ int main(int argc, char const* argv[])
         break;
     
     case 3:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost);
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost_2);
         break;
     
     case 4:
-        optimization(tests, min, max, b, fout, &nnm_factorization_aopt1 ,&nnm_cost);
+        optimization(tests, min, max, b, fout, &nnm_factorization_aopt1 ,&nnm_cost_2);
         break;
 
     case 5:
-        optimization(tests, min, max, b, fout, &nnm_factorization_aopt2 ,&nnm_cost);
+        optimization(tests, min, max, b, fout, &nnm_factorization_aopt2 ,&nnm_cost_2);
         break;
 
     default:
