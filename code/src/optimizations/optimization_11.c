@@ -44,7 +44,7 @@ static void transpose(double *src, double *dst, const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt4(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+void matrix_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
                      int R_n_col) {
 
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
@@ -93,7 +93,7 @@ void matrix_mul_opt4(double *A, int A_n_row, int A_n_col, double *B, int B_n_row
  * @param R_n_col   is the number of columns in the result
  */
 void
-matrix_rtrans_mul_opt4(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+matrix_rtrans_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
                        int R_n_col) {
 
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
@@ -175,7 +175,7 @@ inline double error(double *approx, double *V, double *W, double *H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 double
-nnm_factorization_opt4(double *V_rowM, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
+nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
 
     double *Wt, *Wtmp, *Ht, *Htmp, *tmp;
     double *V_colM;

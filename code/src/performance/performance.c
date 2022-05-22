@@ -319,7 +319,7 @@ int main(int argc, char const* argv[])
     case 4:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost_2);
         break;
-    
+
     case 5:
         optimization(tests, min, max, b, fout, &nnm_factorization_aopt1 ,&nnm_cost_2);
         break;
@@ -331,7 +331,7 @@ int main(int argc, char const* argv[])
     case 7:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt2 ,&nnm_cost_2);
         break;
-   
+
     case 8:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt3 ,&nnm_cost_2);
         break;
