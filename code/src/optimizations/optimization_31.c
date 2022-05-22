@@ -8,6 +8,8 @@
 
 //NEW - optimization done on optimization_3
 
+//NOTE - this file contains some changes that need to be propagated everywhere as well (moving nB*x_n_col up and saving a lot of multiplications)
+
 typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
@@ -48,7 +50,8 @@ void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
     
-    int Rij = 0, Ri = 0, Ai = 0, Bk = 0, Aii, Rii, Bkk, Riii, Bkkk, Aiiikkk;
+    //NEW - added register blocking with simplified index calcs (code motion, strength reduction)
+    int Ri = 0, Ai = 0, Bk, Aii, Rii, Bkk, Riii, Bkkk, Aiiikkk;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
@@ -57,8 +60,6 @@ void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
     int nRR_n_col = nR * R_n_col;
     int nRA_n_col = nR * A_n_col;
     int nRB_n_col = nR * B_n_col;
-
-    double R_Rij;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
@@ -113,34 +114,46 @@ void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  */
 void matrix_rtrans_mul_opt31(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
-    int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
+    int Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj, Bjjkkk, Riii, Aiiikkk, Bjjjkkk;
     int nB = BLOCK_SIZE_RTRANSMUL;
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
     int nBB_n_col = nB * B_n_col;
-
-    double R_Rij;
+    int nRR_n_col = nR * R_n_col;
+    int nRA_n_col = nR * A_n_col;
+    int nRB_n_col = nR * B_n_col;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
-    for (int i = 0; i < A_n_row; i+=nB) {
+    for (int i = 0; i < A_n_row; i += nB) {
         Bj = 0;
-        for (int j = 0; j < B_n_row; j+=nB) {
-            for (int k = 0; k < A_n_col; k+=nB){
+        for (int j = 0; j < B_n_row; j += nB) {
+            for (int k = 0; k < A_n_col; k += nB) {
                 Aii = Ai;
                 Rii = Ri;
-                for (int ii = i; ii < i + nB; ii++) {
+                for (int ii = i; ii < i + nB; ii += nR) {
                     Bjj = Bj;
-                    for (int jj = j; jj < j + nB; jj++) {
-                        Rij = Rii + jj;
-                        R_Rij = 0;
-                        for (int kk = k; kk < k + nB; kk++)
-                            R_Rij += A[Aii + kk] * B[Bjj + kk];
-                        R[Rij] += R_Rij;
-                        Bjj += B_n_col;
+                    for (int jj = j; jj < j + nB; jj += nR) {
+                        for (int kk = k; kk < k + nB; kk += nR) {
+                            for (int kkk = kk; kkk < kk + nR; kkk++) {
+                                Aiiikkk = Aii + kkk;
+                                Riii = Rii;
+                                Bjjkkk = Bjj + kkk;
+                                for (int iii = ii; iii < ii + nR; iii++) {
+                                    Bjjjkkk = Bjjkkk;
+                                    for (int jjj = jj; jjj < jj + nR; jjj++) {
+                                        R[Riii + jjj] += A[Aiiikkk] * B[Bjjjkkk];
+                                        Bjjjkkk += B_n_col;
+                                    }
+                                    Aiiikkk += A_n_col;
+                                    Riii += R_n_col;
+                                }
+                            }
+                        }
+                        Bjj += nRB_n_col;
                     }
-                    Aii += A_n_col;
-                    Rii += R_n_col;
+                    Aii += nRA_n_col;
+                    Rii += nRR_n_col;
                 }
             }
             Bj += nBB_n_col; //NEW - moved up nB * B_n_col so we save (A_n_row*B_n_row)-1 mults
