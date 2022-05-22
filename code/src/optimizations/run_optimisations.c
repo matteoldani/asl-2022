@@ -4,6 +4,7 @@
 #include <optimizations/alg_opt_2.h>
 #include <optimizations/optimizations_2.h>
 #include <optimizations/optimizations_3.h>
+#include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -151,6 +152,12 @@ int main(int argc, char const* argv[]) {
         printf("Invalid opt number. Quitting\n");
         return -1;
     }
+
+    // myInt64 cost = nnm_cost(m, n, m, r, r, n, MAX_ITERATIONS);
+    // myInt64 cost2 = nnm_cost_2(m, n, m, r, r, n, MAX_ITERATIONS);
+
+    // printf("Cost: %lld\n", cost);
+    // printf("Cost2: %lld\n", cost2);
 
     double err = run_factorization(V, W, H, m, n, r, MAX_ITERATIONS, EPSILON);
     printf("Error: %lf\n", err);

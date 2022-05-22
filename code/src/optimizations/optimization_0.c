@@ -183,9 +183,12 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
             H[i] = H[i] * numerator[i] / denominator[i];
 
         //computation for Wn+1
+
+        //NEW changed the order of the multiplication to reduce the number of flops
         matrix_rtrans_mul_opt0(V, m, n, H, r, n, numerator_W, m, r);
-        matrix_mul_opt0(W, m, r, H, r, n, denominator_l_W, m, n);
-        matrix_rtrans_mul_opt0(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
+        matrix_rtrans_mul_opt0(H, r, n, H, r, n, denominator_l, r, r);
+        matrix_mul_opt0(W, m, r, denominator_l, r, r, denominator_W, m, r);
+        
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];

@@ -717,7 +717,7 @@ PerfResults performance_analysis_nnm_d(
 
         cycles = stop_tsc(start);
         performance += cycles;
-        cost += nnm_cost(M_PERF, N_PERF, M_PERF, R_PERF, R_PERF, N_PERF, MAX_ITERATIONS) + matrix_rand_init_cost(M_PERF, N_PERF) + matrix_rand_init_cost(M_PERF, R_PERF) + matrix_rand_init_cost(R_PERF, N_PERF);
+        cost += nnm_cost_2(M_PERF, N_PERF, M_PERF, R_PERF, R_PERF, N_PERF, MAX_ITERATIONS) + matrix_rand_init_cost(M_PERF, N_PERF) + matrix_rand_init_cost(M_PERF, R_PERF) + matrix_rand_init_cost(R_PERF, N_PERF);
 
 
 #endif
