@@ -21,13 +21,10 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
     int src_i = 0, src_ii;
 
     //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
-    for(int i = 0; i < N; i += nB)
-    {
-        for(int j = 0; j < M; j += nB)
-        {
+    for(int i = 0; i < N; i += nB) {
+        for(int j = 0; j < M; j += nB) {
             src_ii = src_i;
-            for(int ii = i; ii < i + nB; ii++)
-            {
+            for(int ii = i; ii < i + nB; ii++) {
                 for(int jj = j; jj < j + nB; jj++)
                     dst[N*jj + ii] = src[src_ii + jj];
                 src_ii += M;

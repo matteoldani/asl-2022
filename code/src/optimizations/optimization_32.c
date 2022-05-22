@@ -14,38 +14,51 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
+    //NEW - unrolled the inner most loop
     int nB = BLOCK_SIZE_TRANS;
     int nBM = nB * M;
-    int src_i = 0, src_ii;
+    int src_i = 0, src_ii, src_iiM, src_iiM2, src_iiM3;
     int M2 = M << 1, M3 = 3 * M, M4 = M << 2;
+    int ii1, ii2, ii3, jj1, jj2, jj3;
 
-    for(int i = 0; i < N; i += nB)
-    {
-        for(int j = 0; j < M; j += nB)
-        {
+    for(int i = 0; i < N; i += nB) {
+        for(int j = 0; j < M; j += nB) {
             src_ii = src_i;
-            for(int ii = i; ii < i + nB; ii+=4)
-            {
-                for (int jj = j; jj < j + nB; jj += 4)
-                {
+            src_iiM = src_i + M;
+            src_iiM2 = src_i + M2;
+            src_iiM3 = src_i + M3;
+            
+            for(int ii = i; ii < i + nB; ii+=4) {
+                ii1 = ii + 1;
+                ii2 = ii + 2;
+                ii3 = ii + 3;
+
+                for (int jj = j; jj < j + nB; jj += 4) {
+                    jj1 = jj + 1;
+                    jj2 = jj + 2;
+                    jj3 = jj + 3;
+
                     dst[N * jj + ii] = src[src_ii + jj];
-                    dst[N * (jj + 1) + ii] = src[src_ii + jj + 1];
-                    dst[N * (jj + 2) + ii] = src[src_ii + jj + 2];
-                    dst[N * (jj + 3) + ii] = src[src_ii + jj + 3];
-                    dst[N * jj + ii + 1] = src[src_ii + M + jj];
-                    dst[N * (jj + 1) + ii + 1] = src[src_ii + M + jj + 1];
-                    dst[N * (jj + 2) + ii + 1] = src[src_ii + M + jj + 2];
-                    dst[N * (jj + 3) + ii + 1] = src[src_ii + M + jj + 3];
-                    dst[N * jj + ii + 2] = src[src_ii + M2 + jj];
-                    dst[N * (jj + 1) + ii + 2] = src[src_ii + M2 + jj + 1];
-                    dst[N * (jj + 2) + ii + 2] = src[src_ii + M2 + jj + 2];
-                    dst[N * (jj + 3) + ii + 2] = src[src_ii + M2 + jj + 3];
-                    dst[N * jj + ii + 3] = src[src_ii + M3 + jj];
-                    dst[N * (jj + 1) + ii + 3] = src[src_ii + M3 + jj + 1];
-                    dst[N * (jj + 2) + ii + 3] = src[src_ii + M3 + jj + 2];
-                    dst[N * (jj + 3) + ii + 3] = src[src_ii + M3 + jj + 3];
+                    dst[N * jj1 + ii] = src[src_ii + jj1];
+                    dst[N * jj2 + ii] = src[src_ii + jj2];
+                    dst[N * jj3 + ii] = src[src_ii + jj3];
+                    dst[N * jj + ii1] = src[src_iiM + jj];
+                    dst[N * jj1 + ii1] = src[src_iiM + jj1];
+                    dst[N * jj2 + ii1] = src[src_iiM + jj2];
+                    dst[N * jj3 + ii1] = src[src_iiM + jj3];
+                    dst[N * jj + ii2] = src[src_iiM2 + jj];
+                    dst[N * jj1 + ii2] = src[src_iiM2 + jj1];
+                    dst[N * jj2 + ii2] = src[src_iiM2 + jj2];
+                    dst[N * jj3 + ii2] = src[src_iiM2 + jj3];
+                    dst[N * jj + ii3] = src[src_iiM3 + jj];
+                    dst[N * jj1 + ii3] = src[src_iiM3 + jj1];
+                    dst[N * jj2 + ii3] = src[src_iiM3 + jj2];
+                    dst[N * jj3 + ii3] = src[src_iiM3 + jj3];
                 }
                 src_ii += M4;
+                src_iiM += M4;
+                src_iiM2 += M4;
+                src_iiM3 += M4;
             }
         }
         src_i += nBM;
@@ -74,7 +87,7 @@ void matrix_mul_opt32(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
 
-    double R_Rij;
+    double R_Rij1, R_Rij2, R_Rij3, R_Rij4;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
@@ -86,10 +99,14 @@ void matrix_mul_opt32(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
                 for (int ii = i; ii < i + nB; ii++) {
                     for (int jj = j; jj < j + nB; jj++) {
                         Rij = Rii + jj;
-                        R_Rij = 0;
-                        for (int kk = k; kk < k + nB; kk++)
-                            R_Rij += A[Aii + kk] * B[kk * B_n_col + jj];
-                        R[Rij] += R_Rij;
+                        R_Rij1 = R_Rij2 = R_Rij3 = R_Rij4 = 0;
+                        for (int kk = k; kk < k + nB; kk += 4) {
+                            R_Rij1 += A[Aii + kk] * B[kk * B_n_col + jj];
+                            R_Rij2 += A[Aii + kk + 1] * B[(kk + 1) * B_n_col + jj];
+                            R_Rij3 += A[Aii + kk + 2] * B[(kk + 2) * B_n_col + jj];
+                            R_Rij4 += A[Aii + kk + 3] * B[(kk + 3) * B_n_col + jj];
+                        }
+                        R[Rij] += R_Rij1 + R_Rij2 + R_Rij3 + R_Rij4;
                     }
                     Rii += R_n_col;
                     Aii += A_n_col;
