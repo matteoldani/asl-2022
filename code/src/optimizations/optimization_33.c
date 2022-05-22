@@ -176,20 +176,14 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt33(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Wt;
-    double *H_tmp, *H_switch;
-    double *W_tmp, *W_switch;
-    double *V_colM;
     int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;
     mr = m * r;
     mn = m * n;
     Wt = malloc(double_size * mr);
-    W_tmp = malloc(double_size * mr);
-    H_tmp = malloc(double_size * rn);
-    V_colM = malloc(double_size * mn);
 
     //Operands needed to compute Hn+1
     double *numerator;      //r x n
@@ -205,27 +199,16 @@ double nnm_factorization_opt33(double *V_rowM, double*W, double*H, int m, int n,
     double* denominator_r;  //r x r
     double *denominator_W;  //m x r
 
-
     numerator_W = malloc(double_size * mr);
     denominator_r = malloc(double_size * rr);
     denominator_W = malloc(double_size * mr);
 
     double* approximation; //m x n
     approximation = malloc(double_size * mn);
-    
-  
-    // this is required to be done here to reuse the same run_opt.
-    // does not changhe the number of flops
-    for (int i = 0; i < m; i++){
-        for(int j = 0; j < n; j++){
-           V_colM[j*m + i] = V_rowM[i*n + j]; 
-
-        }
-    }
 
     double norm_V = 0;
     for (int i = 0; i < mn; i++){
-        norm_V += V_rowM[i] * V_rowM[i];
+        norm_V += V[i] * V[i];
     }
     norm_V = 1 / sqrt(norm_V);
 
@@ -233,7 +216,7 @@ double nnm_factorization_opt33(double *V_rowM, double*W, double*H, int m, int n,
     double err = -1;											
     for (int count = 0; count < maxIteration; count++) {
      
-        err = error(approximation, V_rowM, W, H, m, n, r, mn, norm_V);
+        err = error(approximation, V, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
         }    
@@ -264,7 +247,6 @@ double nnm_factorization_opt33(double *V_rowM, double*W, double*H, int m, int n,
     free(numerator_W);
     free(denominator_W);
     free(Wt);
-    free(V_colM);
     free(approximation);
     return err;
 }
