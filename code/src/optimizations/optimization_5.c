@@ -6,6 +6,9 @@
 #include <assert.h>
 #include <optimizations/optimizations_5.h>
 
+#include "cblas.h"
+
+
 //NEW - optimization done on optimization_3, scalar replacement and unrolling
 
 typedef unsigned long long myInt64;
@@ -59,22 +62,35 @@ void matrix_mul_opt5(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
+    //printf("A: %d, %d\tB: %d, %d\t R: %d, %d\n", A_n_row, A_n_col, B_n_row, B_n_col, R_n_row, R_n_col);
+
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
             for (int k = 0; k < A_n_col; k+=nB) {
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB; ii++) {
-                    for (int jj = j; jj < j + nB; jj++) {
-                        Rij = Rii + jj;
-                        R_Rij = 0;
-                        for (int kk = k; kk < k + nB; kk++)
-                            R_Rij += A[Aii + kk] * B[kk * B_n_col + jj];
-                        R[Rij] += R_Rij;
-                    }
-                    Rii += R_n_col;
-                    Aii += A_n_col;
-                }
+
+                //printf("Starting points:\tA: %d, B: %d, R: %d\n", Ai+k, k*B_n_col + j, Ri + j);
+
+
+                // cost: B_col*A_col + 2*A_row*A_col*B_col
+                cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                            nB, nB, nB, 1,
+                            (&(A[Ai+k])), A_n_col, &(B[k*B_n_col + j]), B_n_col,
+                            0, &(R[Ri + j]), R_n_col);
+
+
+                // for (int ii = i; ii < i + nB; ii++) {
+                //     for (int jj = j; jj < j + nB; jj++) {
+                //         Rij = Rii + jj;
+                //         R_Rij = 0;
+                //         for (int kk = k; kk < k + nB; kk++)
+                //             R_Rij += A[Aii + kk] * B[kk * B_n_col + jj];
+                //         R[Rij] += R_Rij;
+                //     }
+                //     Rii += R_n_col;
+                //     Aii += A_n_col;
+                // }
             }
         }
         Ri += nB * R_n_col;

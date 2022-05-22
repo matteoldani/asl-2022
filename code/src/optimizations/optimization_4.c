@@ -162,6 +162,8 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
 
     norm_approx = 0;
 
+    // NEW - loop unrolling for norm computation
+
     int idx_unroll = mn/8;
     int idx_clean = mn - idx_unroll*8;
     int i;
@@ -260,6 +262,7 @@ double nnm_factorization_opt4(double *V_rowM, double*W, double*H, int m, int n, 
         }
     }
 
+    // NEW - loop unrolling for norm computation
     double norm_V  = 0;
     double norm_V1 = 0;
     double norm_V2 = 0;
