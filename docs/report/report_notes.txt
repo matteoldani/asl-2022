@@ -13,6 +13,11 @@
 	- ran 3 times and averaged
 	- ran impls up to the sizes it could handle
 - note the R value for each plot
+- plots:
+	- performance_bs1_3D
+	- performance_bs2_3D
+	- mkl_vs_openBLAS
+	(previous 3 are very cool plots and should be used, but need to be 	improved beforehand) 
 
 - Optimizations:
 *Basic optimizations:
