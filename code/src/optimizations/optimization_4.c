@@ -165,7 +165,6 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
     // NEW - loop unrolling for norm computation
 
     int idx_unroll = mn/8;
-    int idx_clean = mn - idx_unroll*8;
     int i;
     for (i=0; i<idx_unroll; i+=8){
         temp1 = V[i] - approx[i];

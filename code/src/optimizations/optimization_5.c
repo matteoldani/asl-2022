@@ -55,10 +55,8 @@ void matrix_mul_opt5(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
     
-    int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
+    int Ri = 0, Ai = 0;
     int nB = BLOCK_SIZE_MMUL;
-
-    double R_Rij;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
@@ -67,9 +65,6 @@ void matrix_mul_opt5(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
             for (int k = 0; k < A_n_col; k+=nB) {
-                Rii = Ri;
-                Aii = Ai;
-
                 // cost: B_col*A_col + 2*A_row*A_col*B_col
                 cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                             nB, nB, nB, 1,
@@ -163,7 +158,6 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
     norm_approx = 0;
 
     int idx_unroll = mn/8;
-    int idx_clean = mn - idx_unroll*8;
     int i;
     for (i=0; i<idx_unroll; i+=8){
         temp1 = V[i] - approx[i];
