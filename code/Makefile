@@ -17,7 +17,7 @@ PERF_DIR=$(SRC_DIR)/performance
 OPT_DIR=$(SRC_DIR)/optimizations
 
 CINCLUDE=-I $(IDIR_LOCALC)
-# CINCLUDE+=-I $(IDIR_BLAS)
+CINCLUDE+=-I $(IDIR_BLAS)
 
 CFLAGS=-Wall
 CFLAGS+=-O3
