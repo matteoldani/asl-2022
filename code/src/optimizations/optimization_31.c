@@ -50,7 +50,7 @@ void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
     
-    //NEW - added register blocking with simplified index calcs (code motion, strength reduction)
+    //NEW - added register blocking with simplified index calcs (code motion, strength reduction) -> makes performance worse
     int Ri = 0, Ai = 0, Bk, Aii, Rii, Bkk, Riii, Bkkk, Aiiikkk;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
@@ -114,8 +114,10 @@ void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  */
 void matrix_rtrans_mul_opt31(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
+    //NEW - added register blocking with simplified index calcs (code motion, strength reduction) -> makes performance worse
     int Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj, Bjjkkk, Riii, Aiiikkk, Bjjjkkk;
     int nB = BLOCK_SIZE_RTRANSMUL;
+    int nR = BLOCK_SIZE_RTRANSMUL >> 1;
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
     int nBB_n_col = nB * B_n_col;
