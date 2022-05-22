@@ -14,7 +14,7 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
-    //NEW - unrolled the inner most loop
+    //NEW - unrolled the inner most loop -> runtime a bit better
     int nB = BLOCK_SIZE_TRANS;
     int nBM = nB * M;
     int src_i = 0, src_ii, src_iiM, src_iiM2, src_iiM3;
@@ -93,6 +93,7 @@ void matrix_mul_opt32(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
+    //NEW - unrolled the inner most loop -> runtime a bit worse
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
             for (int k = 0; k < A_n_col; k+=nB) {
@@ -150,6 +151,7 @@ void matrix_rtrans_mul_opt32(double* A, int A_n_row, int A_n_col, double* B, int
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
+    //NEW - unrolled the inner most loop -> runtime a bit worse
     for (int i = 0; i < A_n_row; i+=nB) {
         Bj = 0;
         for (int j = 0; j < B_n_row; j+=nB) {
