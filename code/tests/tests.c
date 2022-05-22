@@ -543,8 +543,8 @@ PerfResults performance_analysis_matrix_mult_d(
     myInt64 performance = 0;
     myInt64 cost = 0;
     int num_runs = NUM_RUNS;
-    int mr = M_PERF * M_PERF;
-    int rn = M_PERF * M_PERF;
+    int mr = M_PERF * RANK;
+    int rn = RANK * M_PERF;
     int mn = M_PERF * M_PERF;
 
     for (int i = 0; i < num_runs; i++) {
@@ -588,11 +588,11 @@ PerfResults performance_analysis_matrix_mult_d(
             H[i] = rand() * rand_max_r;
 
         start = start_tsc();
-        mmuld(V, M_PERF, M_PERF, W, M_PERF, M_PERF, H, M_PERF, M_PERF);
+        mmuld(V, M_PERF, RANK, W, RANK, RANK, H, M_PERF, RANK);
 
         cycles = stop_tsc(start);
         performance += cycles;
-        cost += matrix_mul_cost(M_PERF, M_PERF, M_PERF);
+        cost += matrix_mul_cost(M_PERF, RANK, RANK);
 
 #endif
     }
@@ -831,7 +831,7 @@ void run_tests_d(
         result = test_matrix_ltrans_mult_d(mmulltransd[i]);
         print_test_status(result);
         sum_results += result;
-        perf_res = performance_analysis_matrix_mult_d(mmulltransd[i]);
+        //perf_res = performance_analysis_matrix_mult_d(mmulltransd[i]);
         printf("\tcycles: %11llu\t", perf_res.cycles);
         printf("f/c: %.2lf\n", perf_res.perf);
     }
@@ -842,7 +842,7 @@ void run_tests_d(
         result = test_matrix_rtrans_mult_d(mmulrtransd[i]);
         print_test_status(result);
         sum_results += result;
-        perf_res = performance_analysis_matrix_mult_d(mmulrtransd[i]);
+        //perf_res = performance_analysis_matrix_mult_d(mmulrtransd[i]);
         printf("\tcycles: %11llu\t", perf_res.cycles);
         printf("f/c: %.2lf\n", perf_res.perf);
     }
@@ -888,8 +888,8 @@ int main(int argc, char const *argv[]) {
 
     int n_mmulrtrans_opt = 6;
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 7;
-    int n_nnm_opt = 1;
+    int n_mmul_opt = 8;
+    int n_nnm_opt = 2;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -919,6 +919,7 @@ int main(int argc, char const *argv[]) {
     mmuld[4] = matrix_mul_opt2;
     mmuld[5] = matrix_mul_opt3;
     mmuld[6] = matrix_mul_opt5;
+    mmuld[7] = matrix_mul_opt6;
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
     mmulrtransd[1] = matrix_rtrans_mul_opt1;
@@ -934,7 +935,9 @@ int main(int argc, char const *argv[]) {
     // nnmd[4] = nnm_factorization_opt2;
     // nnmd[5] = nnm_factorization_opt3;
     // nnmd[6] = nnm_factorization_opt4;
-    nnmd[0] = nnm_factorization_opt5;
+    // nnmd[7] = nnm_factorization_opt5;
+    nnmd[0] = nnm_factorization_opt6;
+    nnmd[1] = nnm_factorization_aopt1;
 
     // END TODO
 

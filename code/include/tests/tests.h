@@ -12,6 +12,7 @@
 #include <optimizations/optimizations_3.h>
 #include <optimizations/optimizations_4.h>
 #include <optimizations/optimizations_5.h>
+#include <optimizations/optimizations_6.h>
 #include<unistd.h> 
 
 #ifndef WIN32

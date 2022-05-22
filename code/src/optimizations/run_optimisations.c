@@ -5,6 +5,8 @@
 #include <optimizations/optimizations_2.h>
 #include <optimizations/optimizations_3.h>
 #include <optimizations/optimizations_4.h>
+#include <optimizations/optimizations_5.h>
+#include <optimizations/optimizations_6.h>
 #include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
@@ -91,6 +93,9 @@ int main(int argc, char const* argv[]) {
         printf("\t4 - Optimization 2\n");
         printf("\t5 - Optimization 3\n");
         printf("\t6 - Optimization 4\n");
+        printf("\t7 - Optimization 5\n");
+        printf("\t8 - Optimization 6\n");
+
         return -1;
     }
     FILE* fp = NULL;
@@ -152,6 +157,12 @@ int main(int argc, char const* argv[]) {
         break;
     case 6:
         run_factorization = &nnm_factorization_opt4;
+        break;
+    case 7:
+        run_factorization = &nnm_factorization_opt5;
+        break;
+    case 8:
+        run_factorization = &nnm_factorization_opt6;
         break;
     default:
         printf("Invalid opt number. Quitting\n");
