@@ -58,14 +58,6 @@ performance: .build_dir_creation
 	$(PERF_DIR)/performance.c \
 	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
 
-verification: .build_dir_creation
-	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/verification \
-	$(BS_DIR)/baseline1/baseline1.c \
-	$(BS_DIR)/baseline2/baseline2.c \
-	$(BS_DIR)/baselines_utils/baselines_utils.c \
-	$(VF_DIR)/verify.c \
-	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
-
 tests: .build_dir_creation
 	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/tests \
 	$(BS_DIR)/baseline1/baseline1.c \
