@@ -920,7 +920,7 @@ int main(int argc, char const *argv[]) {
     mmuld[5] = matrix_mul_opt3;
     mmuld[6] = matrix_mul_opt31;
     mmuld[7] = matrix_mul_opt32;
-    mmuld[7] = matrix_mul_opt33;
+    mmuld[8] = matrix_mul_opt33;
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
     mmulrtransd[1] = matrix_rtrans_mul_opt1;
@@ -930,7 +930,7 @@ int main(int argc, char const *argv[]) {
     mmulrtransd[5] = matrix_rtrans_mul_opt3;
     mmulrtransd[6] = matrix_rtrans_mul_opt31;
     mmulrtransd[7] = matrix_rtrans_mul_opt32;
-    mmulrtransd[7] = matrix_rtrans_mul_opt33;
+    mmulrtransd[8] = matrix_rtrans_mul_opt33;
     
     nnmd[0] = nnm_factorization_opt0;
     nnmd[1] = nnm_factorization_opt1;
@@ -940,7 +940,7 @@ int main(int argc, char const *argv[]) {
     nnmd[5] = nnm_factorization_opt3;
     nnmd[6] = nnm_factorization_opt31;
     nnmd[7] = nnm_factorization_opt32;
-    nnmd[7] = nnm_factorization_opt33;
+    nnmd[8] = nnm_factorization_opt33;
 
     // END TODO
 
