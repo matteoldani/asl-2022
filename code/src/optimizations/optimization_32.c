@@ -17,7 +17,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
     int nB = BLOCK_SIZE_TRANS;
     int nBM = nB * M;
     int src_i = 0, src_ii;
-    int M4 = M << 2;
+    int M2 = M << 1, M3 = 3 * M, M4 = M << 2;
 
     for(int i = 0; i < N; i += nB)
     {
@@ -32,18 +32,18 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
                     dst[N * (jj + 1) + ii] = src[src_ii + jj + 1];
                     dst[N * (jj + 2) + ii] = src[src_ii + jj + 2];
                     dst[N * (jj + 3) + ii] = src[src_ii + jj + 3];
-                    dst[N * jj + ii + 1] = src[src_ii + 1 + jj];
-                    dst[N * (jj + 1) + ii + 1] = src[src_ii + 1 + jj + 1];
-                    dst[N * (jj + 2) + ii + 1] = src[src_ii + 1 + jj + 2];
-                    dst[N * (jj + 3) + ii + 1] = src[src_ii + 1 + jj + 3];
-                    dst[N * jj + ii + 2] = src[src_ii + 2 + jj];
-                    dst[N * (jj + 1) + ii + 2] = src[src_ii + 2 + jj + 1];
-                    dst[N * (jj + 2) + ii + 2] = src[src_ii + 2 + jj + 2];
-                    dst[N * (jj + 3) + ii + 2] = src[src_ii + 2 + jj + 3];
-                    dst[N * jj + ii + 3] = src[src_ii + 3 + jj];
-                    dst[N * (jj + 1) + ii + 3] = src[src_ii + 3 + jj + 1];
-                    dst[N * (jj + 2) + ii + 3] = src[src_ii + 3 + jj + 2];
-                    dst[N * (jj + 3) + ii + 3] = src[src_ii + 3 + jj + 3];
+                    dst[N * jj + ii + 1] = src[src_ii + M + jj];
+                    dst[N * (jj + 1) + ii + 1] = src[src_ii + M + jj + 1];
+                    dst[N * (jj + 2) + ii + 1] = src[src_ii + M + jj + 2];
+                    dst[N * (jj + 3) + ii + 1] = src[src_ii + M + jj + 3];
+                    dst[N * jj + ii + 2] = src[src_ii + M2 + jj];
+                    dst[N * (jj + 1) + ii + 2] = src[src_ii + M2 + jj + 1];
+                    dst[N * (jj + 2) + ii + 2] = src[src_ii + M2 + jj + 2];
+                    dst[N * (jj + 3) + ii + 2] = src[src_ii + M2 + jj + 3];
+                    dst[N * jj + ii + 3] = src[src_ii + M3 + jj];
+                    dst[N * (jj + 1) + ii + 3] = src[src_ii + M3 + jj + 1];
+                    dst[N * (jj + 2) + ii + 3] = src[src_ii + M3 + jj + 2];
+                    dst[N * (jj + 3) + ii + 3] = src[src_ii + M3 + jj + 3];
                 }
                 src_ii += M4;
             }
