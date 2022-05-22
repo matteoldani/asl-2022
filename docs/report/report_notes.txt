@@ -34,3 +34,8 @@
 	  Matrix W and V are transposed to improve cache locality. The obtained performance with 
 	  (m,n,r) = (200, 200, 5) is 0.68.
 
+*Optimizations 4
+	- Loop unrolling for norm calculation to optimize error function
+		- No improve (as expected since I was opitimizing lower terms in the cost)
+	
+
