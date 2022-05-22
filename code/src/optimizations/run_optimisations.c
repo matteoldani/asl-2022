@@ -7,6 +7,7 @@
 #include <optimizations/optimizations_4.h>
 #include <optimizations/optimizations_5.h>
 #include <optimizations/optimizations_6.h>
+#include <optimizations/optimizations_7.h>
 #include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
@@ -95,6 +96,7 @@ int main(int argc, char const* argv[]) {
         printf("\t6 - Optimization 4\n");
         printf("\t7 - Optimization 5\n");
         printf("\t8 - Optimization 6\n");
+        printf("\t9 - Optimization 7\n");
 
         return -1;
     }
@@ -163,6 +165,9 @@ int main(int argc, char const* argv[]) {
         break;
     case 8:
         run_factorization = &nnm_factorization_opt6;
+        break;
+    case 9:
+        run_factorization = &nnm_factorization_opt7;
         break;
     default:
         printf("Invalid opt number. Quitting\n");

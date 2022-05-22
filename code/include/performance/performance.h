@@ -6,6 +6,13 @@
 #include <optimizations/alg_opt_1.h>
 #include <optimizations/alg_opt_2.h>
 #include <optimizations/optimizations_1.h>
+#include <optimizations/optimizations_2.h>
+#include <optimizations/optimizations_3.h>
+#include <optimizations/optimizations_4.h>
+#include <optimizations/optimizations_5.h>
+#include <optimizations/optimizations_6.h>
+#include <optimizations/optimizations_7.h>
+
 
 #ifndef WIN32
 #include <sys/time.h>
