@@ -9,4 +9,5 @@
 #define BLOCK_SIZE_TRANS 4 //needs to be divisible by 4 because of the loop unrolling
 #define BLOCK_SIZE_MMUL 4
 #define BLOCK_SIZE_RTRANSMUL 4
+#define BLOCK_SIZE_H 4
 typedef unsigned long long myInt64;

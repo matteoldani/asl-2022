@@ -212,6 +212,10 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     }
     norm_V = 1 / sqrt(norm_V);
 
+    int nB = BLOCK_SIZE_H;
+    int n_blocks_r = r / nB, n_blocks_c = n / nB;
+
+
     //real convergence computation
     double err = -1;											
     for (int count = 0; count < maxIteration; count++) {
@@ -221,14 +225,61 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             break;
         }    
         
+        memset(denominator_l, 0, double_size * rr);
+        memset(numerator, 0, double_size * rn);
+        memset(denominator, 0, double_size * rn);
+
         //computation for Hn+1
         transpose(W, Wt, m, r);
-        matrix_rtrans_mul_opt33(Wt, r, m, Wt, r, m, denominator_l, r, r);
+        for (int i = 0; i < r; i += nB) {
+            for (int j = 0; j < n; j += nB) {
+
+                //Wt*Wt rmul
+                if (j == 0)
+                {
+                    for (int i1 = i; i1 < i + nB; i1++) {
+                        for (int j1 = 0; j1 < r; j1++) {
+                            for (int k1 = 0; k1 < r; k1++) {
+                                denominator_l[i * r + j] += Wt[i * r + k] * Wt[j * r + k];
+                            }
+                        }
+                    }
+                }
+
+                //Wt*V mul
+                for (int i1 = i; i1 < i + nB; i1++) {
+                    for (int j1 = j; j1 < j + nB; j1++) {
+                        for (int k1 = 0; k < m; k++) {
+                            numerator[i * n + j] = Wt[i * m + k] * V[k * n + j];
+                        }
+                    }
+                }
+
+                //Wt*V mul
+                for (int i1 = i; i1 < i + nB; i1++) {
+                    for (int j1 = j; j1 < j + nB; j1++) {
+                        for (int k1 = 0; k < r; k++) {
+                            denominator[i * n + j] = denominator_l[i * r + k] * H[k * n + j];
+                        }
+                    }
+                }
+                
+                for (int i1 = i; i1 < i + nB; i++) {
+                    for (int j1 = j; j1 < j + nB; j++) {
+                        H[i1 * n + j1] = H[i1 * n + j1] * numerator[i1 * n + j1] / denominator[i1 * n + j1];
+                    }
+                }
+            }
+        }
+
+
+
+        /*matrix_rtrans_mul_opt33(Wt, r, m, Wt, r, m, denominator_l, r, r);
         matrix_mul_opt33(Wt, r, m, V, m, n, numerator, r, n);
         matrix_mul_opt33(denominator_l, r, r, H, r, n, denominator, r, n);
 
         for (int i = 0; i < rn; i++)
-            H[i] = H[i] * numerator[i] / denominator[i];
+            H[i] = H[i] * numerator[i] / denominator[i];*/
 
         //computation for Wn+1
         matrix_rtrans_mul_opt33(H, r, n, H, r, n, denominator_r, r, r);
