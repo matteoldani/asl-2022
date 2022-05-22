@@ -240,7 +240,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     for (int i1 = i; i1 < i + nB; i1++) {
                         for (int j1 = 0; j1 < r; j1++) {
                             for (int k1 = 0; k1 < r; k1++) {
-                                denominator_l[i * r + j] += Wt[i * r + k] * Wt[j * r + k];
+                                denominator_l[i1 * r + j1] += Wt[i1 * r + k1] * Wt[j1 * r + k1];
                             }
                         }
                     }
@@ -249,8 +249,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 //Wt*V mul
                 for (int i1 = i; i1 < i + nB; i1++) {
                     for (int j1 = j; j1 < j + nB; j1++) {
-                        for (int k1 = 0; k < m; k++) {
-                            numerator[i * n + j] = Wt[i * m + k] * V[k * n + j];
+                        for (int k1 = 0; k1 < m; k1++) {
+                            numerator[i1 * n + j1] = Wt[i1 * m + k1] * V[k1 * n + j1];
                         }
                     }
                 }
@@ -258,14 +258,14 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 //Wt*V mul
                 for (int i1 = i; i1 < i + nB; i1++) {
                     for (int j1 = j; j1 < j + nB; j1++) {
-                        for (int k1 = 0; k < r; k++) {
-                            denominator[i * n + j] = denominator_l[i * r + k] * H[k * n + j];
+                        for (int k1 = 0; k1 < r; k1++) {
+                            denominator[i1 * n + j1] = denominator_l[i1 * r + k1] * H[k1 * n + j1];
                         }
                     }
                 }
                 
-                for (int i1 = i; i1 < i + nB; i++) {
-                    for (int j1 = j; j1 < j + nB; j++) {
+                for (int i1 = i; i1 < i + nB; i1++) {
+                    for (int j1 = j; j1 < j + nB; j1++) {
                         H[i1 * n + j1] = H[i1 * n + j1] * numerator[i1 * n + j1] / denominator[i1 * n + j1];
                     }
                 }
