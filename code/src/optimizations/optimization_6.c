@@ -55,11 +55,6 @@ void matrix_mul_opt6(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
     
-    int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
-    int nB = BLOCK_SIZE_MMUL;
-
-    double R_Rij;
-
     memset(R, 0, double_size * R_n_row * R_n_col);
 
     // cost: B_col*A_col + 2*A_row*A_col*B_col
@@ -125,7 +120,6 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
     norm_approx = 0;
 
     int idx_unroll = mn/8;
-    int idx_clean = mn - idx_unroll*8;
     int i;
     for (i=0; i<idx_unroll; i+=8){
         temp1 = V[i] - approx[i];
@@ -174,8 +168,8 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
-    double *Htmp, *H_switch;
-    double *Wtmp, *W_switch;
+    double *Htmp;
+    double *Wtmp;
     double *V_colM;
     double *Wt, *Ht;
     double *tmp;
@@ -205,12 +199,10 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
     //Operands needed to compute Hn+1
     double *numerator;
     double *denominator_l;
-    double *denominator_r;
     double *denominator;    //r x n, r x r, r x n
 
     numerator       = malloc(double_size * rn);
     denominator_l   = malloc(double_size * rr);
-    denominator_r   = malloc(double_size * rr);
     denominator     = malloc(double_size * rn);
 
     //Operands needed to compute Wn+1
@@ -276,9 +268,6 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
         
         transpose(W, Wt, m, r);
         //print_matrix_helper(W, r,m);
-        int nij;
-        int dij;
-        double wt;
 
         memset(denominator_l, 0, double_size * r * r);
         memset(numerator, 0, double_size * r * n);
@@ -286,9 +275,6 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
         for (int j = 0; j < n; j+= nB) {
             
             for (int i = 0; i < r; i+= nB) {
-                //nij = i * n + j;
-                //dij = i * r + j;
-           
                 
                 for (int k = 0; k < m; k+= nB){  
                     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
@@ -352,7 +338,6 @@ double nnm_factorization_opt6(double *V_rowM, double*W, double*H, int m, int n, 
 
         transpose(H, Ht, r, n);
 
-        double h;
         memset(denominator_l, 0, double_size * r * r);
         memset(numerator_W, 0, double_size * m * r);
 
