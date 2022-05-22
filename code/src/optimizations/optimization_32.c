@@ -87,6 +87,8 @@ void matrix_mul_opt32(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
 
+    int kk1, kk2, kk3;
+
     double R_Rij1, R_Rij2, R_Rij3, R_Rij4;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
@@ -101,10 +103,14 @@ void matrix_mul_opt32(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
                         Rij = Rii + jj;
                         R_Rij1 = R_Rij2 = R_Rij3 = R_Rij4 = 0;
                         for (int kk = k; kk < k + nB; kk += 4) {
+                            kk1 = kk + 1;
+                            kk2 = kk + 2;
+                            kk3 = kk + 3;
+
                             R_Rij1 += A[Aii + kk] * B[kk * B_n_col + jj];
-                            R_Rij2 += A[Aii + kk + 1] * B[(kk + 1) * B_n_col + jj];
-                            R_Rij3 += A[Aii + kk + 2] * B[(kk + 2) * B_n_col + jj];
-                            R_Rij4 += A[Aii + kk + 3] * B[(kk + 3) * B_n_col + jj];
+                            R_Rij2 += A[Aii + kk1] * B[kk1 * B_n_col + jj];
+                            R_Rij3 += A[Aii + kk2] * B[kk2 * B_n_col + jj];
+                            R_Rij4 += A[Aii + kk3] * B[kk3 * B_n_col + jj];
                         }
                         R[Rij] += R_Rij1 + R_Rij2 + R_Rij3 + R_Rij4;
                     }
@@ -138,7 +144,9 @@ void matrix_rtrans_mul_opt32(double* A, int A_n_row, int A_n_col, double* B, int
     int nBA_n_col = nB * A_n_col;
     int nBB_n_col = nB * B_n_col;
 
-    double R_Rij;
+    double R_Rij1, R_Rij2, R_Rij3, R_Rij4;
+
+    int kk1, kk2, kk3;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
@@ -153,9 +161,17 @@ void matrix_rtrans_mul_opt32(double* A, int A_n_row, int A_n_col, double* B, int
                     for (int jj = j; jj < j + nB; jj++) {
                         Rij = Rii + jj;
                         R_Rij = 0;
-                        for (int kk = k; kk < k + nB; kk++)
-                            R_Rij += A[Aii + kk] * B[Bjj + kk];
-                        R[Rij] += R_Rij;
+                        for (int kk = k; kk < k + nB; kk+=4){
+                            kk1 = kk + 1;
+                            kk2 = kk + 2;
+                            kk3 = kk + 3;
+
+                            R_Rij1 += A[Aii + kk] * B[Bjj + kk];
+                            R_Rij1 += A[Aii + kk1] * B[Bjj + kk1];
+                            R_Rij1 += A[Aii + kk2] * B[Bjj + kk2];
+                            R_Rij1 += A[Aii + kk3] * B[Bjj + kk3];
+                        }
+                        R[Rij] += R_Rij1 + R_Rij2 + R_Rij3 + R_Rij4;
                         Bjj += B_n_col;
                     }
                     Aii += A_n_col;
