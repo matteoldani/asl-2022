@@ -198,7 +198,7 @@ double nnm_factorization_aopt2(double *V_rowM, double*W, double*H, int m, int n,
         matrix_rtrans_mul_aopt2(Wt, r, m, Wt, r, m, denominator_l, r, r);
 
         int nij;
-
+        
         double num_ij, den_ij;
         for (int i = 0; i < r; i++) {
             for (int j = 0; j < n; j++) {

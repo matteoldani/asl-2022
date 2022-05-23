@@ -19,8 +19,14 @@
 	- mkl_vs_openBLAS
 	(previous 3 are very cool plots and should be used, but need to be 	improved beforehand) 
 
+- Blas performance:
+	- MMM performance drastically decreases when the matrix size is such that the common dimension is small. The MMM is in fact closer to a matrix vector
+	  multiplication. In tests when multiplying matrices (400 x 3) (3 x 400) the performance drops from 12 f/c to 2 f/c. This is expected because the computation
+	  now basically have a constant opertational intensity. 
+
+
 - Optimizations:
-*Optimization 0:
+*Basic optimizations:
 	- everything was put into a single file
 	- functions were marked as inline
 	- removed struct, now just using double*
@@ -28,38 +34,38 @@
 	- calculation of the norm of V is now done only once
 	- matrix needed to calculate error (approx) is allocated only once
 	- removed call for calculating the norm - now done in place
-	- in the error function, two loops over the approx matrix were 	replaced with one + scalar replacement added and number of accesses to memory reduced by 1/3 per function call
-	- error function now takes 1 / norm of V as a parameter so a div was replaced with a mul
+	- in the error function, two loops over the approx matrix were 	replaced with one + scalar replacement added and number of 	accesses to memory reduced by 1/3 per function call
+	- error function now takes 1 / norm of V as a parameter so a div 	was replaced with a mul
 	- dimensions of all matrices calculated only once and reused
-	- double loops over matrices replaced with a single loop going sequentially over all elements (index calc simplified)
-	- 1 / RAND_MAX was precalculated so all divisions during init are now multiplications
-
-*Optimization 1:
-	- simplified index calculations by using the methods of code motion and strength reduction in MM functions
-
-*Optimization 2:
-	- introduced blocking for cache in the MM functions (with care for simplified index calcs)
-
-*Optimization 3:
-	- Optimized the transpose function by introducing blocking and simplified index calcs
+	- double loops over matrices replaced with a single loop going 	sequentially over all elements (index calc simplified)
+	- 1 / RAND_MAX was precalculated so all divisions during init are 	now multiplications
 
 *Alg_opt_1:
 	- We tried reusing matrix W in the computation of Hn+1 computing WtW and WtV in the same loop.
 	  Matrix W and V are transposed to improve cache locality. The obtained performance with 
 	  (m,n,r) = (200, 200, 5) is 0.68.
 
-*Optimization 31:
-	- Introduced register blocking in the MM functions
-	- Degrades performance significantly
-	- We can test a bit with different block sizes
+*Optimizations 21:
+	- Loop unrolling for norm calculation to optimize error function
+		- No improve (as expected since I was opitimizing lower terms in the cost)
 
-*Optimization 32:
-	- Introduced inner-most loop unrolling in the blocked version of MMs and transpose
-	- Loop unrolling in the transpose function (factor 16) improves the runtime a bit
-	- Loop unrolling in the MMs (factor 4) degrades performance a bit
 
-*Optimization 33:
-	- Intoduces an algorithmic change
-	- H(n+1) is computed in a blockwise manner and the computed block is used instantly in the multiplications needed to calculate W(n+1)
-	- All multiplications were done optimally with blocking and simplified index calculations
+*Optimization 22:
+	- FAIL, the goal was to apply an optimization similar to
+	  opt 6 on alg opt 2. We believe it might not be applicable. 
+	  
+
+
+*Optimization 23:
+	- blocking for cache and using BLAS for inner multiplitcation
+	- some transpose can be avoided but we tested and the transpose is	
+	  time is negligible
+	- performance highly depends on the rank (the higher the better) to	
+	  use blas the most
+	- despite blocking using V_col still gives an improvement (2.57 to 2.66 in the tests)
+	
+
+*Optimization 24:
+	- the basic optimizations made in opt1 were transfered on baseline2 
+	  as well. Loop unrolling for the norm is also used. 
 

@@ -717,7 +717,7 @@ PerfResults performance_analysis_nnm_d(
 
         cycles = stop_tsc(start);
         performance += cycles;
-        cost += nnm_cost(M_PERF, N_PERF, M_PERF, R_PERF, R_PERF, N_PERF, MAX_ITERATIONS) + matrix_rand_init_cost(M_PERF, N_PERF) + matrix_rand_init_cost(M_PERF, R_PERF) + matrix_rand_init_cost(R_PERF, N_PERF);
+        cost += nnm_cost_2(M_PERF, N_PERF, M_PERF, R_PERF, R_PERF, N_PERF, MAX_ITERATIONS) + matrix_rand_init_cost(M_PERF, N_PERF) + matrix_rand_init_cost(M_PERF, R_PERF) + matrix_rand_init_cost(R_PERF, N_PERF);
 
 
 #endif
@@ -910,7 +910,7 @@ int main(int argc, char const *argv[]) {
     nnm[0] = nnm_factorization_bs1;
     nnm[1] = nnm_factorization_bs2;
 
-    //run_tests(n_mmul, mmul, n_mmulltrans, mmulltrans, n_mmulrtrans, mmulrtrans, n_nnm, nnm);
+    run_tests(n_mmul, mmul, n_mmulltrans, mmulltrans, n_mmulrtrans, mmulrtrans, n_nnm, nnm);
 
     mmuld[0] = matrix_mul_opt0;
     mmuld[1] = matrix_mul_opt1;
@@ -918,6 +918,7 @@ int main(int argc, char const *argv[]) {
     mmuld[3] = matrix_mul_aopt2;
     mmuld[4] = matrix_mul_opt2;
     mmuld[5] = matrix_mul_opt3;
+  
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
     mmulrtransd[1] = matrix_rtrans_mul_opt1;
@@ -932,9 +933,10 @@ int main(int argc, char const *argv[]) {
     nnmd[3] = nnm_factorization_aopt2;
     nnmd[4] = nnm_factorization_opt2;
     nnmd[5] = nnm_factorization_opt3;
+  
 
     // END TODO
 
-    run_tests_d(n_mmul_opt, mmuld, n_mmulrtrans_opt, mmulrtransd, n_mmulltrans_opt, mmulltransd, n_nnm_opt, nnmd);
+    run_tests_d(n_mmul_opt, mmuld, n_mmulrtrans_opt, mmulrtransd, n_mmulltrans_opt, mmulltransd, nnnmopt, nnmd);
     return 0;
 }

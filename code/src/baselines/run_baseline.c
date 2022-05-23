@@ -20,7 +20,7 @@ int main(int argc, char const *argv[]) {
     n = 1000;
     r = 12;
     if (argc != 3 && argc != 5){
-        printf("This program can be run in tow different modes:\n");
+        printf("This program can be run in two different modes:\n");
         printf("\t./baseline <baseline number> <m> <n> <r>\n");
         printf("\t./baseline <baseline number> <file-path>\n");
         return -1;
