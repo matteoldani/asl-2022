@@ -220,6 +220,10 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     }
     norm_V = 1 / sqrt(norm_V);
 
+    //NEW - Algorithmic optimization, calculating H(n+1) in a blockwise manner and using the current block instantly in the calculation of W(n+1)
+    //NEW - All multiplications are done in the most optimal manner - blocked and with index calculation optimizations
+    //NOTE - We may also try calling BLAS on the level of blocks
+
     int nB = BLOCK_SIZE_H;
     int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
     int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
@@ -356,10 +360,6 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             mi += mnB;
             ni += nnB;
         }
-
-        //TO DO:
-        //Make all steps in upper part more efficient
-        //Introduce blocking when you go over longer parts
 
         matrix_rtrans_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
