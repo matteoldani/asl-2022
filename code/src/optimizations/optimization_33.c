@@ -251,7 +251,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 //Wt*Wt rmul
                 if (j == 0)
                 {
-                    ri1 = 0, mi1 = 0;
+                    ri1 = i * r, mi1 = i * m;
                     for (int i1 = i; i1 < inB; i1++) {
                         mj1 = 0;
                         for (int j1 = 0; j1 < r; j1 += nB) {
