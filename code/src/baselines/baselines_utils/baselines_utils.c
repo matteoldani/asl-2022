@@ -16,7 +16,6 @@ myInt64 nnm_cost(int V_row, int V_col, int W_row, int W_col, int H_row, int H_co
                             2 * W_row * H_row * H_col +
                             2 * H_row * H_col +
                             2 * W_row * W_col + 3);
-
 }
 
 myInt64 matrix_rand_init_cost(int row, int col){

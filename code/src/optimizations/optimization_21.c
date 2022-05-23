@@ -4,9 +4,9 @@
 #include <time.h>
 #include <string.h>
 #include <assert.h>
-#include <optimizations/optimizations_2.h>
+#include <optimizations/optimizations_21.h>
 
-//NEW - optimization done on optimization_2 (includes alg_opt_2)
+//NEW - optimization done on optimization_3, scalar replacement and unrolling
 
 typedef unsigned long long myInt64;
 
@@ -14,11 +14,9 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
-    //NEW - introduced blocking and simlified index calcs (code motion, strength reduction)
     int nB = BLOCK_SIZE_TRANS;
     int src_i = 0, src_ii;
 
-    //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
     for(int i = 0; i < N; i += nB)
     {
         for(int j = 0; j < M; j += nB)
@@ -47,7 +45,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt3(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt21(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
 
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
@@ -94,7 +92,7 @@ void matrix_mul_opt3(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt3(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt21(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
     int nB = BLOCK_SIZE_RTRANSMUL;
@@ -147,12 +145,49 @@ void matrix_rtrans_mul_opt3(double* A, int A_n_row, int A_n_col, double* B, int 
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt3(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt21(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
+    double temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
+    double norm_approx1 = 0;
+    double norm_approx2 = 0;
+    double norm_approx3 = 0;
+    double norm_approx4 = 0; 
+    double norm_approx5 = 0; 
+    double norm_approx6 = 0;
+    double norm_approx7 = 0;
+    double norm_approx8 = 0;
 
     norm_approx = 0;
-    for (int i = 0; i < mn; i++)
+
+    // NEW - loop unrolling for norm computation
+
+    int idx_unroll = mn/8;
+    int i;
+    for (i=0; i<idx_unroll; i+=8){
+        temp1 = V[i] - approx[i];
+        temp2 = V[i+1] - approx[i+1];
+        temp3 = V[i+2] - approx[i+2];
+        temp4 = V[i+3] - approx[i+3];
+        temp5 = V[i+4] - approx[i+4];
+        temp6 = V[i+5] - approx[i+5];
+        temp7 = V[i+6] - approx[i+6];
+        temp8 = V[i+7] - approx[i+7];
+
+        norm_approx1 += temp1 * temp1;
+        norm_approx2 += temp2 * temp2;
+        norm_approx3 += temp3 * temp3;
+        norm_approx4 += temp4 * temp4;
+        norm_approx5 += temp5 * temp5;
+        norm_approx6 += temp6 * temp6;
+        norm_approx7 += temp7 * temp7;
+        norm_approx8 += temp8 * temp8;
+
+    }
+
+    norm_approx = norm_approx1 + norm_approx2 + norm_approx3 + norm_approx4 + norm_approx5 + norm_approx6 + norm_approx7 + norm_approx8;
+
+    for (; i < mn; i++)
     {
         temp = V[i] - approx[i];
         norm_approx += temp * temp;
@@ -175,7 +210,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt21(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Wt;
     double *H_tmp, *H_switch;
     double *W_tmp, *W_switch;
@@ -185,10 +220,10 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
     rr = r * r;
     mr = m * r;
     mn = m * n;
-    Wt = malloc(double_size * mr);
-    W_tmp = malloc(double_size * mr);
-    H_tmp = malloc(double_size * rn);
-    V_colM = malloc(double_size * mn);
+    Wt      = malloc(double_size * mr);
+    W_tmp   = malloc(double_size * mr);
+    H_tmp   = malloc(double_size * rn);
+    V_colM  = malloc(double_size * mn);
 
     //Operands needed to compute Hn+1
     double *numerator;
@@ -196,10 +231,10 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
     double *denominator_r;
     double *denominator;    //r x n, r x r, r x n
 
-    numerator = malloc(double_size * rn);
-    denominator_l = malloc(double_size * rr);
-    denominator_r = malloc(double_size * rr);
-    denominator = malloc(double_size * rn);
+    numerator       = malloc(double_size * rn);
+    denominator_l   = malloc(double_size * rr);
+    denominator_r   = malloc(double_size * rr);
+    denominator     = malloc(double_size * rn);
 
     //Operands needed to compute Wn+1
     double *numerator_W;
@@ -207,8 +242,8 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
     double *denominator_l_W;      // m x r, m x r, m x n
 
 
-    numerator_W = malloc(double_size * mr);
-    denominator_W = malloc(double_size * mr);
+    numerator_W     = malloc(double_size * mr);
+    denominator_W   = malloc(double_size * mr);
     denominator_l_W = malloc(double_size * mn);
 
     double* approximation; //m x n
@@ -224,14 +259,43 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
         }
     }
 
-    double norm_V = 0;
-    for (int i = 0; i < mn; i++){
+    // NEW - loop unrolling for norm computation
+    double norm_V  = 0;
+    double norm_V1 = 0;
+    double norm_V2 = 0;
+    double norm_V3 = 0;
+    double norm_V4 = 0; 
+    double norm_V5 = 0; 
+    double norm_V6 = 0;
+    double norm_V7 = 0;
+    double norm_V8 = 0;
+
+
+    int idx_unroll = mn/8;
+    int i;
+
+    for (i=0; i<idx_unroll; i+=8){
+        norm_V1 += V_rowM[i]   * V_rowM[i];
+        norm_V2 += V_rowM[i+1] * V_rowM[i+1];
+        norm_V3 += V_rowM[i+2] * V_rowM[i+2];
+        norm_V4 += V_rowM[i+3] * V_rowM[i+3];
+        norm_V5 += V_rowM[i+4] * V_rowM[i+4];
+        norm_V6 += V_rowM[i+5] * V_rowM[i+5];
+        norm_V7 += V_rowM[i+6] * V_rowM[i+6];
+        norm_V8 += V_rowM[i+7] * V_rowM[i+7];
+    }
+
+    norm_V = norm_V1 + norm_V2 + norm_V3 + norm_V4 + norm_V5 + norm_V6 + norm_V7 + norm_V8;
+
+    for (; i < mn; i++)
+    {
         norm_V += V_rowM[i] * V_rowM[i];
     }
+
     norm_V = 1 / sqrt(norm_V);
 
     //real convergence computation
-    double err = -1;											
+    double err = -1;										
     for (int count = 0; count < maxIteration; count++) {
      
         err = error(approximation, V_rowM, W, H, m, n, r, mn, norm_V);
@@ -240,7 +304,7 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
         }    
         
         transpose(W, Wt, m, r);
-        matrix_rtrans_mul_opt3(Wt, r, m, Wt, r, m, denominator_l, r, r);
+        matrix_rtrans_mul_opt21(Wt, r, m, Wt, r, m, denominator_l, r, r);
 
         int nij;
 
@@ -267,7 +331,7 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
         H_tmp = H_switch;
     
 
-        matrix_rtrans_mul_opt3(H, r, n, H, r, n, denominator_r, r, r);
+        matrix_rtrans_mul_opt21(H, r, n, H, r, n, denominator_r, r, r);
 
 
 
@@ -307,3 +371,4 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
     free(approximation);
     return err;
 }
+

@@ -4,6 +4,11 @@
 #include <optimizations/alg_opt_2.h>
 #include <optimizations/optimizations_2.h>
 #include <optimizations/optimizations_3.h>
+#include <optimizations/optimizations_21.h>
+#include <optimizations/optimizations_22.h>
+#include <optimizations/optimizations_23.h>
+#include <optimizations/optimizations_24.h>
+#include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -88,6 +93,7 @@ int main(int argc, char const* argv[]) {
         printf("\t3 - Algoritmh opt 2\n");
         printf("\t4 - Optimization 2\n");
         printf("\t5 - Optimization 3\n");
+
         return -1;
     }
     FILE* fp = NULL;
@@ -147,6 +153,7 @@ int main(int argc, char const* argv[]) {
     case 5:
         run_factorization = &nnm_factorization_opt3;
         break;
+
     default:
         printf("Invalid opt number. Quitting\n");
         return -1;
@@ -156,13 +163,8 @@ int main(int argc, char const* argv[]) {
     printf("Error: %lf\n", err);
 
     free(V);
-    //printf("Free o V done\n");
-    fflush(stdout);
     free(W);
-    //printf("Free o W done\n");
-    fflush(stdout);
     free(H);
-    //printf("Free o H done\n");
     fflush(stdout);
 
     return 0;
