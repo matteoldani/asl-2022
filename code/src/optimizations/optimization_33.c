@@ -236,6 +236,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
         memset(denominator, 0, d_rn);
 
         memset(numerator_W, 0, d_mr);
+        memset(denominator_r, 0, d_rr);
 
         //computation for Hn+1
         transpose(W, Wt, m, r);
@@ -278,7 +279,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     }
                 }
 
-                //V*Ht rmul
+                //V*H rmul
                 for (int i1 = 0; i1 < m; i1++) {
                     for (int j1 = i; j1 < i + nB; j1++) {
                         for (int k1 = j; k1 < j + nB; k1++) {
@@ -286,6 +287,23 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                         }
                     }
                 }
+
+                //H*H rmul
+                for (int i1 = 0; i1 < i + nB; i1++) {
+                    for (int j1 = i; j1 < i + nB; j1++) {
+                        for (int k1 = j; k1 < j + nB; k1++) {
+                            denominator_r[i1 * r + j1] += H_new[i1 * n + k1] * H_new[j1 + n + k1];
+                        }
+                    }
+                }
+                for (int i1 = i; i1 < i + nB; i1++) {
+                    for (int j1 = 0; j1 < i; j1++) {
+                        for (int k1 = j; k1 < j + nB; k1++) {
+                            denominator_r[i1 * r + j1] += H_new[i1 * n + k1] * H_new[j1 * n + k1];
+                        }
+                    }
+                }
+
             }
         }
 
@@ -295,7 +313,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
         //Intergate second part too
 
         //computation for Wn+1
-        matrix_rtrans_mul_opt33(H_new, r, n, H_new, r, n, denominator_r, r, r);
+        //matrix_rtrans_mul_opt33(H_new, r, n, H_new, r, n, denominator_r, r, r);
         //matrix_rtrans_mul_opt33(V, m, n, H_new, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
