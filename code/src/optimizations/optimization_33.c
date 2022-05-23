@@ -278,9 +278,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
                         ni1j1 = ni1 + j1;
-                        for (int k1 = 0; k1 < m; k1++) {
+                        for (int k1 = 0; k1 < m; k1++)
                             numerator[ni1j1] += Wt[mi1 + k1] * V[k1 * n + j1];
-                        }
                     }
                     mi1 += m;
                     ni1 += n;
@@ -292,9 +291,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
                         ni1j1 = ni1 + j1;
-                        for (int k1 = 0; k1 < r; k1++) {
+                        for (int k1 = 0; k1 < r; k1++)
                             denominator[ni1j1] += denominator_l[ri1 + k1] * H[k1 * n + j1];
-                        }
                     }
                     ni1 += n;
                     ri1 += r;
@@ -315,9 +313,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     nj1 = ni;
                     for (int j1 = i; j1 < inB; j1++) {
                         ri1j1 = ri1 + j1;
-                        for (int k1 = j; k1 < jnB; k1++) {
+                        for (int k1 = j; k1 < jnB; k1++)
                             numerator_W[ri1j1] += V[ni1 + k1] * H_new[nj1 + k1];
-                        }
                         nj1 += n;
                     }
                     ri1 += r;
@@ -327,12 +324,18 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 //computation for Wn+1
 
                 //H*H rmul
+                ni1 = ri1 = 0;
                 for (int i1 = 0; i1 < inB; i1++) {
+                    nj1 = ni;
                     for (int j1 = i; j1 < inB; j1++) {
+                        ri1j1 = ri1 + j1;
                         for (int k1 = j; k1 < jnB; k1++) {
-                            denominator_r[i1 * r + j1] += H_new[i1 * n + k1] * H_new[j1 * n + k1];
+                            denominator_r[ri1j1] += H_new[ni1 + k1] * H_new[nj1 + k1];
                         }
+                        nj1 += n;
                     }
+                    ni1 += n;
+                    ri1 += r;
                 }
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = 0; j1 < i; j1++) {
