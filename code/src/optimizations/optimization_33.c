@@ -282,7 +282,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 for (int i1 = 0; i1 < m; i1++) {
                     for (int j1 = i; j1 < i + nB; j1++) {
                         for (int k1 = j; k1 < j + nB; k1++) {
-                            numerator_W[i1 * m + j1] = V[i1 * m + k1] * H_new[j1 * r + k1];
+                            numerator_W[i1 * r + j1] += V[i1 * n + k1] * H_new[j1 * n + k1];
                         }
                     }
                 }
