@@ -292,7 +292,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 for (int i1 = 0; i1 < i + nB; i1++) {
                     for (int j1 = i; j1 < i + nB; j1++) {
                         for (int k1 = j; k1 < j + nB; k1++) {
-                            denominator_r[i1 * r + j1] += H_new[i1 * n + k1] * H_new[j1 + n + k1];
+                            denominator_r[i1 * r + j1] += H_new[i1 * n + k1] * H_new[j1 * n + k1];
                         }
                     }
                 }
@@ -313,8 +313,6 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
         //Intergate second part too
 
         //computation for Wn+1
-        //matrix_rtrans_mul_opt33(H_new, r, n, H_new, r, n, denominator_r, r, r);
-        //matrix_rtrans_mul_opt33(V, m, n, H_new, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
