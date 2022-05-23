@@ -8,6 +8,7 @@
 #include "cblas.h"
 
 //NEW - optimization done on optimization_24 but with using transpose to reduce the number of ltrans and transposisions
+//      - Small improvement (around 0.01 flops/cycle)
 
 static unsigned int double_size = sizeof(double);
 
@@ -248,7 +249,6 @@ double nnm_factorization_opt12(double *V, double*W, double*H, int m, int n, int 
         matrix_mul_opt12(W_trans, r, m, V, m, n, numerator, r, n);
         matrix_mul_opt12(W_trans, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt12(denominator_l, r, r, H, r, n, denominator, r, n);
- 
 
         idx_unroll = rn/8;
         for (i = 0; i < idx_unroll; i+=8){
