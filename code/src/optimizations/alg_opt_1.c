@@ -205,7 +205,7 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
         }    
         
         transpose(W, Wt, m, r);
-        //print_matrix_helper(W, r,m);
+
         int nij;
         int dij;
         double wt;
@@ -231,9 +231,6 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
         transpose(Wt, W, r, m);
         transpose(H, Ht, r, n);
 
-        //matrix_rtrans_mul_aopt1(denominator_l, r, r, Ht, n, r, denominator, r, n);
-        // for (int i = 0; i < rn; i++)
-        //     H[i] = H[i] * numerator[i] / denominator[i];
         int Rij;
         for (int i = 0; i < r; i++) {
             for (int j = 0; j < n; j++) {
@@ -248,18 +245,7 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
         
         tmp = Htmp;
         Htmp = H;
-        H = tmp;  
-
-
-
-        
-        // printf("H\n");
-
-        // print_matrix_helper(H, r, n);
-        //computation for Wn+1
-
-        //matrix_rtrans_mul_aopt1(V_rowM, m, n, H, r, n, numerator_W, m, r);
-        //matrix_mul_aopt1(W, m, r, H, r, n, denominator_l_W, m, n);
+        H = tmp;
       
         double h;
         for (int i = 0; i < m; i++) {
@@ -279,8 +265,6 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
             }
         }
 
-        //matrix_rtrans_mul_aopt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
-
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < r; j++) {
                 Rij = i * r + j;
@@ -295,24 +279,7 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
 
         tmp = Wtmp;
         Wtmp = W;
-        W = tmp; 
-
-
-
-
-        //matrix_mul_aopt1(W, m, r, denominator_l, r, r, denominator_W, m, r);
-
-        // for (int i = 0; i < mr; i++)
-        //     W[i] = W[i] * numerator_W[i] / denominator_W[i];
-
-        // printf("MAtrix at iteration %d\n", count);
-        // print_matrix_helper(V_rowM, m, n);
-        // print_matrix_helper(W, m, r);
-        // print_matrix_helper(H, r, n);
-        // print_matrix_helper(numerator_W, m, r);
-        // print_matrix_helper(denominator_l_W, m, n);
-        // print_matrix_helper(denominator_W, m, r);
-
+        W = tmp;
     }
 
     free(numerator);

@@ -259,11 +259,9 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
                     num_ij += Wt[i * m + k] * V_colM[j * m + k];
                     if(k<r){
                         den_ij += denominator_l[i*r +k] * H[k * n + j];    
-                    }          
-            
+                    }
                 }
-                H_tmp[nij] = H[nij] * num_ij / den_ij; 
-
+                H_tmp[nij] = H[nij] * num_ij / den_ij;
             }
         }
         H_switch = H;
@@ -272,8 +270,6 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
     
 
         matrix_rtrans_mul_opt3(H, r, n, H, r, n, denominator_r, r, r);
-
-
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < r; j++) {
