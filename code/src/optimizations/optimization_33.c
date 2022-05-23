@@ -222,7 +222,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
 
     int nB = BLOCK_SIZE_H;
     int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
-    int ri, mi, ni, ri1, mi1, ni1, ni1j1, ri1jj1, mj1, mjj1;
+    int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
 
     //real convergence computation
     double err = -1;											
@@ -310,12 +310,18 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 }
 
                 //V*H rmul
+                ri1 = ni1 = 0;
                 for (int i1 = 0; i1 < m; i1++) {
+                    nj1 = ni;
                     for (int j1 = i; j1 < inB; j1++) {
+                        ri1j1 = ri1 + j1;
                         for (int k1 = j; k1 < jnB; k1++) {
-                            numerator_W[i1 * r + j1] += V[i1 * n + k1] * H_new[j1 * n + k1];
+                            numerator_W[ri1j1] += V[ni1 + k1] * H_new[nj1 + k1];
                         }
+                        nj1 += n;
                     }
+                    ri1 += r;
+                    ni1 += n;
                 }
 
                 //computation for Wn+1
