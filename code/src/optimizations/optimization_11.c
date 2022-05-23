@@ -265,7 +265,7 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
     Htmp = H;
     H = tmp;
 
-    for (int count = 0; count < maxIteration + 1; count++) {
+    for (int count = 0; count < maxIteration; count++) {
 
         double h;
         for (int i = 0; i < m; i++) {
@@ -287,6 +287,7 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
 
         int Ri = 0, Rii;
         memset(denominator_W, 0, double_size * mr);
+        memset(Wtmp, 0, double_size * mr);
         Rij = 0;
         for (int i = 0; i < m; i += nB) {
             for (int j = 0; j < r; j += nB) {
@@ -317,7 +318,7 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
             break;
         }
 
-        if (count == maxIteration) {
+        if (count == maxIteration - 1) {
             break;
         }
 
