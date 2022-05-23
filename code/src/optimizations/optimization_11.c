@@ -147,7 +147,7 @@ matrix_rtrans_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_
  */
 inline double error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt4(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt11(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
@@ -265,7 +265,7 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
     Htmp = H;
     H = tmp;
 
-    for (int count = 0; count < maxIteration; count++) {
+    for (int count = 0; count < maxIteration + 1; count++) {
 
         double h;
         for (int i = 0; i < m; i++) {
@@ -285,9 +285,12 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
             }
         }
 
-        int Rij = 0, Ri = 0, Rii;
+        int Ri = 0, Rii;
+        memset(denominator_W, 0, double_size * mr);
+        memset(Wtmp, 0, double_size * mr);
+        Rij = 0;
         for (int i = 0; i < m; i += nB) {
-            for (int j = 0; j < r; j + nB) {
+            for (int j = 0; j < r; j += nB) {
                 for (int k = 0; k < r; k += nB) {
                     Rii = Ri;
                     for (int ii = i; ii < i + nB; ii++) {
@@ -303,7 +306,6 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
                 }
             }
             Ri += nB * r;
-            Ai += nB * r;
         }
 
         tmp = Wtmp;
@@ -313,6 +315,10 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
         // At this point we have one iteration of the algorithm
         err = error(approximation, V_rowM, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
+            break;
+        }
+
+        if (count == maxIteration) {
             break;
         }
 
