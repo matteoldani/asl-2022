@@ -13,12 +13,12 @@ void testRun(int m, int n, int r, int maxIteration, double epsilon, double min, 
     // copy the matrices 
     matrix_allocation(&W_temp, matrices.W.n_row, matrices.W.n_col);
     matrix_allocation(&H_temp, matrices.H.n_row, matrices.H.n_col);
-
-    for (int i = 0; i < matrices.W.n_col * matrices.W.n_row; i++) {
+    
+    for(int i=0; i<matrices.W.n_col*matrices.W.n_row;i++){
         W_temp.M[i] = matrices.W.M[i];
     }
 
-    for (int i = 0; i < matrices.H.n_col * matrices.H.n_row; i++) {
+    for(int i=0; i<matrices.H.n_col*matrices.H.n_row;i++){
         H_temp.M[i] = matrices.H.M[i];
     }
 
@@ -37,14 +37,14 @@ void testRun(int m, int n, int r, int maxIteration, double epsilon, double min, 
 void generate_baseline_test_suite(Matrices *matrices, int m, int n, int r, double min, double max) {
 
     allocate_base_matrices(matrices, m, n, r);
-
-    random_matrix_init(&matrices->V, min, max);
-    random_matrix_init(&matrices->W, min, max);
+    
+    random_matrix_init(&matrices->V,min, max);
+    random_matrix_init(&matrices->W,min, max);
 
     // random_acol_matrix_init(&b->bs1Matrices.V,&b->bs1Matrices.W, 3);
     // random_acol_matrix_init(&b->bs2Matrices.V,&b->bs2Matrices.W, 3);
 
-    random_matrix_init(&matrices->H, min, max);
+    random_matrix_init(&matrices->H,min, max);
 
     // printf("****************** Matrix V ******************\n");
     // print_matrix(&matrices->V);
@@ -61,13 +61,13 @@ int main(int argc, char const *argv[]) {
     int numTests, min, max, steps, maxIteration, count;
     int m, n, r;
     double epsilon, low, high;
-
+    
     printf("Those are the values required: \n");
 
     // read the number of tests to be executed
     printf("\tNum of Tests: ");
     fscanf(stdin, "%d", &numTests);
-
+    
     // read the minimal and maximal size of the matrices
     printf("\tMin & Max: ");
     fscanf(stdin, "%d %d", &min, &max);
