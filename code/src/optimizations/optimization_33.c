@@ -183,30 +183,36 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     rr = r * r;
     mr = m * r;
     mn = m * n;
+
+    int d_rn, d_rr, d_mr, d_mn;
+    d_rn = double_size * rn;
+    d_rr = double_size * rr;
+    d_mr = double_size * mr;
+    d_mn = double_size * mn;
     
-    Wt = malloc(double_size * mr);
-    H_new = malloc(double_size * rn);
+    Wt = malloc(d_mr);
+    H_new = malloc(d_rn);
 
     //Operands needed to compute Hn+1
     double *numerator;      //r x n
     double *denominator_l;  //r x r
     double *denominator;    //r x n
 
-    numerator = malloc(double_size * rn);
-    denominator_l = malloc(double_size * rr);
-    denominator = malloc(double_size * rn);
+    numerator = malloc(d_rn);
+    denominator_l = malloc(d_rr);
+    denominator = malloc(d_rn);
 
     //Operands needed to compute Wn+1
     double *numerator_W;    //m x r
     double* denominator_r;  //r x r
     double *denominator_W;  //m x r
 
-    numerator_W = malloc(double_size * mr);
-    denominator_r = malloc(double_size * rr);
-    denominator_W = malloc(double_size * mr);
+    numerator_W = malloc(d_mr);
+    denominator_r = malloc(d_rr);
+    denominator_W = malloc(d_mr);
 
     double* approximation; //m x n
-    approximation = malloc(double_size * mn);
+    approximation = malloc(d_mn);
 
     double norm_V = 0;
     for (int i = 0; i < mn; i++){
@@ -215,8 +221,6 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     norm_V = 1 / sqrt(norm_V);
 
     int nB = BLOCK_SIZE_H;
-    int n_blocks_r = r / nB, n_blocks_c = n / nB;
-
 
     //real convergence computation
     double err = -1;											
@@ -227,9 +231,11 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             break;
         }    
         
-        memset(denominator_l, 0, double_size * rr);
-        memset(numerator, 0, double_size * rn);
-        memset(denominator, 0, double_size * rn);
+        memset(denominator_l, 0, d_rr);
+        memset(numerator, 0, d_rn);
+        memset(denominator, 0, d_rn);
+
+        memset(numerator_W, 0, d_mr);
 
         //computation for Hn+1
         transpose(W, Wt, m, r);
@@ -271,6 +277,15 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                         H_new[i1 * n + j1] = H[i1 * n + j1] * numerator[i1 * n + j1] / denominator[i1 * n + j1];
                     }
                 }
+
+                //V*Ht rmul
+                for (int i1 = 0; i1 < m; i1++) {
+                    for (int j1 = i; j1 < i + nB; j1++) {
+                        for (int k1 = j; k1 < j + nB; k1++) {
+                            numerator_W[i1 * m + j1] = V[i1 * m + k1] * H_new[j1 * r + k1];
+                        }
+                    }
+                }
             }
         }
 
@@ -281,14 +296,13 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
 
         //computation for Wn+1
         matrix_rtrans_mul_opt33(H_new, r, n, H_new, r, n, denominator_r, r, r);
-        matrix_rtrans_mul_opt33(V, m, n, H_new, r, n, numerator_W, m, r);
+        //matrix_rtrans_mul_opt33(V, m, n, H_new, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
-
-        memcpy(H, H_new, double_size * rn);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
 
+        memcpy(H, H_new, d_rn);
     }
 
     free(numerator);
