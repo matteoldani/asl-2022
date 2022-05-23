@@ -9,4 +9,5 @@
 #define BLOCK_SIZE_TRANS 8
 #define BLOCK_SIZE_MMUL 8
 #define BLOCK_SIZE_RTRANSMUL 8
+#define BLOCK_SIZE_TRANS 8
 typedef unsigned long long myInt64;

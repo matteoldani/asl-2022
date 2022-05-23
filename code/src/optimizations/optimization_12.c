@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
-#include <optimizations/optimizations_24.h>
+#include <optimizations/optimizations_12.h>
 
 #include "cblas.h"
 
@@ -192,9 +192,8 @@ double nnm_factorization_opt12(double *V, double*W, double*H, int m, int n, int 
     numerator_W = malloc(double_size * mr);
     denominator_W = malloc(double_size * mr);
 
-    double *W_trans, H_trans;
+    double *W_trans;
     W_trans = malloc(double_size * mr);
-    H_trans = malloc(double_size * rn);
 
     double* approximation; //m x n
     approximation = malloc(double_size * mn);
