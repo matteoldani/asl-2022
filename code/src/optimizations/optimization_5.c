@@ -17,11 +17,9 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
-    //NEW - introduced blocking and simlified index calcs (code motion, strength reduction)
     int nB = BLOCK_SIZE_TRANS;
     int src_i = 0, src_ii;
 
-    //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
     for(int i = 0; i < N; i += nB)
     {
         for(int j = 0; j < M; j += nB)
@@ -52,15 +50,12 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  */
 void matrix_mul_opt5(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
 
-    //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
-    //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
-    
+
     int Ri = 0, Ai = 0;
     int nB = BLOCK_SIZE_MMUL;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
-    //printf("A: %d, %d\tB: %d, %d\t R: %d, %d\n", A_n_row, A_n_col, B_n_row, B_n_col, R_n_row, R_n_col);
 
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {

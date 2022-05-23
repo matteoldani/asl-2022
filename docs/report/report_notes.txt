@@ -46,7 +46,7 @@
 
 
 *Optimization 5:
-	- still to be finished, the goal was to apply an optimization similar to
+	- FAIL, the goal was to apply an optimization similar to
 	  opt 6 on alg opt 2. We believe it might not be applicable. 
 	  
 
