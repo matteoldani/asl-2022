@@ -300,10 +300,13 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                 }
                 
+                ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
-                        H_new[i1 * n + j1] = H[i1 * n + j1] * numerator[i1 * n + j1] / denominator[i1 * n + j1];
+                        ni1j1 = ni1 + j1;
+                        H_new[ni1j1] = H[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
                     }
+                    ni1 += n;
                 }
 
                 //V*H rmul
