@@ -4,10 +4,10 @@
 #include <optimizations/alg_opt_2.h>
 #include <optimizations/optimizations_2.h>
 #include <optimizations/optimizations_3.h>
-#include <optimizations/optimizations_4.h>
-#include <optimizations/optimizations_5.h>
-#include <optimizations/optimizations_6.h>
-#include <optimizations/optimizations_7.h>
+#include <optimizations/optimizations_21.h>
+#include <optimizations/optimizations_22.h>
+#include <optimizations/optimizations_23.h>
+#include <optimizations/optimizations_24.h>
 #include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
@@ -93,10 +93,10 @@ int main(int argc, char const* argv[]) {
         printf("\t3 - Algoritmh opt 2\n");
         printf("\t4 - Optimization 2\n");
         printf("\t5 - Optimization 3\n");
-        printf("\t6 - Optimization 4\n");
-        printf("\t7 - Optimization 5\n");
-        printf("\t8 - Optimization 6\n");
-        printf("\t9 - Optimization 7\n");
+        printf("\t6 - Optimization 21\n");
+        printf("\t7 - Optimization 22\n");
+        printf("\t8 - Optimization 23\n");
+        printf("\t9 - Optimization 24\n");
 
         return -1;
     }
@@ -158,16 +158,16 @@ int main(int argc, char const* argv[]) {
         run_factorization = &nnm_factorization_opt3;
         break;
     case 6:
-        run_factorization = &nnm_factorization_opt4;
+        run_factorization = &nnm_factorization_opt21;
         break;
     case 7:
-        run_factorization = &nnm_factorization_opt5;
+        run_factorization = &nnm_factorization_opt22;
         break;
     case 8:
-        run_factorization = &nnm_factorization_opt6;
+        run_factorization = &nnm_factorization_opt23;
         break;
     case 9:
-        run_factorization = &nnm_factorization_opt7;
+        run_factorization = &nnm_factorization_opt24;
         break;
     default:
         printf("Invalid opt number. Quitting\n");

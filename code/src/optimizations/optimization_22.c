@@ -4,7 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include <assert.h>
-#include <optimizations/optimizations_5.h>
+#include <optimizations/optimizations_22.h>
 
 #include "cblas.h"
 
@@ -48,7 +48,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt5(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt22(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
 
 
     int Ri = 0, Ai = 0;
@@ -84,7 +84,7 @@ void matrix_mul_opt5(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt5(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt22(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
     int nB = BLOCK_SIZE_RTRANSMUL;
@@ -137,7 +137,7 @@ void matrix_rtrans_mul_opt5(double* A, int A_n_row, int A_n_col, double* B, int 
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt5(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt22(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
     double temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
@@ -200,7 +200,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt5(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt22(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Wt;
     double *H_tmp, *H_switch;
     double *W_tmp, *W_switch;
@@ -293,7 +293,7 @@ double nnm_factorization_opt5(double *V_rowM, double*W, double*H, int m, int n, 
         }    
         
         transpose(W, Wt, m, r);
-        matrix_rtrans_mul_opt5(Wt, r, m, Wt, r, m, denominator_l, r, r);
+        matrix_rtrans_mul_opt22(Wt, r, m, Wt, r, m, denominator_l, r, r);
 
         int nij;
 
@@ -320,7 +320,7 @@ double nnm_factorization_opt5(double *V_rowM, double*W, double*H, int m, int n, 
         H_tmp = H_switch;
     
 
-        matrix_rtrans_mul_opt5(H, r, n, H, r, n, denominator_r, r, r);
+        matrix_rtrans_mul_opt22(H, r, n, H, r, n, denominator_r, r, r);
 
 
 

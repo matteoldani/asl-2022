@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <optimizations/optimizations_24.h>
 
 #include "cblas.h"
 
@@ -22,7 +23,7 @@ static unsigned int double_size = sizeof(double);
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt7(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt24(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
     
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 A_n_row, B_n_col, A_n_col, 1,
@@ -42,7 +43,7 @@ void matrix_mul_opt7(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_ltrans_mul_opt7(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_ltrans_mul_opt24(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
 
     cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                 A_n_col, B_n_col, B_n_row, 1, //r=A->n_row = B->n_row
@@ -62,7 +63,7 @@ void matrix_ltrans_mul_opt7(double* A, int A_n_row, int A_n_col, double* B, int 
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt7(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt24(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A_n_row, B_n_row, A_n_col, 1,
@@ -87,7 +88,7 @@ void matrix_rtrans_mul_opt7(double* A, int A_n_row, int A_n_col, double* B, int 
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt7(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt24(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
     double temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
@@ -150,7 +151,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt7(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt24(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int rn, rr, mr, mn;
     rn = r * n;
@@ -219,9 +220,9 @@ double nnm_factorization_opt7(double *V, double*W, double*H, int m, int n, int r
         }
 
         //computation for Hn+1
-        matrix_ltrans_mul_opt7(W, m, r, V, m, n, numerator, r, n);
-        matrix_ltrans_mul_opt7(W, m, r, W, m, r, denominator_l, r, r);
-        matrix_mul_opt7(denominator_l, r, r, H, r, n, denominator, r, n);
+        matrix_ltrans_mul_opt24(W, m, r, V, m, n, numerator, r, n);
+        matrix_ltrans_mul_opt24(W, m, r, W, m, r, denominator_l, r, r);
+        matrix_mul_opt24(denominator_l, r, r, H, r, n, denominator, r, n);
  
 
         idx_unroll = rn/8;
@@ -240,12 +241,12 @@ double nnm_factorization_opt7(double *V, double*W, double*H, int m, int n, int r
         }
 
         //computation for Wn+1
-        // matrix_rtrans_mul_opt7(V, m, n, H, r, n, numerator_W, m, r);
-        // matrix_mul_opt7(W, m, r, H, r, n, denominator_l_W, m, n);
-        // matrix_rtrans_mul_opt7(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
-        matrix_rtrans_mul_opt7(V, m, n, H, r, n, numerator_W, m, r);
-        matrix_rtrans_mul_opt7(H, r, n, H, r, n, denominator_l, r, r);
-        matrix_mul_opt7(W, m, r, denominator_l, r, r, denominator_W, m, r);
+        // matrix_rtrans_mul_opt24(V, m, n, H, r, n, numerator_W, m, r);
+        // matrix_mul_opt24(W, m, r, H, r, n, denominator_l_W, m, n);
+        // matrix_rtrans_mul_opt24(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
+        matrix_rtrans_mul_opt24(V, m, n, H, r, n, numerator_W, m, r);
+        matrix_rtrans_mul_opt24(H, r, n, H, r, n, denominator_l, r, r);
+        matrix_mul_opt24(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
         idx_unroll = mr / 8;
         for (i = 0; i < idx_unroll; i+=8){

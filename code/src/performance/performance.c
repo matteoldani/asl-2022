@@ -272,10 +272,10 @@ int main(int argc, char const* argv[])
         printf("\t5. Alg Opt 2\n");
         printf("\t6. Optimisation 2\n");
         printf("\t7. Optimisation 3\n");
-        printf("\t8. Optimisation 4\n");
-        printf("\t9. Optimisation 5\n");
-        printf("\t10. Optimisation 6\n");
-        printf("\t11. Optimisation 7\n");
+        printf("\t8. Optimisation 21\n");
+        printf("\t9. Optimisation 22\n");
+        printf("\t10. Optimisation 23\n");
+        printf("\t11. Optimisation 24\n");
 
 
         return 0;
@@ -328,19 +328,19 @@ int main(int argc, char const* argv[])
         break;
     
     case 8:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt4 ,&nnm_cost_2);
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt21 ,&nnm_cost_2);
         break;
     
     case 9:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt5 ,&nnm_cost_2);
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt22 ,&nnm_cost_2);
         break;
     
     case 10:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt6 ,&nnm_cost_2);
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt23 ,&nnm_cost_2);
         break;
 
     case 11:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt7 ,&nnm_cost_2);
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt24 ,&nnm_cost_2);
         break;
 
     default:
