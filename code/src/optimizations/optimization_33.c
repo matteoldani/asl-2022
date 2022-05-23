@@ -221,8 +221,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     norm_V = 1 / sqrt(norm_V);
 
     int nB = BLOCK_SIZE_H;
-    int inB, jnB, mnB = m * nB, rnB = r * nB;
-    int ri, mi, ri1, mi1, ni1, ni1j1, ri1jj1, mj1, mjj1;
+    int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
+    int ri, mi, ni, ri1, mi1, ni1, ni1j1, ri1jj1, mj1, mjj1;
 
     //real convergence computation
     double err = -1;											
@@ -242,7 +242,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
 
         transpose(W, Wt, m, r);
 
-        ri = mi = 0;
+        ri = mi = ni = 0;
         for (int i = 0; i < r; i += nB) {
             inB = i + nB;
             for (int j = 0; j < n; j += nB) {
@@ -273,7 +273,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 }
 
                 //Wt*V mul
-                mi1 = ni1 = 0;
+                mi1 = mi;
+                ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
                         ni1j1 = ni1 + j1;
@@ -329,6 +330,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             }
             ri += rnB;
             mi += mnB;
+            ni += nnB;
         }
 
         //TO DO:
