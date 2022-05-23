@@ -337,12 +337,19 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     ni1 += n;
                     ri1 += r;
                 }
+                ni1 = ni;
+                ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
+                    nj1 = 0;
                     for (int j1 = 0; j1 < i; j1++) {
+                        ri1j1 = ri1 + ji;
                         for (int k1 = j; k1 < jnB; k1++) {
-                            denominator_r[i1 * r + j1] += H_new[i1 * n + k1] * H_new[j1 * n + k1];
+                            denominator_r[ri1j1] += H_new[ni1 + k1] * H_new[n1j + k1];
                         }
+                        nj1 += n;
                     }
+                    ri1 += r;
+                    ni1 += n;
                 }
             }
             ri += rnB;
