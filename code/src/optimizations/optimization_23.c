@@ -9,7 +9,7 @@
 #include "cblas.h"
 
 
-//NEW - optimization done on algopt_1, unrolling from opt_4
+//NEW - optimization done on algopt_1, taking unrolling from opt_21
 
 typedef unsigned long long myInt64;
 
@@ -49,11 +49,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_mul_opt23(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
-
-    //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
-    //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
-    
-    memset(R, 0, double_size * R_n_row * R_n_col);
+    //NEW cblas used 
 
     // cost: B_col*A_col + 2*A_row*A_col*B_col
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
@@ -75,8 +71,7 @@ void matrix_mul_opt23(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_rtrans_mul_opt23(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
-    
-    memset(R, 0, double_size * R_n_row * R_n_col);
+    //NEW cblas used 
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A_n_row, B_n_row, A_n_col, 1,
@@ -186,12 +181,8 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
 
     // this is required to be done here to reuse the same run_opt.
     // does not change the number of flops
-    for (int i = 0; i < m; i++){
-        for(int j = 0; j < n; j++){
-           V_colM[j*m + i] = V_rowM[i*n + j]; 
-
-        }
-    }
+    transpose(V_rowM, V_colM, m, n);
+  
 
 
     //Operands needed to compute Hn+1
@@ -265,19 +256,21 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
         }    
         
         transpose(W, Wt, m, r);
-        //print_matrix_helper(W, r,m);
 
         memset(denominator_l, 0, double_size * r * r);
         memset(numerator, 0, double_size * r * n);
+
         //NEW blocking using blas for inner multiplication
         for (int j = 0; j < n; j+= nB) {
             
             for (int i = 0; i < r; i+= nB) {
                 
                 for (int k = 0; k < m; k+= nB){  
-                    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                    //NOTE using V_col is still outperforming V_row despite blocking
+                    //2.66 vs 2.57 with &(V_rowM[j*k + n]), n, NoTrans 
+                    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                             nB, nB, nB, 1,
-                            (&(Wt[i*m + k])), m, &(V_rowM[k*n + j]), n,
+                            (&(Wt[i*m + k])), m, &(V_colM[j*m + k]), m,
                             1, &(numerator[i*n + j]), n);
 
 

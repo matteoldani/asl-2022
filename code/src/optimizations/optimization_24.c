@@ -24,7 +24,7 @@ static unsigned int double_size = sizeof(double);
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_mul_opt24(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
-    
+    //NEW blas used
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 A_n_row, B_n_col, A_n_col, 1,
                 A, A_n_col, B, B_n_col,
@@ -44,7 +44,7 @@ void matrix_mul_opt24(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_ltrans_mul_opt24(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
-
+    //NEW blas used
     cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                 A_n_col, B_n_col, B_n_row, 1, //r=A->n_row = B->n_row
                 A, A_n_col, B, B_n_col,
@@ -64,7 +64,7 @@ void matrix_ltrans_mul_opt24(double* A, int A_n_row, int A_n_col, double* B, int
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_rtrans_mul_opt24(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
-    
+    //NEW blas used
    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A_n_row, B_n_row, A_n_col, 1,
                 A, A_n_col, B, B_n_col,
@@ -166,10 +166,10 @@ double nnm_factorization_opt24(double *V, double*W, double*H, int m, int n, int 
     denominator = malloc(double_size * rn);
 
     //Operands needed to compute Wn+1
-    double *numerator_W, *denominator_W, *denominator_l_W;      // m x r, m x r, m x n
+    double *numerator_W, *denominator_W;      // m x r, m x r, m x n
     numerator_W = malloc(double_size * mr);
     denominator_W = malloc(double_size * mr);
-    denominator_l_W = malloc(double_size * mn);
+  
 
     double* approximation; //m x n
     approximation = malloc(double_size * mn);
@@ -241,9 +241,6 @@ double nnm_factorization_opt24(double *V, double*W, double*H, int m, int n, int 
         }
 
         //computation for Wn+1
-        // matrix_rtrans_mul_opt24(V, m, n, H, r, n, numerator_W, m, r);
-        // matrix_mul_opt24(W, m, r, H, r, n, denominator_l_W, m, n);
-        // matrix_rtrans_mul_opt24(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
         matrix_rtrans_mul_opt24(V, m, n, H, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt24(H, r, n, H, r, n, denominator_l, r, r);
         matrix_mul_opt24(W, m, r, denominator_l, r, r, denominator_W, m, r);
@@ -269,7 +266,6 @@ double nnm_factorization_opt24(double *V, double*W, double*H, int m, int n, int 
     free(denominator_l);
     free(numerator_W);
     free(denominator_W);
-    free(denominator_l_W);
-    
+    free(approximation);
     return err;
 }

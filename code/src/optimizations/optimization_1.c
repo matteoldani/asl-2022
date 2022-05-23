@@ -194,9 +194,6 @@ double nnm_factorization_opt1(double *V, double*W, double*H, int m, int n, int r
             H[i] = H[i] * numerator[i] / denominator[i];
 
         //computation for Wn+1
-        // matrix_rtrans_mul_opt1(V, m, n, H, r, n, numerator_W, m, r);
-        // matrix_mul_opt1(W, m, r, H, r, n, denominator_l_W, m, n);
-        // matrix_rtrans_mul_opt1(denominator_l_W, m, n, H, r, n, denominator_W, m, r);
         matrix_rtrans_mul_opt1(V, m, n, H, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt1(H, r, n, H, r, n, denominator_l, r, r);
         matrix_mul_opt1(W, m, r, denominator_l, r, r, denominator_W, m, r);

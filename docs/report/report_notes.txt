@@ -40,26 +40,27 @@
 	  Matrix W and V are transposed to improve cache locality. The obtained performance with 
 	  (m,n,r) = (200, 200, 5) is 0.68.
 
-*Optimizations 4
+*Optimizations 21:
 	- Loop unrolling for norm calculation to optimize error function
 		- No improve (as expected since I was opitimizing lower terms in the cost)
 
 
-*Optimization 5:
+*Optimization 22:
 	- FAIL, the goal was to apply an optimization similar to
 	  opt 6 on alg opt 2. We believe it might not be applicable. 
 	  
 
 
-*Optimization 6:
+*Optimization 23:
 	- blocking for cache and using BLAS for inner multiplitcation
 	- some transpose can be avoided but we tested and the transpose is	
 	  time is negligible
 	- performance highly depends on the rank (the higher the better) to	
 	  use blas the most
+	- despite blocking using V_col still gives an improvement (2.57 to 2.66 in the tests)
 	
 
-*Optimization 7:
+*Optimization 24:
 	- the basic optimizations made in opt1 were transfered on baseline2 
 	  as well. Loop unrolling for the norm is also used. 
 

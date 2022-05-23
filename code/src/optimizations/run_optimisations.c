@@ -93,10 +93,6 @@ int main(int argc, char const* argv[]) {
         printf("\t3 - Algoritmh opt 2\n");
         printf("\t4 - Optimization 2\n");
         printf("\t5 - Optimization 3\n");
-        printf("\t6 - Optimization 21\n");
-        printf("\t7 - Optimization 22\n");
-        printf("\t8 - Optimization 23\n");
-        printf("\t9 - Optimization 24\n");
 
         return -1;
     }
@@ -157,40 +153,18 @@ int main(int argc, char const* argv[]) {
     case 5:
         run_factorization = &nnm_factorization_opt3;
         break;
-    case 6:
-        run_factorization = &nnm_factorization_opt21;
-        break;
-    case 7:
-        run_factorization = &nnm_factorization_opt22;
-        break;
-    case 8:
-        run_factorization = &nnm_factorization_opt23;
-        break;
-    case 9:
-        run_factorization = &nnm_factorization_opt24;
-        break;
+
     default:
         printf("Invalid opt number. Quitting\n");
         return -1;
     }
 
-    // myInt64 cost = nnm_cost(m, n, m, r, r, n, MAX_ITERATIONS);
-    // myInt64 cost2 = nnm_cost_2(m, n, m, r, r, n, MAX_ITERATIONS);
-
-    // printf("Cost: %lld\n", cost);
-    // printf("Cost2: %lld\n", cost2);
-
     double err = run_factorization(V, W, H, m, n, r, MAX_ITERATIONS, EPSILON);
     printf("Error: %lf\n", err);
 
     free(V);
-    //printf("Free o V done\n");
-    fflush(stdout);
     free(W);
-    //printf("Free o W done\n");
-    fflush(stdout);
     free(H);
-    //printf("Free o H done\n");
     fflush(stdout);
 
     return 0;

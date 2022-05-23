@@ -9,7 +9,7 @@
 #include "cblas.h"
 
 
-//NEW - optimization done on optimization_3, scalar replacement and unrolling
+//NEW - optimization done on optimization_21, FAILED
 
 typedef unsigned long long myInt64;
 
@@ -50,7 +50,6 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  */
 void matrix_mul_opt22(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
 
-
     int Ri = 0, Ai = 0;
     int nB = BLOCK_SIZE_MMUL;
 
@@ -60,6 +59,8 @@ void matrix_mul_opt22(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
             for (int k = 0; k < A_n_col; k+=nB) {
+                //NEW cblas for block multiplication, only improves 
+                // performance if block size > 4
                 // cost: B_col*A_col + 2*A_row*A_col*B_col
                 cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                             nB, nB, nB, 1,
@@ -242,12 +243,8 @@ double nnm_factorization_opt22(double *V_rowM, double*W, double*H, int m, int n,
   
     // this is required to be done here to reuse the same run_opt.
     // does not changhe the number of flops
-    for (int i = 0; i < m; i++){
-        for(int j = 0; j < n; j++){
-           V_colM[j*m + i] = V_rowM[i*n + j]; 
+    transpose(V_rowM, V_colM, m, n);
 
-        }
-    }
 
     double norm_V  = 0;
     double norm_V1 = 0;

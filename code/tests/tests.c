@@ -888,8 +888,8 @@ int main(int argc, char const *argv[]) {
 
     int n_mmulrtrans_opt = 6;
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 8;
-    int n_nnm_opt = 10;
+    int n_mmul_opt = 6;
+    int n_nnm_opt = 6;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -918,8 +918,7 @@ int main(int argc, char const *argv[]) {
     mmuld[3] = matrix_mul_aopt2;
     mmuld[4] = matrix_mul_opt2;
     mmuld[5] = matrix_mul_opt3;
-    mmuld[6] = matrix_mul_opt22;
-    mmuld[7] = matrix_mul_opt23;
+  
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
     mmulrtransd[1] = matrix_rtrans_mul_opt1;
@@ -934,13 +933,10 @@ int main(int argc, char const *argv[]) {
     nnmd[3] = nnm_factorization_aopt2;
     nnmd[4] = nnm_factorization_opt2;
     nnmd[5] = nnm_factorization_opt3;
-    nnmd[6] = nnm_factorization_opt21;
-    nnmd[7] = nnm_factorization_opt22;
-    nnmd[8] = nnm_factorization_opt23;
-    nnmd[9] = nnm_factorization_opt24;
+  
 
     // END TODO
 
-    run_tests_d(n_mmul_opt, mmuld, n_mmulrtrans_opt, mmulrtransd, n_mmulltrans_opt, mmulltransd, n_nnm_opt, nnmd);
+    run_tests_d(n_mmul_opt, mmuld, n_mmulrtrans_opt, mmulrtransd, n_mmulltrans_opt, mmulltransd, nnnmopt, nnmd);
     return 0;
 }

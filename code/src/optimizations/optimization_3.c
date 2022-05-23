@@ -307,4 +307,3 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
     free(approximation);
     return err;
 }
-
