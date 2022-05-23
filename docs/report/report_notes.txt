@@ -19,6 +19,12 @@
 	- mkl_vs_openBLAS
 	(previous 3 are very cool plots and should be used, but need to be 	improved beforehand) 
 
+- Blas performance:
+	- MMM performance drastically decreases when the matrix size is such that the common dimension is small. The MMM is in fact closer to a matrix vector
+	  multiplication. In tests when multiplying matrices (400 x 3) (3 x 400) the performance drops from 12 f/c to 2 f/c. This is expected because the computation
+	  now basically have a constant opertational intensity. 
+
+
 - Optimizations:
 *Basic optimizations:
 	- everything was put into a single file
@@ -38,4 +44,29 @@
 	- We tried reusing matrix W in the computation of Hn+1 computing WtW and WtV in the same loop.
 	  Matrix W and V are transposed to improve cache locality. The obtained performance with 
 	  (m,n,r) = (200, 200, 5) is 0.68.
+
+*Optimizations 21:
+	- Loop unrolling for norm calculation to optimize error function
+		- No improve (as expected since I was opitimizing lower terms in the cost)
+
+
+*Optimization 22:
+	- FAIL, the goal was to apply an optimization similar to
+	  opt 6 on alg opt 2. We believe it might not be applicable. 
+	  
+
+
+*Optimization 23:
+	- blocking for cache and using BLAS for inner multiplitcation
+	- some transpose can be avoided but we tested and the transpose is	
+	  time is negligible
+	- performance highly depends on the rank (the higher the better) to	
+	  use blas the most
+	- despite blocking using V_col still gives an improvement (2.57 to 2.66 in the tests)
+	
+
+*Optimization 24:
+	- the basic optimizations made in opt1 were transfered on baseline2 
+	  as well. Loop unrolling for the norm is also used. 
+
 

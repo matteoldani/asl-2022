@@ -9,30 +9,44 @@ Non-Negative Matrix Factorization
 ## Team
 
 - Daniele Coppola dcoppola@student.ethz.ch
-- Viktor Gsteiger vgsteiger@student.ethz.ch
+- Viktor Gsteiger vgsteiger@student.ethz.ch (18-054-700)
 - Masa Nesic mnesic@student.ethz.ch
 - Matteo Oldani moldani@student.ethz.ch
 
-## How to use
+## Content
 
-baseline1.c contains the code for the first baseline implementation. This implementation initializes the factorisation
-matriced with random values between 0 and 1.
+[[_TOC_]]
 
-random_matrix_generator.c is used to craft random populated matrices to be factorized. The program will output to stdout
-the output_dimension followed by the matrix dimension and the matrix itsef. This can be used as input for the baseline
-binary (./matrix_random_generation | ./baseline1)
+## Configuration:
 
-## For CBLAS:
+The code in this repository has been developed for the following system configuration. We suggest using the same or a similar configuration to achieve comparable results.
 
-Download: http://www.openblas.net/
-How to configure: https://charlesjiangxm.wordpress.com/2017/08/03/use-eigen-in-clion/
-Documentation: https://developer.apple.com/documentation/accelerate/1513282-cblas_dgemm
-Build, install and compile: https://github.com/bgeneto/build-install-compile-openblas
+- CPU: Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
+- L1d cache:                       128 KiB
+- L1i cache:                       128 KiB
+- L2 cache:                        1 MiB
+- L3 cache:                        6 MiB
+- DRAM: 16 GB DDR4 @ 2133 MT/s (2 x 8 GB)
 
-### How to compile the verification:
+NOTE: Turbo boost has been disabled.
 
-#### Windows:
-gcc -I/opt/openblas/include -pthread -O3 -Wall baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -o verification.out -L/opt/openblas/lib -lm -lpthread -lopenblas
+## Installation:
 
-#### MacOS:
-gcc -O3 baseline2/baseline2.c baseline1/baseline1.c asl_utils/asl_utils.c verification/verify.c -framework Accelerate -lm -o verification.out
+The codebase requires the prior installation of either [OpenBLAS](https://www.openblas.net/) or [Intel MKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-link-line-advisor.html#gs.zo0tex) (can be installed with `sudo apt install intel-mkl` on Linux).
+
+Other than that the codebase does not require any other installations.
+
+## Operating Instructions:
+
+The operating of the codebase is relatively straightforward thanks to the makefile included in the `/code` folder. The different parts of the code can be compiled using different commands in the makefile. Following we explain the commands that can be used:
+
+- `basline`: Compile and link the baseline implementations. The resulting binary can be found in `build/baseline`. The binary can be run either with the parameters `<baseline number> <m> <n> <r>` or `<baseline number> <file-path>` and it executes a test run of the baselines and returns the error of the factorization.
+- `performance`: Compile and link the performance calculation. The resulting binary can be found in `build/performance`. The binary can be run with the parameters `<program number [1,2,3,4,5]> <min size matrix> <max size matrix> <number of test> <output_file>[?]` and either returns the performance results or saves them to the provided output file.
+- `tests`: Compile and link the testing and performance evaluation utility. The resulting binary can be found in `build/tests`. The binary can be run with the following parameter `<path to testfiles>[?]` and it executes the testing and performance evaluation. The results will be printed to the standard output where for each registered function the test result and a cycle count will be returned.
+- `optimisations`: Compile and link the created optimisations. The resulting binary can be found in `build/optimisations`. This does not include a main file and can therefore not be run.
+- `least_square`: Compile and link the least squares NNMF implementation. The resulting binary can be found in `build/least_square`. The binary can be run either with the following parameters `<m> <n> <r>` or `-1`. The first parameters will run a performance evaluation with the provided matrix sizes while the second will run a predefined increasing matrix size evaluation for plotting.
+- `clean`: Clean the repository from any binary files
+
+## Known Bugs:
+
+TBD
