@@ -287,12 +287,17 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 }
 
                 //(WtW)*H mul
+                ni1 = ni;
+                ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
+                        ni1j1 = ni1 + j1;
                         for (int k1 = 0; k1 < r; k1++) {
-                            denominator[i1 * n + j1] += denominator_l[i1 * r + k1] * H[k1 * n + j1];
+                            denominator[ni1j1] += denominator_l[ri1 + k1] * H[k1 * n + j1];
                         }
                     }
+                    ni1 += n;
+                    ri1 += r;
                 }
                 
                 for (int i1 = i; i1 < inB; i1++) {
