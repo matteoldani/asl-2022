@@ -21,7 +21,14 @@ Non-Negative Matrix Factorization
 
 The code in this repository has been developed for the following system configuration. We suggest using the same or a similar configuration to achieve comparable results.
 
-TODO Matteo add computer configuration
+- CPU: Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
+- L1d cache:                       128 KiB
+- L1i cache:                       128 KiB
+- L2 cache:                        1 MiB
+- L3 cache:                        6 MiB
+- DRAM: 16 GB DDR4 @ 2133 MT/s (2 x 8 GB)
+
+NOTE: Turbo boost has been disabled.
 
 ## Installation:
 
