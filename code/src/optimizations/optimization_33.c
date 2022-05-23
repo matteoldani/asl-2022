@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_33.h>
 
-//NEW - optimization done on optimization_3
+//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly
 
 typedef unsigned long long myInt64;
 
@@ -251,6 +251,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             inB = i + nB;
             for (int j = 0; j < n; j += nB) {
                 jnB = j + nB;
+                
                 //computation for Hn+1
 
                 //Wt*Wt rmul
@@ -302,6 +303,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                 }
                 
+                //element-wise multiplication and division
                 ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {

@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_32.h>
 
-//NEW - optimization done on optimization_3
+//NEW - optimization done on optimization_3 - loop unrolling of the inner most loop in transpose and MMs
 
 typedef unsigned long long myInt64;
 

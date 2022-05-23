@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_31.h>
 
-//NEW - optimization done on optimization_3
+//NEW - optimization done on optimization_3 - it adds register blocking on top of blocking for cache
 
 typedef unsigned long long myInt64;
 
