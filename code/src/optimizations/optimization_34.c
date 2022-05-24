@@ -4,9 +4,9 @@
 #include <time.h>
 #include <string.h>
 #include <assert.h>
-#include <optimizations/optimizations_33.h>
+#include <optimizations/optimizations_34.h>
 
-//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly
+//NEW - optimization done on optimization_33 - Does multiple calculations using one triple-loop
 
 typedef unsigned long long myInt64;
 
@@ -43,7 +43,7 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt33(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt34(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
 
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
@@ -92,7 +92,7 @@ void matrix_mul_opt33(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt33(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt34(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
     int nB = BLOCK_SIZE_RTRANSMUL;
@@ -148,7 +148,7 @@ void matrix_rtrans_mul_opt33(double* A, int A_n_row, int A_n_col, double* B, int
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt33(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt34(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
@@ -176,7 +176,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Wt, *H_new;
     int rn, rr, mr, mn;
     rn = r * n;
@@ -228,7 +228,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
     int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
 
-    double accumulator;
+    double accumulator, accumulator1;
 
     //real convergence computation
     double err = -1;											
@@ -281,22 +281,30 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     }
                 }
 
-                //Wt*V mul
+                //Wt*V mul and (WtW)*H mul and element-wise multiplication and division
                 mi1 = mi;
                 ni1 = ni;
+                ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
                         ni1j1 = ni1 + j1;
                         accumulator = 0;
-                        for (int k1 = 0; k1 < m; k1++)
-                            accumulator += Wt[mi1 + k1] * V[k1 * n + j1];
-                        numerator[ni1j1] += accumulator;
+                        accumulator1 = 0;
+                        for (int k1 = 0; k1 < m; k1++) {
+                            accumulator += Wt[mi1 + k1] * V[k1 * n + j1]; //Wt*V mul
+                            if(k1 < r)
+                                accumulator1 += denominator_l[ri1 + k1] * H[k1 * n + j1]; //(WtW)*H mul
+                        }
+                        /*numerator[ni1j1] += accumulator;
+                        denominator[ni1j1] += accumulator1;*/
+                        H_new[ni1j1] = H[ni1j1] * accumulator / accumulator1; //element-wise multiplication and division
                     }
                     mi1 += m;
                     ni1 += n;
+                    ri1 += r;
                 }
 
-                //(WtW)*H mul
+                /*//(WtW)*H mul
                 ni1 = ni;
                 ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
@@ -309,9 +317,9 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     }
                     ni1 += n;
                     ri1 += r;
-                }
+                }*/
                 
-                //element-wise multiplication and division
+               /* //element-wise multiplication and division
                 ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
@@ -319,7 +327,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                         H_new[ni1j1] = H[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
                     }
                     ni1 += n;
-                }
+                }*/
 
                 //V*H rmul
                 ri1 = ni1 = 0;
@@ -375,7 +383,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             ni += nnB;
         }
 
-        matrix_rtrans_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
+        matrix_rtrans_mul_opt34(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];

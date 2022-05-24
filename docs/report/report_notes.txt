@@ -87,5 +87,9 @@
 *Optimization 33:
 	- Intoduces an algorithmic change
 	- H(n+1) is computed in a blockwise manner and the computed block is used instantly in the multiplications needed to calculate W(n+1)
-	- All multiplications were done optimally with blocking and simplified index calculations
+	- All multiplications were done optimally with blocking and simplified index calculations and scalar replacement
+
+*Optimization 34:
+	- On top of the algorithmic change from Optimization 33
+	- Multiple block multiplications are merged into one triple-loops
 
