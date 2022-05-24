@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <optimizations/optimizations_2.h>
 
+#include "cblas.h"
+
 //NEW - optimization of the algorithm using the function optimizations for optimization 3, nnmf based on alg opt 1
 
 typedef unsigned long long myInt64;
@@ -139,17 +141,17 @@ inline double error(double *approx, double *V, double *W, double *H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 double
-nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
+nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int nB = BLOCK_SIZE_NNMF;
     double *Wtmp, *Ht, *tmp, *denominator_r, *W_new, *numerator_H, *denominator_H;
     double *V_colM;
-    int rn, rr, mr, mn, nnBB;
+    int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;
     mr = m * r;
     mn = m * n;
-    nnBB = nB * nB;
+
     Wtmp = malloc(double_size * mr);
     W_new = malloc(double_size * mr);
     numerator_H = malloc(double_size * rr);
@@ -158,14 +160,9 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
     V_colM = malloc(double_size * mn);
     denominator_r = malloc(double_size * mn);
 
-
-    // this is required to be done here to reuse the same run_opt.
-    // does not change the number of flops
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
-            V_colM[j * m + i] = V_rowM[i * n + j];
-        }
-    }
+    int d_rn, d_rr;
+    d_rn = double_size * rn;
+    d_rr = double_size * rr;
 
     double *numerator, *denominator_l, *denominator;    //r x n, r x r, r x n
 
@@ -177,23 +174,11 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
     double *approximation; //m x n
     approximation = malloc(double_size * mn);
 
-    int nB = BLOCK_SIZE_W;
-
-    double *nB_numerator;
-    nB_numerator = malloc(double_size * nnBB * nnBB);
-
-    double *nB_denominator_r;
-    nB_denominator_r = malloc(double_size * nnBB * nnBB);
-
-    double *nB_denominator;
-    nB_denominator = malloc(double_size * nnBB * nnBB);
-
-    int mi, iinB, unroll_i, ii_i, jj_j;
     int idx_unroll = 0;
 
     double norm_V = 0;
     for (int i = 0; i < mn; i++)
-        norm_V += V_rowM[i] * V_rowM[i];
+        norm_V += V[i] * V[i];
     norm_V = 1 / sqrt(norm_V);
 
     double err = -1;
@@ -206,6 +191,7 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
     matrix_mul_opt11(denominator_l, r, r, H, r, n, denominator, r, n);
 
     idx_unroll = rn / 8;
+    int i;
     for (i = 0; i < idx_unroll; i += 8) {
         H[i] = H[i] * numerator[i] / denominator[i];
         H[i + 1] = H[i + 1] * numerator[i + 1] / denominator[i + 1];
@@ -229,12 +215,12 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
         memset(numerator, 0, d_rn);
         memset(denominator, 0, d_rn);
 
-        memset(numerator_W, 0, d_mr);
+        memset(numerator_H, 0, d_rn);
         memset(denominator_r, 0, d_rr);
 
         transpose(H, Ht, m, r);
         ri = mi = ni = 0;
-        for (int i = 0; i < r; i += nB) {
+        for (i = 0; i < r; i += nB) {
             inB = i + nB;
             for (int j = 0; j < n; j += nB) {
                 jnB = j + nB;
@@ -347,6 +333,8 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
                 ni += nnB;
             }
         }
+
+        printf("TEST\n");
 
         tmp = W_new;
         W_new = W;

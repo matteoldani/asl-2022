@@ -13,4 +13,5 @@
 #define BLOCK_SIZE_TRANS 8
 #define BLOCK_SIZE_H 4
 #define BLOCK_SIZE_W 8
+#define BLOCK_SIZE_H 8
 typedef unsigned long long myInt64;
