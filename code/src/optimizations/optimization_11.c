@@ -142,7 +142,7 @@ double
 nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int nB = BLOCK_SIZE_NNMF;
-    double *Wtmp, *Ht, *tmp, *denominator_r;
+    double *Wtmp, *Ht, *tmp, *denominator_r, *W_new, *numerator_H, *denominator_H;
     double *V_colM;
     int rn, rr, mr, mn, nnBB;
     rn = r * n;
@@ -151,6 +151,9 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
     mn = m * n;
     nnBB = nB * nB;
     Wtmp = malloc(double_size * mr);
+    W_new = malloc(double_size * mr);
+    numerator_H = malloc(double_size * rr);
+    denominator_H = malloc(double_size * rn);
     Ht = malloc(double_size * rn);
     V_colM = malloc(double_size * mn);
     denominator_r = malloc(double_size * mn);
@@ -217,70 +220,159 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
         H[i] = H[i] * numerator[i] / denominator[i];
     }
 
+    int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
+    int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
+
     for (int count = 0; count < maxIteration; count++) {
 
+        memset(denominator_l, 0, d_rr);
+        memset(numerator, 0, d_rn);
+        memset(denominator, 0, d_rn);
+
+        memset(numerator_W, 0, d_mr);
+        memset(denominator_r, 0, d_rr);
+
         transpose(H, Ht, m, r);
-        for (int i = 0; i < m; i += nB) {
-            mi = i * m;
-            for (int j = 0; j < r; j += nB) {
+        ri = mi = ni = 0;
+        for (int i = 0; i < r; i += nB) {
+            inB = i + nB;
+            for (int j = 0; j < n; j += nB) {
+                jnB = j + nB;
 
-                // V*Ht
-                matrix_mul_opt11(V[mi + j], nB, nB, Ht[mi + j], nB, nB, nB_numerator, nB, nB);
+                //computation for Wn+1
 
-                // H*Ht
-                matrix_mul_opt11(H[mi + j], nB, nB, Ht[mi + j], nB, nB, nB_denominator_r, nB, nB);
-
-                // W*(H*Ht)
-                matrix_mul_opt11(W[mi + j], nB, nB, nB_denominator_r[0], nB, nB, nB_denominator, nB, nB);
-
-                // block wise calculation of the next iteration of W
-                for (int ii = 0; ii < nB; ii++) {
-                    iinB = ii * nB;
-                    ii_i = mi + ii * nB;
-                    for (int jj = 0; jj < nB; jj++) {
-                        jj_j = jj + j;
-                        Wtmp[ii_i + jj_j] = W[ii_i + jj_j] + nB_numerator[iinB + jj] / nB_denominator[iinB + jj];
+                //Ht*Ht rmul
+                if (j == 0)
+                {
+                    ri1 = ri, mi1 = mi;
+                    for (int i1 = i; i1 < inB; i1++) {
+                        mj1 = 0;
+                        for (int j1 = 0; j1 < n; j1 += nB) {
+                            for (int k1 = 0; k1 < r; k1 += nB) {
+                                mjj1 = mj1;
+                                for (int jj1 = j1; jj1 < j1 + nB; jj1++) {
+                                    ri1jj1 = ri1 + jj1;
+                                    for (int kk1 = k1; kk1 < k1 + nB; kk1++)
+                                        denominator_r[ri1jj1] += Ht[mi1 + kk1] * Ht[mjj1 + kk1];
+                                    mjj1 += r;
+                                }
+                            }
+                            mj1 += mnB;
+                        }
+                        ri1 += n;
+                        mi1 += r;
                     }
                 }
 
-                // Wt*V
-                // create numerator
+                //V*Ht mul
+                mi1 = mi;
+                ni1 = ni;
+                for (int i1 = i; i1 < inB; i1++) {
+                    for (int j1 = j; j1 < jnB; j1++) {
+                        ni1j1 = ni1 + j1;
+                        for (int k1 = 0; k1 < m; k1++)
+                            numerator[ni1j1] += V[mi1 + k1] * Ht[k1 * n + j1];
+                    }
+                    mi1 += m;
+                    ni1 += n;
+                }
 
-                matrix_ltrans_mul_opt11();
+                //W*(HHt) mul
+                ni1 = ni;
+                ri1 = ri;
+                for (int i1 = i; i1 < inB; i1++) {
+                    for (int j1 = j; j1 < jnB; j1++) {
+                        ni1j1 = ni1 + j1;
+                        for (int k1 = 0; k1 < r; k1++)
+                            denominator[ni1j1] +=  W[k1 * m + j1] * denominator_r[ri1 + k1];
+                    }
+                    ni1 += n;
+                    ri1 += r;
+                }
 
-                // W*H
-                // create denominator_r
-                matrix_mul_opt11(Wtmp[mi + j], nB, nB, H[mi + j], nB, nB, denominator_r, nB, nB);
+                //element-wise multiplication and division
+                ni1 = ni;
+                for (int i1 = i; i1 < inB; i1++) {
+                    for (int j1 = j; j1 < jnB; j1++) {
+                        ni1j1 = ni1 + j1;
+                        W_new[ni1j1] = W[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
+                    }
+                    ni1 += n;
+                }
 
+                //Wt*V rmul
+                ri1 = ni1 = 0;
+                for (int i1 = 0; i1 < n; i1++) {
+                    nj1 = ni;
+                    for (int j1 = i; j1 < inB; j1++) {
+                        ri1j1 = ri1 + j1;
+                        for (int k1 = j; k1 < jnB; k1++)
+                            numerator_H[ri1j1] += W_new[nj1 + k1] * V[ni1 + k1];
+                        nj1 += m;
+                    }
+                    ri1 += r;
+                    ni1 += m;
+                }
+
+                //W*W rmul
+                ni1 = ri1 = 0;
+                for (int i1 = 0; i1 < inB; i1++) {
+                    nj1 = ni;
+                    for (int j1 = i; j1 < inB; j1++) {
+                        ri1j1 = ri1 + j1;
+                        for (int k1 = j; k1 < jnB; k1++) {
+                            denominator_l[ri1j1] += W_new[ni1 + k1] * W_new[nj1 + k1];
+                        }
+                        nj1 += m;
+                    }
+                    ni1 += m;
+                    ri1 += r;
+                }
+                ni1 = ni;
+                ri1 = ri;
+                for (int i1 = i; i1 < inB; i1++) {
+                    nj1 = 0;
+                    for (int j1 = 0; j1 < i; j1++) {
+                        ri1j1 = ri1 + j1;
+                        for (int k1 = j; k1 < jnB; k1++) {
+                            denominator_l[ri1j1] += W_new[ni1 + k1] * W_new[nj1 + k1];
+                        }
+                        nj1 += m;
+                    }
+                    ri1 += r;
+                    ni1 += m;
+                }
+                ri += rnB;
+                mi += mnB;
+                ni += nnB;
             }
         }
 
-        tmp = Wtmp;
-        Wtmp = W;
+        tmp = W_new;
+        W_new = W;
         W = tmp;
 
         //NOTE: Need to check at the end as the first iteration is interleaved with the second already
-
         err = error(approximation, V, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
         }
 
-        matrix_ltrans_mul_opt11(W, m, r, denominator_r, m, n, denominator, r, n);
+        matrix_ltrans_mul_opt11(W, m, r, denominator_r, m, n, denominator_H, r, n);
 
         idx_unroll = rn / 8;
         for (i = 0; i < idx_unroll; i += 8) {
-            H[i] = H[i] * numerator[i] / denominator[i];
-            H[i + 1] = H[i + 1] * numerator[i + 1] / denominator[i + 1];
-            H[i + 2] = H[i + 2] * numerator[i + 2] / denominator[i + 2];
-            H[i + 3] = H[i + 3] * numerator[i + 3] / denominator[i + 3];
-            H[i + 4] = H[i + 4] * numerator[i + 4] / denominator[i + 4];
-            H[i + 5] = H[i + 5] * numerator[i + 5] / denominator[i + 5];
-            H[i + 6] = H[i + 6] * numerator[i + 6] / denominator[i + 6];
-            H[i + 7] = H[i + 7] * numerator[i + 7] / denominator[i + 7];
+            H[i] = H[i] * numerator_H[i] / denominator[i];
+            H[i + 1] = H[i + 1] * numerator_H[i + 1] / denominator_H[i + 1];
+            H[i + 2] = H[i + 2] * numerator_H[i + 2] / denominator_H[i + 2];
+            H[i + 3] = H[i + 3] * numerator_H[i + 3] / denominator_H[i + 3];
+            H[i + 4] = H[i + 4] * numerator_H[i + 4] / denominator_H[i + 4];
+            H[i + 5] = H[i + 5] * numerator_H[i + 5] / denominator_H[i + 5];
+            H[i + 6] = H[i + 6] * numerator_H[i + 6] / denominator_H[i + 6];
+            H[i + 7] = H[i + 7] * numerator_H[i + 7] / denominator_H[i + 7];
         }
         for (; i < rn; i++) {
-            H[i] = H[i] * numerator[i] / denominator[i];
+            H[i] = H[i] * numerator_H[i] / denominator_H[i];
         }
     }
 
