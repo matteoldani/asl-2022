@@ -8,6 +8,10 @@
 #include <optimizations/optimizations_22.h>
 #include <optimizations/optimizations_23.h>
 #include <optimizations/optimizations_24.h>
+#include <optimizations/optimizations_31.h>
+#include <optimizations/optimizations_32.h>
+#include <optimizations/optimizations_33.h>
+#include <optimizations/optimizations_34.h>
 #include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
@@ -93,6 +97,14 @@ int main(int argc, char const* argv[]) {
         printf("\t3 - Algoritmh opt 2\n");
         printf("\t4 - Optimization 2\n");
         printf("\t5 - Optimization 3\n");
+        printf("\t6. Optimisation 21\n");
+        printf("\t7. Optimisation 22\n");
+        printf("\t8. Optimisation 23\n");
+        printf("\t9. Optimisation 24\n");
+        printf("\t10. Optimisation 31\n");
+        printf("\t11. Optimisation 32\n");
+        printf("\t12. Optimisation 33\n");
+        printf("\t13. Optimisation 34\n");
 
         return -1;
     }
@@ -152,6 +164,30 @@ int main(int argc, char const* argv[]) {
         break;
     case 5:
         run_factorization = &nnm_factorization_opt3;
+        break;
+    case 6:
+        run_factorization = &nnm_factorization_opt21;
+        break;
+    case 7:
+        run_factorization = &nnm_factorization_opt22;
+        break;
+    case 8:
+        run_factorization = &nnm_factorization_opt23;
+        break;
+    case 9:
+        run_factorization = &nnm_factorization_opt24;
+        break;
+    case 10:
+        run_factorization = &nnm_factorization_opt31;
+        break;
+    case 11:
+        run_factorization = &nnm_factorization_opt32;
+        break;
+    case 12:
+        run_factorization = &nnm_factorization_opt33;
+        break;
+    case 13:
+        run_factorization = &nnm_factorization_opt34;
         break;
 
     default:
