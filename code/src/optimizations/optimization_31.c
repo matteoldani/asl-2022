@@ -4,10 +4,9 @@
 #include <time.h>
 #include <string.h>
 #include <assert.h>
-#include <optimizations/optimizations_3.h>
+#include <optimizations/optimizations_31.h>
 
-//NEW - optimization done on optimization_2 (includes alg_opt_2)
-//NOTE - changes marked PROPAGATE need to be propagated to all files dependant on optimization_3
+//NEW - optimization done on optimization_3 - it adds register blocking on top of blocking for cache
 
 typedef unsigned long long myInt64;
 
@@ -15,22 +14,20 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
-    //NEW - introduced blocking and simplified index calcs (code motion, strength reduction)
     int nB = BLOCK_SIZE_TRANS;
-    int nBM = nB * M; //PROPAGATE
+    int nBM = nB * M;
     int src_i = 0, src_ii;
 
-    //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
     for(int i = 0; i < N; i += nB) {
         for(int j = 0; j < M; j += nB) {
             src_ii = src_i;
             for(int ii = i; ii < i + nB; ii++) {
-                for(int jj = j; jj < j + nB; jj++)
-                    dst[N*jj + ii] = src[src_ii + jj];
+                for (int jj = j; jj < j + nB; jj++)
+                    dst[N * jj + ii] = src[src_ii + jj];
                 src_ii += M;
             }
         }
-        src_i += nBM; //PROPAGATE
+        src_i += nBM;
     }   
 }
 
@@ -46,40 +43,58 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt3(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt31(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
 
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
     
-    int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
+    //NEW - added register blocking with simplified index calcs (code motion, strength reduction) -> makes performance worse
+    int Ri = 0, Ai = 0, Bk, Aii, Rii, Bkk, Riii, Bkkk, Aiiikkk;
     int nB = BLOCK_SIZE_MMUL;
-    int nBR_n_col = nB * R_n_col; //PROPAGATE
-    int nBA_n_col = nB * A_n_col; //PROPAGATE
-
-    double R_Rij;
+    int nBR_n_col = nB * R_n_col;
+    int nBA_n_col = nB * A_n_col;
+    int nBB_n_col = nB * B_n_col;
+    int nR = BLOCK_SIZE_MMUL >> 1;
+    int nRR_n_col = nR * R_n_col;
+    int nRA_n_col = nR * A_n_col;
+    int nRB_n_col = nR * B_n_col;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
     for (int i = 0; i < A_n_row; i+=nB) {
         for (int j = 0; j < B_n_col; j+=nB) {
+            Bk = 0;
             for (int k = 0; k < A_n_col; k+=nB) {
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB; ii++) {
-                    for (int jj = j; jj < j + nB; jj++) {
-                        Rij = Rii + jj;
-                        R_Rij = 0;
-                        for (int kk = k; kk < k + nB; kk++)
-                            R_Rij += A[Aii + kk] * B[kk * B_n_col + jj];
-                        R[Rij] += R_Rij;
+                for (int ii = i; ii < i + nB; ii+=nR) {
+                    for (int jj = j; jj < j + nB; jj+=nR) {
+                        Bkk = Bk;
+                        for (int kk = k; kk < k + nB; kk+=nR) {
+                            Bkkk = Bkk;
+                            for (int kkk = kk; kkk < kk + nR; kkk++) {
+                                Riii = Rii;
+                                Aiiikkk = Aii + kkk;
+                                for (int iii = ii; iii < ii + nR; iii++) {
+                                    for (int jjj = jj; jjj < jj + nR; jjj++) {
+                                        R[Riii + jjj] += A[Aiiikkk] * B[Bkkk + jjj];
+                                    }
+                                    Riii += R_n_col;
+                                    Aiiikkk += A_n_col;
+                                }
+                                Bkkk += B_n_col;
+                            }
+                            Bkk += nRB_n_col;
+                        }
                     }
-                    Rii += R_n_col;
-                    Aii += A_n_col;
+                    Rii += nRR_n_col;
+                    Aii += nRA_n_col;
                 }
+                Bk += nBB_n_col;
             }
         }
-        Ri += nBR_n_col; //PROPAGATE
-        Ai += nBA_n_col; //PROPAGATE
+        Ri += nBR_n_col;
+        Ai += nBA_n_col;
     }
 }
 
@@ -95,42 +110,56 @@ void matrix_mul_opt3(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt3(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt31(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
     
-    int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
+    //NEW - added register blocking with simplified index calcs (code motion, strength reduction) -> makes performance worse
+    int Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj, Bjjkkk, Riii, Aiiikkk, Bjjjkkk;
     int nB = BLOCK_SIZE_RTRANSMUL;
-    int nBR_n_col = nB * R_n_col; //PROPAGATE
-    int nBA_n_col = nB * A_n_col; //PROPAGATE
-    int nBB_n_col = nB * B_n_col; //PROPAGATE
-
-    double R_Rij;
+    int nR = BLOCK_SIZE_RTRANSMUL >> 1;
+    int nBR_n_col = nB * R_n_col;
+    int nBA_n_col = nB * A_n_col;
+    int nBB_n_col = nB * B_n_col;
+    int nRR_n_col = nR * R_n_col;
+    int nRA_n_col = nR * A_n_col;
+    int nRB_n_col = nR * B_n_col;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
-    for (int i = 0; i < A_n_row; i+=nB) {
+    for (int i = 0; i < A_n_row; i += nB) {
         Bj = 0;
-        for (int j = 0; j < B_n_row; j+=nB) {
-            for (int k = 0; k < A_n_col; k+=nB){
+        for (int j = 0; j < B_n_row; j += nB) {
+            for (int k = 0; k < A_n_col; k += nB) {
                 Aii = Ai;
                 Rii = Ri;
-                for (int ii = i; ii < i + nB; ii++) {
+                for (int ii = i; ii < i + nB; ii += nR) {
                     Bjj = Bj;
-                    for (int jj = j; jj < j + nB; jj++) {
-                        Rij = Rii + jj;
-                        R_Rij = 0;
-                        for (int kk = k; kk < k + nB; kk++)
-                            R_Rij += A[Aii + kk] * B[Bjj + kk];
-                        R[Rij] += R_Rij;
-                        Bjj += B_n_col;
+                    for (int jj = j; jj < j + nB; jj += nR) {
+                        for (int kk = k; kk < k + nB; kk += nR) {
+                            for (int kkk = kk; kkk < kk + nR; kkk++) {
+                                Aiiikkk = Aii + kkk;
+                                Riii = Rii;
+                                Bjjkkk = Bjj + kkk;
+                                for (int iii = ii; iii < ii + nR; iii++) {
+                                    Bjjjkkk = Bjjkkk;
+                                    for (int jjj = jj; jjj < jj + nR; jjj++) {
+                                        R[Riii + jjj] += A[Aiiikkk] * B[Bjjjkkk];
+                                        Bjjjkkk += B_n_col;
+                                    }
+                                    Aiiikkk += A_n_col;
+                                    Riii += R_n_col;
+                                }
+                            }
+                        }
+                        Bjj += nRB_n_col;
                     }
-                    Aii += A_n_col;
-                    Rii += R_n_col;
+                    Aii += nRA_n_col;
+                    Rii += nRR_n_col;
                 }
             }
-            Bj += nBB_n_col; //PROPAGATE
+            Bj += nBB_n_col;
         }
-        Ai += nBA_n_col; //PROPAGATE
-        Ri += nBR_n_col; //PROPAGATE
+        Ai += nBA_n_col;
+        Ri += nBR_n_col;
     }
 }
 
@@ -151,7 +180,7 @@ void matrix_rtrans_mul_opt3(double* A, int A_n_row, int A_n_col, double* B, int 
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt3(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt31(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
@@ -179,7 +208,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt31(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Wt;
     double *H_tmp, *H_switch;
     double *W_tmp, *W_switch;
@@ -244,7 +273,7 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
         }    
         
         transpose(W, Wt, m, r);
-        matrix_rtrans_mul_opt3(Wt, r, m, Wt, r, m, denominator_l, r, r);
+        matrix_rtrans_mul_opt31(Wt, r, m, Wt, r, m, denominator_l, r, r);
 
         int nij;
 
@@ -266,14 +295,12 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
 
             }
         }
+
         H_switch = H;
         H = H_tmp;
         H_tmp = H_switch;
-    
 
-        matrix_rtrans_mul_opt3(H, r, n, H, r, n, denominator_r, r, r);
-
-
+        matrix_rtrans_mul_opt31(H, r, n, H, r, n, denominator_r, r, r);
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < r; j++) {
@@ -290,13 +317,11 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
                 }
 
                 W_tmp[nij] = W[nij] * num_ij / den_ij; 
-
             }
         }
         W_switch = W;
         W = W_tmp;
         W_tmp = W_switch;
-
     }
 
     free(numerator);
@@ -311,3 +336,4 @@ double nnm_factorization_opt3(double *V_rowM, double*W, double*H, int m, int n, 
     free(approximation);
     return err;
 }
+
