@@ -886,10 +886,10 @@ int main(int argc, char const *argv[]) {
     void (*mmul[n_mmul])(Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n_nnm])(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    int n_mmulrtrans_opt = 6;
+    int n_mmulrtrans_opt = 14;
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 6;
-    int n_nnm_opt = 6;
+    int n_mmul_opt = 14;
+    int n_nnm_opt = 14;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -918,6 +918,14 @@ int main(int argc, char const *argv[]) {
     mmuld[3] = matrix_mul_aopt2;
     mmuld[4] = matrix_mul_opt2;
     mmuld[5] = matrix_mul_opt3;
+    mmuld[6] = matrix_mul_opt21;
+    mmuld[7] = matrix_mul_opt22;
+    mmuld[8] = matrix_mul_opt23;
+    mmuld[9] = matrix_mul_opt24;
+    mmuld[10] = matrix_mul_opt31;
+    mmuld[11] = matrix_mul_opt32;
+    mmuld[12] = matrix_mul_opt33;
+    mmuld[13] = matrix_mul_opt34;
   
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
@@ -926,6 +934,14 @@ int main(int argc, char const *argv[]) {
     mmulrtransd[3] = matrix_rtrans_mul_aopt2;
     mmulrtransd[4] = matrix_rtrans_mul_opt2;
     mmulrtransd[5] = matrix_rtrans_mul_opt3;
+    mmulrtransd[6] = matrix_rtrans_mul_opt21;
+    mmulrtransd[7] = matrix_rtrans_mul_opt22;
+    mmulrtransd[8] = matrix_rtrans_mul_opt23;
+    mmulrtransd[9] = matrix_rtrans_mul_opt24;
+    mmulrtransd[10] = matrix_rtrans_mul_opt31;
+    mmulrtransd[11] = matrix_rtrans_mul_opt32;
+    mmulrtransd[12] = matrix_rtrans_mul_opt33;
+    mmulrtransd[13] = matrix_rtrans_mul_opt34;
     
     nnmd[0] = nnm_factorization_opt0;
     nnmd[1] = nnm_factorization_opt1;
@@ -933,6 +949,14 @@ int main(int argc, char const *argv[]) {
     nnmd[3] = nnm_factorization_aopt2;
     nnmd[4] = nnm_factorization_opt2;
     nnmd[5] = nnm_factorization_opt3;
+    nnmd[6] = nnm_factorization_opt21;
+    nnmd[7] = nnm_factorization_opt22;
+    nnmd[8] = nnm_factorization_opt23;
+    nnmd[9] = nnm_factorization_opt24;
+    nnmd[10] = nnm_factorization_opt31;
+    nnmd[11] = nnm_factorization_opt32;
+    nnmd[12] = nnm_factorization_opt33;
+    nnmd[13] = nnm_factorization_opt34;
 
     // END TODO
 
