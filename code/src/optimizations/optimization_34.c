@@ -194,13 +194,9 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
     H_new = malloc(d_rn);
 
     //Operands needed to compute Hn+1
-    double *numerator;      //r x n
     double *denominator_l;  //r x r
-    double *denominator;    //r x n
 
-    numerator = malloc(d_rn);
     denominator_l = malloc(d_rr);
-    denominator = malloc(d_rn);
 
     //Operands needed to compute Wn+1
     double *numerator_W;    //m x r
@@ -240,8 +236,6 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
         }    
         
         memset(denominator_l, 0, d_rr);
-        memset(numerator, 0, d_rn);
-        memset(denominator, 0, d_rn);
 
         memset(numerator_W, 0, d_mr);
         memset(denominator_r, 0, d_rr);
@@ -295,39 +289,12 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
                             if(k1 < r)
                                 accumulator1 += denominator_l[ri1 + k1] * H[k1 * n + j1]; //(WtW)*H mul
                         }
-                        /*numerator[ni1j1] += accumulator;
-                        denominator[ni1j1] += accumulator1;*/
                         H_new[ni1j1] = H[ni1j1] * accumulator / accumulator1; //element-wise multiplication and division
                     }
                     mi1 += m;
                     ni1 += n;
                     ri1 += r;
                 }
-
-                /*//(WtW)*H mul
-                ni1 = ni;
-                ri1 = ri;
-                for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 < jnB; j1++) {
-                        ni1j1 = ni1 + j1;
-                        accumulator = 0;
-                        for (int k1 = 0; k1 < r; k1++)
-                            accumulator += denominator_l[ri1 + k1] * H[k1 * n + j1];
-                        denominator[ni1j1] += accumulator;
-                    }
-                    ni1 += n;
-                    ri1 += r;
-                }*/
-                
-               /* //element-wise multiplication and division
-                ni1 = ni;
-                for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 < jnB; j1++) {
-                        ni1j1 = ni1 + j1;
-                        H_new[ni1j1] = H[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
-                    }
-                    ni1 += n;
-                }*/
 
                 //V*H rmul
                 ri1 = ni1 = 0;
@@ -391,8 +358,6 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
         memcpy(H, H_new, d_rn);
     }
 
-    free(numerator);
-    free(denominator);
     free(denominator_l);
     free(denominator_r);
     free(numerator_W);
