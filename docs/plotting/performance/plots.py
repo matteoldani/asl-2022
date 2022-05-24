@@ -12,16 +12,16 @@ def read_settings(input_path):
 
 def plot():
     sns.set_theme()
-    settings = read_settings("/home/asl/asl-2022/docs/plotting/performance/settings.json")
+    settings = read_settings("/home/asl/asl-2022-moldani/docs/plotting/performance/settings.json")
     fig = plt.figure(figsize = (9.5,5.5), dpi = 80)
     ax = plt.subplot(111)
     for line in settings["lines"]:
         df = pd.read_csv(line["input_file"])
 
         ax.plot(df["m"], df["performance"],
-                color=line["color"], linewidth = 2,
+                color=line["color"], linewidth = 1.5,
                 marker=line["marker"], markerfacecolor=line["color"],
-                markersize=7, label = line["label"])
+                markersize=4, label = line["label"])
 
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
