@@ -311,41 +311,61 @@ int main(int argc, char const* argv[])
     case 2:
         baseline(tests, min, max, b, fout, &nnm_factorization_bs2, &nnm_factorization_bs2_cost);
         break;
-    
+
     case 3:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost_2);
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt0, &nnm_cost_2);
         break;
     
     case 4:
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost_2);
+        break;
+    
+    case 5:
         optimization(tests, min, max, b, fout, &nnm_factorization_aopt1 ,&nnm_cost_2);
         break;
 
-    case 5:
+    case 6:
         optimization(tests, min, max, b, fout, &nnm_factorization_aopt2 ,&nnm_cost_2);
         break;
 
-    case 6:
+    case 7:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt2 ,&nnm_cost_2);
         break;
-    
-    case 7:
+   
+    case 8:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt3 ,&nnm_cost_2);
         break;
     
-    case 8:
+    case 9:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt21 ,&nnm_cost_2);
         break;
     
-    case 9:
+    case 10:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt22 ,&nnm_cost_2);
         break;
     
-    case 10:
+    case 11:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt23 ,&nnm_cost_2);
         break;
 
-    case 11:
+    case 12:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt24 ,&nnm_cost_2);
+        break;
+
+    case 13:
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt31, &nnm_cost_2);
+        break;
+
+    case 14:
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt32, &nnm_cost_2);
+        break;
+
+    case 15:
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt33, &nnm_cost_2);
+        break;
+
+    case 16:
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt34, &nnm_cost_2);
         break;
 
     default:

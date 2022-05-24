@@ -92,4 +92,6 @@
 *Optimization 34:
 	- On top of the algorithmic change from Optimization 33
 	- Multiple block multiplications are merged into one triple-loops
+	- Performance is the same (a bit worse runtime)	
+	- Probably has to do with the fact that I reduced computation so the memory-bound nature was even more visible
 

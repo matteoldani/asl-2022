@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_34.h>
 
-//NEW - optimization done on optimization_33 - Does multiple calculations using one triple-loop
+//NEW - optimization done on optimization_33 - Does multiple calculations using one triple-loop ---> performance is the same :|
 
 typedef unsigned long long myInt64;
 
