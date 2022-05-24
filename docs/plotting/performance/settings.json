@@ -1,22 +1,62 @@
 {
-    "title" : "Baselines performance",
+    "title" : "Baselines-opt performance",
     "type"  : "performance",
     "action": "save",
-    "output_file":"/home/asl/asl-2022/docs/outputs/mkl_vs_openBLAS.pdf",
+    "output_file":"/home/asl/asl-2022-moldani/docs/outputs/total.pdf",
     "xlabel": "Input matrix size",
     "ylabel": "Flops/Cycle",
     
     "lines" : [
 
-        {"label" : "MKL",
-            "input_file" : "/home/asl/asl-2022/docs/outputs/bs2_mkl.out",
+        {"label" : "bs 1",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_1.out",
             "color" : "black",
             "marker": "s"
         },
-        {"label" : "OpenBLAS",
-            "input_file" : "/home/asl/asl-2022/docs/outputs/bs2_open.out",
+        {"label" : "bs 2",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_2.out",
+            "color" : "darkgray",
+            "marker": "s"
+        },
+        {"label" : "opt 1",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_3.out",
+            "color" : "rosybrown",
+            "marker": "s"
+        },
+        {"label" : "alg opt 1",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_4.out",
             "color" : "firebrick",
-            "marker": "D"
+            "marker": "s"
+        },
+        {"label" : "alg opt 2",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_5.out",
+            "color" : "chocolate",
+            "marker": "s"
+        },
+        {"label" : "opt 2",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_6.out",
+            "color" : "navajowhite",
+            "marker": "s"
+        },
+        {"label" : "opt 3",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_7.out",
+            "color" : "darkseagreen",
+            "marker": "s"
+        },
+        {"label" : "opt 21",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_8.out",
+            "color" : "lightseagreen",
+            "marker": "s"
+        },
+        {"label" : "opt 23",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_10.out",
+            "color" : "thistle",
+            "marker": "s"
+        },
+        {"label" : "opt 24",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_2_11.out",
+            "color" : "deeppink",
+            "marker": "s"
         }
     ]
 }
