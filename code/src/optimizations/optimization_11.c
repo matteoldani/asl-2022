@@ -220,9 +220,9 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
 
         transpose(H, Ht, m, r);
         ri = mi = ni = 0;
-        for (i = 0; i < r; i += nB) {
+        for (i = 0; i < m; i += nB) {
             inB = i + nB;
-            for (int j = 0; j < n; j += nB) {
+            for (int j = 0; j < r; j += nB) {
                 jnB = j + nB;
 
                 //computation for Wn+1
@@ -250,6 +250,8 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     }
                 }
 
+                printf("TEST1\n");
+
                 //V*Ht mul
                 mi1 = mi;
                 ni1 = ni;
@@ -262,6 +264,8 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     mi1 += m;
                     ni1 += n;
                 }
+
+                printf("TEST2\n");
 
                 //W*(HHt) mul
                 ni1 = ni;
@@ -276,6 +280,8 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     ri1 += r;
                 }
 
+                printf("TEST3\n");
+
                 //element-wise multiplication and division
                 ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {
@@ -285,6 +291,8 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     }
                     ni1 += n;
                 }
+
+                printf("TEST4\n");
 
                 //Wt*V rmul
                 ri1 = ni1 = 0;
@@ -300,6 +308,8 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     ni1 += m;
                 }
 
+                printf("TEST5\n");
+
                 //W*W rmul
                 ni1 = ri1 = 0;
                 for (int i1 = 0; i1 < inB; i1++) {
@@ -314,6 +324,9 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     ni1 += m;
                     ri1 += r;
                 }
+
+                printf("TEST6\n");
+
                 ni1 = ni;
                 ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
@@ -331,6 +344,7 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                 ri += rnB;
                 mi += mnB;
                 ni += nnB;
+                printf("TEST7\n");
             }
         }
 
