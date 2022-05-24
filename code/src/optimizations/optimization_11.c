@@ -14,11 +14,9 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst, const int N, const int M) {
 
-    //NEW - introduced blocking and simlified index calcs (code motion, strength reduction)
     int nB = BLOCK_SIZE_TRANS;
     int src_i = 0, src_ii;
 
-    //NEW - introduced double loop to avoid calculating DIV and MOD M*N times
     for (int i = 0; i < N; i += nB) {
         for (int j = 0; j < M; j += nB) {
             src_ii = src_i;
@@ -45,7 +43,7 @@ static void transpose(double *src, double *dst, const int N, const int M) {
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
-                     int R_n_col) {
+                      int R_n_col) {
 
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
@@ -93,8 +91,9 @@ void matrix_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  * @param R_n_col   is the number of columns in the result
  */
 void
-matrix_rtrans_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
-                       int R_n_col) {
+matrix_rtrans_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R,
+                        int R_n_row,
+                        int R_n_col) {
 
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
     int nB = BLOCK_SIZE_RTRANSMUL;
@@ -128,6 +127,22 @@ matrix_rtrans_mul_opt11(double *A, int A_n_row, int A_n_col, double *B, int B_n_
         Ai += nB * A_n_col;
         Ri += nB * R_n_col;
     }
+}
+
+/**
+ * @brief compute the multiplication of A transposed and B
+ * @param A is the matrix to be transposed
+ * @param B is the other factor of the multiplication
+ * @param R is the matrix that will hold the result
+ */
+
+// ColMajor impl  ----Param num 8 has an illegal value (0.327659)
+void matrix_rtrans_mul_bs2_cm(Matrix *A, Matrix *B, Matrix *R) {
+
+    cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+                A->n_row, B->n_row, A->n_col, 1,
+                A->M, A->n_row, B->M, B->n_col,
+                0, R->M, A->n_row);
 }
 
 /**
@@ -222,148 +237,74 @@ nnm_factorization_opt11(double *V_rowM, double *W, double *H, int m, int n, int 
 
     double err = -1;
 
+    //NEW: Calculating the first iteration of H outside of the iterable as it is not interleaved, using bs2
     // Calculating first iteration of H without interleaving it with W
-    transpose(W, Wt, m, r);
-    int nij;
-    int dij;
-    double wt;
+    //computation for Hn+1
+    matrix_ltrans_mul_(W, V, &numerator);          // cost: B_col*B_row + 2*B_row*A_col*B_col = n*m + 2*m*r*n
+    matrix_ltrans_mul_bs2(W, W, &denominator_l);      // cost: B_col*B_row + 2*B_row*A_col*B_col = m*r + 2*m*r*r
+    matrix_mul_bs2(&denominator_l, H, &denominator);  // cost: B_col*A_col + 2*A_row*A_col*B_col = n*r + 2*r*r*n
 
-    for (int j = 0; j < n; j++) {
-        for (int i = 0; i < r; i++) {
-            nij = i * n + j;
-            dij = i * r + j;
-            numerator[nij] = 0;
-            if (j < r) {
-                denominator_l[dij] = 0;
-            }
-            for (int k = 0; k < m; k++) {
-                wt = Wt[i * m + k];
-                numerator[nij] += wt * V_colM[j * m + k];
-                if (j < r) {
-                    denominator_l[dij] += wt * Wt[j * m + k];
-                }
-            }
-        }
-    }
-
-    transpose(Wt, W, r, m);
-    transpose(H, Ht, r, n);
-
-    int Rij;
-    for (int i = 0; i < r; i++) {
-        for (int j = 0; j < n; j++) {
-            Rij = i * n + j;
-            denominator[Rij] = 0;
-            for (int k = 0; k < r; k++) {
-                denominator[Rij] += denominator_l[i * r + k] * Ht[j * r + k];
-            }
-            Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
-        }
-    }
-
-    tmp = Htmp;
-    Htmp = H;
-    H = tmp;
+    for (int i = 0; i < H->n_row * H->n_col; i++)
+        H->M[i] = H->M[i] * numerator.M[i] / denominator.M[i]; // 2*r*n
 
     for (int count = 0; count < maxIteration; count++) {
+        memset(denominator_l, 0, d_rr);
+        memset(numerator, 0, d_rn);
+        memset(denominator, 0, d_rn);
 
-        double h;
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < r; j++) {
-                Rij = i * r + j;
-                numerator_W[Rij] = 0;
-                if (i < r) {
-                    denominator_l[Rij] = 0;
-                }
-                for (int k = 0; k < n; k++) {
-                    h = H[j * n + k];
-                    numerator_W[Rij] += V_rowM[i * n + k] * h;
-                    if (i < r) {
-                        denominator_l[Rij] += H[i * n + k] * h;
-                    }
-                }
-            }
-        }
+        memset(numerator_W, 0, d_mr);
+        memset(denominator_r, 0, d_rr);
 
-        int Ri = 0, Rii;
-        memset(denominator_W, 0, double_size * mr);
-        memset(Wtmp, 0, double_size * mr);
-        Rij = 0;
-        for (int i = 0; i < m; i += nB) {
-            for (int j = 0; j < r; j += nB) {
-                for (int k = 0; k < r; k += nB) {
-                    Rii = Ri;
-                    for (int ii = i; ii < i + nB; ii++) {
-                        for (int jj = j; jj < j + nB; jj++) {
-                            Rij = Rii + jj;
-                            for (int kk = k; kk < k + nB; kk++)
-                                denominator_W[Rij] += W[Rii + kk] * denominator_l[kk * r + jj];
-                            Wtmp[Rij] = W[Rij] * numerator_W[Rij] / denominator_W[Rij];
-                            // TODO: At this point interleave with the next iteration of H
+        transpose(H, Ht, m, r);
+
+        ri = mi = ni = 0;
+        for (int i = 0; i < r; i += nB) {
+            inB = i + nB;
+            for (int j = 0; j < n; j += nB) {
+                jnB = j + nB;
+
+                // Computation for Wn+1
+
+                // Ht*Ht rmul
+                if (j == 0) {
+                    ri1 = ri, mi1 = mi;
+                    for (int i1 = i; i1 < inB; i1++) {
+                        mj1 = 0;
+                        for (int j1 = 0; j1 < r; j1 += nB) {
+                            for (int k1 = 0; k1 < m; k1 += nB) {
+                                mjj1 = mj1;
+                                for (int jj1 = j1; jj1 < j1 + nB; jj1++) {
+                                    ri1jj1 = ri1 + jj1;
+                                    for (int kk1 = k1; kk1 < k1 + nB; kk1++)
+                                        denominator_l[ri1jj1] += Ht[mi1 + kk1] * Ht[mjj1 + kk1];
+                                    mjj1 += m;
+                                }
+                            }
+                            mj1 += mnB;
                         }
-                        Rii += r;
+                        ri1 += r;
+                        mi1 += m;
                     }
                 }
-            }
-            Ri += nB * r;
-        }
 
-        tmp = Wtmp;
-        Wtmp = W;
-        W = tmp;
-
-        // At this point we have one iteration of the algorithm
-        err = error(approximation, V_rowM, W, H, m, n, r, mn, norm_V);
-        if (err <= epsilon) {
-            break;
-        }
-
-        if (count == maxIteration - 1) {
-            break;
-        }
-
-        // Interleaved iteration of H part of the algorithm
-        transpose(W, Wt, m, r);
-        int nij;
-        int dij;
-        double wt;
-
-        for (int j = 0; j < n; j++) {
-            for (int i = 0; i < r; i++) {
-                nij = i * n + j;
-                dij = i * r + j;
-                numerator[nij] = 0;
-                if (j < r) {
-                    denominator_l[dij] = 0;
-                }
-                for (int k = 0; k < m; k++) {
-                    wt = Wt[i * m + k];
-                    numerator[nij] += wt * V_colM[j * m + k];
-                    if (j < r) {
-                        denominator_l[dij] += wt * Wt[j * m + k];
+                //V*Ht mul
+                mi1 = mi;
+                ni1 = ni;
+                for (int i1 = i; i1 < inB; i1++) {
+                    for (int j1 = j; j1 < jnB; j1++) {
+                        ni1j1 = ni1 + j1;
+                        for (int k1 = 0; k1 < m; k1++)
+                            numerator[ni1j1] += Ht[mi1 + k1] * V[k1 * n + j1];
                     }
+                    mi1 += m;
+                    ni1 += n;
                 }
+
+
             }
         }
 
-        transpose(Wt, W, r, m);
-        transpose(H, Ht, r, n);
 
-        int Rij;
-        for (int i = 0; i < r; i++) {
-            for (int j = 0; j < n; j++) {
-                Rij = i * n + j;
-                denominator[Rij] = 0;
-                for (int k = 0; k < r; k++) {
-                    denominator[Rij] += denominator_l[i * r + k] * Ht[j * r + k];
-                }
-                Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
-            }
-        }
-
-        tmp = Htmp;
-        Htmp = H;
-        H = tmp;
     }
 
     free(numerator);
