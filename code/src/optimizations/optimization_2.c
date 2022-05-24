@@ -256,8 +256,6 @@ double nnm_factorization_opt2(double *V_rowM, double*W, double*H, int m, int n, 
 
         matrix_rtrans_mul_opt2(H, r, n, H, r, n, denominator_r, r, r);
 
-
-
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < r; j++) {
                 nij = i * r + j;
@@ -271,9 +269,7 @@ double nnm_factorization_opt2(double *V_rowM, double*W, double*H, int m, int n, 
                     }          
             
                 }
-
-                W_tmp[nij] = W[nij] * num_ij / den_ij; 
-
+                W_tmp[nij] = W[nij] * num_ij / den_ij;
             }
         }
         W_switch = W;
