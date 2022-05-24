@@ -9,6 +9,7 @@
 #include "cblas.h"
 
 //NEW - optimization of the algorithm using the function optimizations for optimization 3, nnmf based on alg opt 1
+//FAILED ATTEMPT - Keep is as a learning playground for interleaving iterations
 
 typedef unsigned long long myInt64;
 
@@ -182,6 +183,7 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
     norm_V = 1 / sqrt(norm_V);
 
     double err = -1;
+    double accumulator, accumulator1;
 
     //NEW: Calculating the first iteration of H outside of the iterable as it is not interleaved, using bs2
     //NOTE: Based on opt24
@@ -226,7 +228,6 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                 jnB = j + nB;
 
                 //computation for Wn+1
-
                 //Ht*Ht rmul
                 if (j == 0)
                 {
@@ -238,61 +239,38 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                                 mjj1 = mj1;
                                 for (int jj1 = j1; jj1 < j1 + nB; jj1++) {
                                     ri1jj1 = ri1 + jj1;
-                                    for (int kk1 = k1; kk1 < k1 + nB; kk1++)
-                                        denominator_r[ri1jj1] += Ht[mi1 + kk1] * Ht[mjj1 + kk1];
-                                    mjj1 += r;
+                                    for (int kk1 = k1; kk1 < k1 + nB; kk1++) {
+                                        denominator_r[ri1jj1] += H[mi1 + kk1] * Ht[mjj1 + kk1];
+                                    }
+                                    mjj1 += n;
                                 }
                             }
-                            mj1 += mnB;
+                            mj1 += rnB;
                         }
                         ri1 += n;
                         mi1 += r;
                     }
                 }
 
-                printf("TEST1\n");
-
-                //V*Ht mul
                 mi1 = mi;
-                ni1 = ni;
-                for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 < jnB; j1++) {
-                        ni1j1 = ni1 + j1;
-                        for (int k1 = 0; k1 < m; k1++)
-                            numerator[ni1j1] += V[mi1 + k1] * Ht[k1 * n + j1];
-                    }
-                    mi1 += m;
-                    ni1 += n;
-                }
-
-                printf("TEST2\n");
-
-                //W*(HHt) mul
                 ni1 = ni;
                 ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
                         ni1j1 = ni1 + j1;
-                        for (int k1 = 0; k1 < r; k1++)
-                            denominator[ni1j1] +=  W[k1 * m + j1] * denominator_r[ri1 + k1];
+                        accumulator = 0;
+                        accumulator1 = 0;
+                        for (int k1 = 0; k1 < m; k1++) {
+                            accumulator += V[mi1 + k1] * Ht[k1 * n + j1]; //V*Ht mul
+                            if(k1 < r)
+                                accumulator1 += W[k1 * m + j1] * denominator_r[ri1 + k1]; //W*(HHt) mul
+                        }
+                        W_new[ni1j1] = W[ni1j1] * accumulator / accumulator1; //element-wise multiplication and division
                     }
-                    ni1 += n;
+                    mi1 += m;
+                    ni1 += m;
                     ri1 += r;
                 }
-
-                printf("TEST3\n");
-
-                //element-wise multiplication and division
-                ni1 = ni;
-                for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 < jnB; j1++) {
-                        ni1j1 = ni1 + j1;
-                        W_new[ni1j1] = W[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
-                    }
-                    ni1 += n;
-                }
-
-                printf("TEST4\n");
 
                 //Wt*V rmul
                 ri1 = ni1 = 0;
@@ -308,8 +286,6 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     ni1 += m;
                 }
 
-                printf("TEST5\n");
-
                 //W*W rmul
                 ni1 = ri1 = 0;
                 for (int i1 = 0; i1 < inB; i1++) {
@@ -324,8 +300,6 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                     ni1 += m;
                     ri1 += r;
                 }
-
-                printf("TEST6\n");
 
                 ni1 = ni;
                 ri1 = ri;
@@ -343,12 +317,9 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
                 }
                 ri += rnB;
                 mi += mnB;
-                ni += nnB;
-                printf("TEST7\n");
+                ni += mnB;
             }
         }
-
-        printf("TEST\n");
 
         tmp = W_new;
         W_new = W;
@@ -357,6 +328,10 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
         //NOTE: Need to check at the end as the first iteration is interleaved with the second already
         err = error(approximation, V, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
+            break;
+        }
+
+        if (count == maxIteration) {
             break;
         }
 
