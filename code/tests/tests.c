@@ -933,10 +933,9 @@ int main(int argc, char const *argv[]) {
     nnmd[3] = nnm_factorization_aopt2;
     nnmd[4] = nnm_factorization_opt2;
     nnmd[5] = nnm_factorization_opt3;
-  
 
     // END TODO
 
-    run_tests_d(n_mmul_opt, mmuld, n_mmulrtrans_opt, mmulrtransd, n_mmulltrans_opt, mmulltransd, nnnmopt, nnmd);
+    run_tests_d(n_mmul_opt, mmuld, n_mmulrtrans_opt, mmulrtransd, n_mmulltrans_opt, mmulltransd, n_nnm_opt, nnmd);
     return 0;
 }
