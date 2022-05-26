@@ -100,3 +100,7 @@
 	- Performance is the same (a bit worse runtime)	
 	- Probably has to do with the fact that I reduced computation so the memory-bound nature was even more visible
 
+*Optimization 41: 
+	- on top of opt 24
+	- uses dsyrk and dsymm to exploit the fact that WtW HHt are symmetric matrices. Surprisingly, no runtime improvement with 
+	  respect to opt 24. 
