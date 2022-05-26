@@ -14,6 +14,7 @@ TESTS_DIR=./tests
 BS_DIR=$(SRC_DIR)/baselines
 VF_DIR=$(BS_DIR)/verification
 PERF_DIR=$(SRC_DIR)/performance
+ROOF_DIR=$(SRC_DIR)/roofline
 OPT_DIR=$(SRC_DIR)/optimizations
 MMM_DIR=$(SRC_DIR)/mmm
 PERF_MMM_DIR=$(SRC_DIR)/performance_mmm
@@ -62,6 +63,17 @@ performance: .build_dir_creation
 	$(OPT_DIR)/optimizations_utils/optimizations_utils.c \
 	$(BS_DIR)/baselines_utils/baselines_utils.c \
 	$(PERF_DIR)/performance.c \
+	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
+
+roofline: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/roofline \
+	$(BS_DIR)/baseline1/baseline1.c \
+	$(BS_DIR)/baseline2/baseline2.c \
+	$(OPT_DIR)/opt*.c \
+	$(OPT_DIR)/alg*.c \
+	$(OPT_DIR)/optimizations_utils/optimizations_utils.c \
+	$(BS_DIR)/baselines_utils/baselines_utils.c \
+	$(ROOF_DIR)/roofline.c \
 	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
 
 tests: .build_dir_creation
