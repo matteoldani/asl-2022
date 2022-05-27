@@ -20,7 +20,7 @@ CINCLUDE=-I $(IDIR_LOCALC)
 CINCLUDE+=-I $(IDIR_BLAS)
 
 CFLAGS=-Wall
-CFLAGS+=-O3
+CFLAGS+=-O3 
 CFLAGS+=-g 
 CFLAGS+=-fno-tree-vectorize
 

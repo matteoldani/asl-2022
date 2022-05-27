@@ -8,7 +8,7 @@
 #define BLOCK_SIZE_NNMF 4
 #define CLALIBRATE_ITERATIONS 100
 #define BLOCK_SIZE_TRANS 8 //needs to be divisible by 4 because of the loop unrolling
-#define BLOCK_SIZE_MMUL 8
+#define BLOCK_SIZE_MMUL 80
 #define BLOCK_SIZE_RTRANSMUL 8
 #define BLOCK_SIZE_TRANS 8
 #define BLOCK_SIZE_H_ROW 8
