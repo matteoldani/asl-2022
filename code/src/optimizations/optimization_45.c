@@ -78,7 +78,6 @@ void matrix_mul_opt45(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
         {
             for (k = 0; k < A_n_col - nB + 1; k += nB)
             {   
-                printf("\nMAIN LOOP\n");
 
                 Rii = Ri;
                 Aii = Ai;
@@ -158,6 +157,8 @@ void matrix_mul_opt45(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                     Rij = Rii + jj;
                     for (kk = k; kk < A_n_col; kk++)
                     {
+                        //printf("ii:%d jj:%d kk%d\n", ii, jj, kk);
+                        //NOTE OPTIMIZE THIS TO HAVE GOOD PERF ALSO WITH SMALL R as middle value
                         R[ii * B_n_col + jj] += A[ii * A_n_col + kk] * B[kk * B_n_col + jj];
                     }
                 }
@@ -175,6 +176,7 @@ void matrix_mul_opt45(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                 for (kk = 0; kk < A_n_col; kk++)
                 {
                     //printf("ii:%d jj:%d kk%d\n", ii, jj, kk);
+                    //NOTE OPTIMIZE THIS TO HAVE GOOD PERF ALSO WITH SMALL N as right value
                     R[ii * B_n_col + jj] += A[ii * A_n_col + kk] * B[kk * B_n_col + jj];
                 }
             }
@@ -220,7 +222,6 @@ void matrix_mul_opt45(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                     int idx_b = k*B_n_col + jj;
                     for (kk = k; kk < k + nB; kk++)
                     {
-                        printf("ii:%d, jj:%d k:%d kk: %d\n",ii, jj, k, kk);
                         a0 = _mm256_set1_pd(A[Aii + kk]);                //Aik0 = A[Aii + kk];
                         a1 = _mm256_set1_pd(A[Aii + A_n_col + kk]);      //Aik1 = A[Aii + A_n_col + kk]; 
                         
