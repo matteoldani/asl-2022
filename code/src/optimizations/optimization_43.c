@@ -5,6 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <optimizations/optimizations_42.h>
+#include <immintrin.h>
 
 // PREV - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly
 // Unrolling inside matrix multiplication
@@ -48,15 +49,15 @@ static void transpose(double *src, double *dst, const int N, const int M)
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
+void matrix_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
 {
 
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
-    int unrolling_factor = 8;
-    int unroll_i = 2, unroll_j = 4;
+    int unrolling_factor = 32;
+    int unroll_i = 2, unroll_j = 16;
     int kk, i, j, k;
     double R_Ri0j0;
     double R_Ri0j1;
@@ -69,6 +70,13 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     double Aik0, Aik1, Bi0j0, Bi0j1, Bi0j2, Bi0j3, Bi1j0, Bi1j1, Bi1j2, Bi1j3;
     double R_Rij;
 
+    __m256d a0, a1;
+    __m256d b0, b1, b2, b3;
+    __m256d r0, r1, r2, r3;
+    __m256d r4, r5, r6, r7;
+
+
+
     memset(R, 0, double_size * R_n_row * R_n_col);
 
     for (i = 0; i < A_n_row - nB + 1; i += nB)
@@ -79,45 +87,69 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
             {
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i){
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j){
+                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i)
+                {
+
+                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j)
+                    {
+                        
                         Rij = Rii + jj;
-                        R_Ri0j0 = 0;
-                        R_Ri0j1 = 0;
-                        R_Ri0j2 = 0;
-                        R_Ri0j3 = 0;
-                        R_Ri1j0 = 0;
-                        R_Ri1j1 = 0;
-                        R_Ri1j2 = 0;
-                        R_Ri1j3 = 0;
+                        int idx_r = Rij + R_n_col;
+                        
+                        r0 = _mm256_loadu_pd((double *)&R[Rij]);
+                        r1 = _mm256_loadu_pd((double *)&R[Rij + 4]);
+                        r2 = _mm256_loadu_pd((double *)&R[Rij + 8]);
+                        r3 = _mm256_loadu_pd((double *)&R[Rij + 12]);
 
-                        for (kk = k; kk < k + nB; kk++){
+                        r4 = _mm256_loadu_pd((double *)&R[idx_r]);
+                        r5 = _mm256_loadu_pd((double *)&R[idx_r + 4]);
+                        r6 = _mm256_loadu_pd((double *)&R[idx_r + 8]);
+                        r7 = _mm256_loadu_pd((double *)&R[idx_r + 12]);
+
+
+                        int idx_b = k*B_n_col + jj;
+                        for (kk = k; kk < k + nB; kk++)
+                        {
                             // printf("ii:%d, jj:%d k:%d kk: %d\n",ii, jj, k, kk);
-                            Aik0 = A[Aii + kk];
-                            Aik1 = A[Aii + A_n_col + kk];
-                            Bi0j0 = B[kk * B_n_col + jj];
-                            Bi0j1 = B[kk * B_n_col + jj + 1];
-                            Bi0j2 = B[kk * B_n_col + jj + 2];
-                            Bi0j3 = B[kk * B_n_col + jj + 3];
+                            a0 = _mm256_set1_pd(A[Aii + kk]);                //Aik0 = A[Aii + kk];
+                            a1 = _mm256_set1_pd(A[Aii + A_n_col + kk]);      //Aik1 = A[Aii + A_n_col + kk]; 
+                            
+                            b0 = _mm256_loadu_pd((double *)&B[idx_b]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b1 = _mm256_loadu_pd((double *)&B[idx_b + 4]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b2 = _mm256_loadu_pd((double *)&B[idx_b + 8]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b3 = _mm256_loadu_pd((double *)&B[idx_b + 12]);    // Bi0j0 = B[kk * B_n_col + jj];
+  
+                            r0 = _mm256_fmadd_pd(a0, b0, r0);
+                            r1 = _mm256_fmadd_pd(a0, b1, r1);
+                            r2 = _mm256_fmadd_pd(a0, b2, r2);
+                            r3 = _mm256_fmadd_pd(a0, b3, r3);
 
-                            R_Ri0j0 += Aik0 * Bi0j0;
-                            R_Ri0j1 += Aik0 * Bi0j1;
-                            R_Ri0j2 += Aik0 * Bi0j2;
-                            R_Ri0j3 += Aik0 * Bi0j3;
-                            R_Ri1j0 += Aik1 * Bi0j0;
-                            R_Ri1j1 += Aik1 * Bi0j1;
-                            R_Ri1j2 += Aik1 * Bi0j2;
-                            R_Ri1j3 += Aik1 * Bi0j3;
+                            r4 = _mm256_fmadd_pd(a1, b0, r4);
+                            r5 = _mm256_fmadd_pd(a1, b1, r5);
+                            r6 = _mm256_fmadd_pd(a1, b2, r6);
+                            r7 = _mm256_fmadd_pd(a1, b3, r7);
+
+                            idx_b += B_n_col;
                         }
 
-                        R[Rij]     += R_Ri0j0;
-                        R[Rij + 1] += R_Ri0j1;
-                        R[Rij + 2] += R_Ri0j2;
-                        R[Rij + 3] += R_Ri0j3;
-                        R[Rij + R_n_col] += R_Ri1j0;
-                        R[Rij + R_n_col + 1] += R_Ri1j1;
-                        R[Rij + R_n_col + 2] += R_Ri1j2;
-                        R[Rij + R_n_col + 3] += R_Ri1j3;
+                        // _mm256_storeu_pd((double *)&R[Rij], r0);
+                        // _mm256_storeu_pd((double *)&R[Rij + R_n_col], r1);
+
+                        _mm256_storeu_pd((double *)&R[Rij], r0);
+                        _mm256_storeu_pd((double *)&R[Rij + 4], r1);
+                        _mm256_storeu_pd((double *)&R[Rij + 8], r2);
+                        _mm256_storeu_pd((double *)&R[Rij + 12], r3);
+
+                        _mm256_storeu_pd((double *)&R[idx_r], r4);
+                        _mm256_storeu_pd((double *)&R[idx_r + 4], r5);
+                        _mm256_storeu_pd((double *)&R[idx_r + 8], r6);
+                        _mm256_storeu_pd((double *)&R[idx_r + 12], r7);
+
+
+                        for (; kk < k + nB; kk++)
+                        {
+                            R[Rij] += A[Aii + kk] * B[kk * B_n_col + jj];
+                        }
                     }
                     Rii += R_n_col * unroll_i;
                     Aii += A_n_col * unroll_i;
@@ -189,7 +221,7 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
+void matrix_rtrans_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
 {
 
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
@@ -233,10 +265,10 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
                         R_Ri1j3 = 0;
                         for (int kk = k; kk < k + nB; kk++){
                             Aik0  = A[Aii + kk];
-                            Aik1  = A[Aii + A_n_col + kk];
-
+                            Aik1  = A[Aii + A_n_col + kk]; 
+                            
                             Bi0j0 = B[jj * B_n_col + kk];
-                            Bi0j1 = B[(jj + 1) * B_n_col + kk ];
+                            Bi0j1 = B[(jj + 1) * B_n_col + kk ]; 
                             Bi0j2 = B[(jj + 2) * B_n_col + kk ];
                             Bi0j3 = B[(jj + 3) * B_n_col + kk ];
 
@@ -317,7 +349,7 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
 inline double error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V)
 {
 
-    matrix_mul_opt42(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt43(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
@@ -345,7 +377,7 @@ inline double error(double *approx, double *V, double *W, double *H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt42(double *V, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon)
+double nnm_factorization_opt43(double *V, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon)
 {
     double *Wt, *H_new;
     int rn, rr, mr, mn;
@@ -566,7 +598,7 @@ double nnm_factorization_opt42(double *V, double *W, double *H, int m, int n, in
             ni += nnB;
         }
 
-        matrix_rtrans_mul_opt42(W, m, r, denominator_r, r, r, denominator_W, m, r);
+        matrix_rtrans_mul_opt43(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];

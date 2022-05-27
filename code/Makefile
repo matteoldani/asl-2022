@@ -20,9 +20,11 @@ CINCLUDE=-I $(IDIR_LOCALC)
 CINCLUDE+=-I $(IDIR_BLAS)
 
 CFLAGS=-Wall
-CFLAGS+=-O3 
+CFLAGS+=-O3 -mfma
 CFLAGS+=-g 
 CFLAGS+=-fno-tree-vectorize
+#CFLAGS+=-ffast-math
+CFLAGS+=-march=native
 
 
 FLAG_LINK=-lm
