@@ -90,16 +90,16 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                         R_Ri1j1 = 0;
                         R_Ri1j2 = 0;
                         R_Ri1j3 = 0;
-                        
+
                         for (kk = k; kk < k + nB; kk++){
                             // printf("ii:%d, jj:%d k:%d kk: %d\n",ii, jj, k, kk);
                             Aik0 = A[Aii + kk];
-                            Aik1 = A[Aii + A_n_col + kk]; 
+                            Aik1 = A[Aii + A_n_col + kk];
                             Bi0j0 = B[kk * B_n_col + jj];
-                            Bi0j1 = B[kk * B_n_col + jj + 1]; 
+                            Bi0j1 = B[kk * B_n_col + jj + 1];
                             Bi0j2 = B[kk * B_n_col + jj + 2];
                             Bi0j3 = B[kk * B_n_col + jj + 3];
-                        
+
                             R_Ri0j0 += Aik0 * Bi0j0;
                             R_Ri0j1 += Aik0 * Bi0j1;
                             R_Ri0j2 += Aik0 * Bi0j2;
@@ -218,16 +218,24 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
                     {
                         Rij = Rii + jj;
                         R_Rij = 0;
-                        for (int kk = k; kk < k + nB; kk++)
-                            R_Rij += A[Aii + kk] * B[Bjj + kk];
+                        for (int kk = k; kk < k + nB; kk++){
+                            R_Rij += A[Aii + kk] * B[jj*B_n_col + kk];
+                        }
                         R[Rij] += R_Rij;
-                        Bjj += B_n_col;
                     }
                     Aii += A_n_col;
                     Rii += R_n_col;
                 }
             }
-            Bj += nBB_n_col;
+
+            //clean up
+            for (int ii = i; ii < i + nB; ii++) {
+                for (int jj = j; jj < j + nB; jj++) {
+                    for (kk = k; kk < A_n_col; kk++){
+                        R[ii * B_n_row + jj] +=  A[ii * A_n_col + kk] * B[jj * B_n_col + kk];
+                    }
+                }
+            }
         }
         Ai += nBA_n_col;
         Ri += nBR_n_col;
