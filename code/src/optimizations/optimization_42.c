@@ -79,10 +79,8 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
             {
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i)
-                {
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j)
-                    {
+                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i){
+                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j){
                         Rij = Rii + jj;
                         R_Ri0j0 = 0;
                         R_Ri0j1 = 0;
@@ -93,8 +91,7 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                         R_Ri1j2 = 0;
                         R_Ri1j3 = 0;
                         
-                        for (kk = k; kk < k + nB; kk++)
-                        {
+                        for (kk = k; kk < k + nB; kk++){
                             // printf("ii:%d, jj:%d k:%d kk: %d\n",ii, jj, k, kk);
                             Aik0 = A[Aii + kk];
                             Aik1 = A[Aii + A_n_col + kk]; 
@@ -113,7 +110,7 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                             R_Ri1j3 += Aik1 * Bi0j3;
                         }
 
-                        R[Rij] += R_Ri0j0;
+                        R[Rij]     += R_Ri0j0;
                         R[Rij + 1] += R_Ri0j1;
                         R[Rij + 2] += R_Ri0j2;
                         R[Rij + 3] += R_Ri0j3;
@@ -121,11 +118,6 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                         R[Rij + R_n_col + 1] += R_Ri1j1;
                         R[Rij + R_n_col + 2] += R_Ri1j2;
                         R[Rij + R_n_col + 3] += R_Ri1j3;
-
-                        // for (; kk < k + nB; kk++)
-                        // {
-                        //     R[Rij] += A[Aii + kk] * B[kk * B_n_col + jj];
-                        // }
                     }
                     Rii += R_n_col * unroll_i;
                     Aii += A_n_col * unroll_i;
