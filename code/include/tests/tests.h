@@ -26,6 +26,8 @@
 #include <optimizations/optimizations_42.h>
 #include <optimizations/optimizations_43.h>
 #include <optimizations/optimizations_44.h>
+#include <optimizations/optimizations_45.h>
+
 
 #include <unistd.h>
 
