@@ -527,9 +527,6 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
     // i can modify both r and n
     pad_matrix(&H, &r, &n);
 
-    printf("Dimensions: %d %d %d\n", m, n, r);
-
-
     int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;

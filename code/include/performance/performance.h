@@ -5,6 +5,7 @@
 #include <baselines/baseline2.h>
 #include <optimizations/alg_opt_1.h>
 #include <optimizations/alg_opt_2.h>
+#include <optimizations/optimizations_0.h>
 #include <optimizations/optimizations_1.h>
 #include <optimizations/optimizations_2.h>
 #include <optimizations/optimizations_3.h>
@@ -20,6 +21,7 @@
 #include <optimizations/optimizations_35.h>
 #include <optimizations/optimizations_36.h>
 #include <optimizations/optimizations_41.h>
+#include <optimizations/optimizations_46.h>
 
 
 #ifndef WIN32

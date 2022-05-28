@@ -284,6 +284,7 @@ int main(int argc, char const* argv[])
         printf("\t17. Optimisation 35\n");
         printf("\t18. Optimisation 36\n");
         printf("\t19. Optimisation 41\n");
+        printf("\t20. Optimisation 46\n");
 
 
         return 0;
@@ -370,7 +371,7 @@ int main(int argc, char const* argv[])
     case 16:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt34, &nnm_cost_2);
         break;
-    
+
     case 17:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt35, &nnm_cost_2);
         break;
@@ -378,9 +379,13 @@ int main(int argc, char const* argv[])
     case 18:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt36, &nnm_cost_2);
         break;
-    
+
     case 19:
         optimization(tests, min, max, b, fout, &nnm_factorization_opt41, &nnm_cost_2);
+        break;
+
+    case 20:
+        optimization(tests, min, max, b, fout, &nnm_factorization_opt46, &nnm_cost_2);
         break;
 
     default:
