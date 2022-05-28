@@ -395,9 +395,11 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
         
         memcpy(H, H_new, d_rn);
         memset(numerator_W, 0, d_mr);
-        memset(denominator_l, 0, d_rr);
         memset(denominator_W, 0, d_mr);
+        memset(numerator, 0, d_rn);
 
+        //Since we need a column of HHt per block of W we would have to calculate all of HHt while calculating the first row of blocks of W, so it's better to calculate it in advance
+        //computation for Wn+1
         matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_l, r, r);
 
         ri = mi = ni = 0;
@@ -408,32 +410,6 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                 jnB = j + nB;
 
                 //computation for Wn+1
-
-                /*//Wt*Wt rmul
-                if (j == 0)
-                {
-                    ri1 = ri, mi1 = mi;
-                    for (int i1 = i; i1 < inB; i1++) {
-                        mj1 = 0;
-                        for (int j1 = 0; j1 < r; j1 += nB) {
-                            for (int k1 = 0; k1 < m; k1 += nB) {
-                                mjj1 = mj1;
-                                for (int jj1 = j1; jj1 < j1 + nB; jj1++) {
-                                    ri1jj1 = ri1 + jj1;
-                                    accumulator = 0;
-                                    for (int kk1 = k1; kk1 < k1 + nB; kk1++)
-                                        accumulator += Wt[mi1 + kk1] * Wt[mjj1 + kk1];
-                                    denominator_l[ri1jj1] += accumulator;
-                                    mjj1 += m;
-                                }
-                            }
-                            mj1 += mnB;
-                        }
-                        ri1 += r;
-                        mi1 += m;
-                    }
-                }*/
-
                 //VH rmul
                 ni1 = ni;
                 ri1 = ri;
@@ -472,6 +448,20 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                 }
 
+                //computation for Hn+2
+                //WV lmul
+                ni1 = nj;
+                for (int i1 = j; i1 < jnB; i1++) {
+                    for (int j1 = 0; j1 < n; j1++) {
+                        accumulator = 0;
+                        for (int k1 = j; k1 < jnB; k1++)
+                            accumulator += W_new[k1 * r + i1] * V[k1 * n + j1];
+                        numerator[ni1 + j1] += accumulator;
+                    }
+                    ni1 += n;
+                }
+
+
                 nj += nnB;
             }
             ri += rnB;
@@ -479,19 +469,11 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
             ni += nnB;
         }
 
-        //computation for Wn+1
-        //matrix_rtrans_mul_opt35(V, m, n, H, r, n, numerator_W, m, r);
-        //matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_l, r, r);
-        //matrix_mul_opt35(W, m, r, denominator_l, r, r, denominator_W, m, r);
-
-        /*for (int i = 0; i < mr; i++)
-            W[i] = W[i] * numerator_W[i] / denominator_W[i];*/
-
         memcpy(W, W_new, d_mr);
 
         //computation for Hn+2
         transpose(W, Wt, m, r);
-        matrix_mul_opt35(Wt, r, m, V, m, n, numerator, r, n);
+        //matrix_mul_opt35(Wt, r, m, V, m, n, numerator, r, n);
         matrix_rtrans_mul_opt35(Wt, r, m, Wt, r, m, denominator_l, r, r);
         matrix_mul_opt35(denominator_l, r, r, H, r, n, denominator, r, n);
 

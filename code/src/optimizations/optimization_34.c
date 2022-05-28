@@ -269,6 +269,7 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
             for (int j = 0; j < n; j += nB) {
                 jnB = j + nB;
 
+                //computation for Hn+1
                 //NEW - merged three computations into one triple-loop
                 //NEW - this also removes the need for the temporary matrices numerator and denominator
                 //Wt*V mul and (WtW)*H mul and element-wise multiplication and division
@@ -292,6 +293,9 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                 }
 
+
+                //computation for Wn+1
+
                 //V*H rmul
                 ri1 = ni1 = 0;
                 for (int i1 = 0; i1 < m; i1++) {
@@ -307,8 +311,6 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                     ni1 += n;
                 }
-
-                //computation for Wn+1
 
                 //H*H rmul
                 ni1 = ri1 = 0;

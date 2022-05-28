@@ -253,6 +253,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             inB = i + nB;
 
             //computation for Hn+1
+            
             //We need the whole row of WtW for calculating a single block of H, so we calculate the row only once and use it for all blocks of H with the same i
             //Wt*Wt rmul
             ri1 = ri, mi1 = mi;
@@ -280,6 +281,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                 jnB = j + nB;
                 
                 //computation for Hn+1
+                
                 //Wt*V mul
                 mi1 = mi;
                 ni1 = ni;
@@ -320,6 +322,9 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     ni1 += n;
                 }
 
+
+                //computation for Wn+1
+
                 //V*H rmul
                 ri1 = ni1 = 0;
                 for (int i1 = 0; i1 < m; i1++) {
@@ -335,8 +340,6 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                     ni1 += n;
                 }
-
-                //computation for Wn+1
 
                 //H*H rmul
                 ni1 = ri1 = 0;
