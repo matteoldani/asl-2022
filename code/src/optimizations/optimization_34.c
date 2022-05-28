@@ -241,35 +241,33 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
         ri = mi = ni = 0;
         for (int i = 0; i < r; i += nB) {
             inB = i + nB;
+
+            //computation for Hn+1
+            //We need the whole row of WtW for calculating a single block of H, so we calculate the row only once and use it for all blocks of H with the same i
+            //Wt*Wt rmul
+            ri1 = ri, mi1 = mi;
+            for (int i1 = i; i1 < inB; i1++) {
+                mj1 = 0;
+                for (int j1 = 0; j1 < r; j1 += nB) {
+                    for (int k1 = 0; k1 < m; k1 += nB) {
+                        mjj1 = mj1;
+                        for (int jj1 = j1; jj1 < j1 + nB; jj1++) {
+                            ri1jj1 = ri1 + jj1;
+                            accumulator = 0;
+                            for (int kk1 = k1; kk1 < k1 + nB; kk1++)
+                                accumulator += Wt[mi1 + kk1] * Wt[mjj1 + kk1];
+                            denominator_l[ri1jj1] += accumulator;
+                            mjj1 += m;
+                        }
+                    }
+                    mj1 += mnB;
+                }
+                ri1 += r;
+                mi1 += m;
+            }
+
             for (int j = 0; j < n; j += nB) {
                 jnB = j + nB;
-                
-                //computation for Hn+1
-
-                //Wt*Wt rmul
-                if (j == 0)
-                {
-                    ri1 = ri, mi1 = mi;
-                    for (int i1 = i; i1 < inB; i1++) {
-                        mj1 = 0;
-                        for (int j1 = 0; j1 < r; j1 += nB) {
-                            for (int k1 = 0; k1 < m; k1 += nB) {
-                                mjj1 = mj1;
-                                for (int jj1 = j1; jj1 < j1 + nB; jj1++) {
-                                    ri1jj1 = ri1 + jj1;
-                                    accumulator = 0;
-                                    for (int kk1 = k1; kk1 < k1 + nB; kk1++)
-                                        accumulator += Wt[mi1 + kk1] * Wt[mjj1 + kk1];
-                                    denominator_l[ri1jj1] += accumulator;
-                                    mjj1 += m;
-                                }
-                            }
-                            mj1 += mnB;
-                        }
-                        ri1 += r;
-                        mi1 += m;
-                    }
-                }
 
                 //NEW - merged three computations into one triple-loop
                 //NEW - this also removes the need for the temporary matrices numerator and denominator

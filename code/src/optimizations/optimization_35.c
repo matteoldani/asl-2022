@@ -392,6 +392,10 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
         memcpy(H, H_new, d_rn);*/
         
         memcpy(H, H_new, d_rn);
+        memset(numerator_W, 0, d_mr);
+        memset(denominator_l, 0, d_rr);
+        memset(denominator_W, 0, d_mr);
+
 
         matrix_rtrans_mul_opt35(V, m, n, H, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_l, r, r);
