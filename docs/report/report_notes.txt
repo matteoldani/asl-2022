@@ -100,6 +100,18 @@
 	- Performance is the same (a bit worse runtime)	
 	- Probably has to do with the fact that I reduced computation so the memory-bound nature was even more visible
 
+*Optimization 35:
+	- Intoduces an algorithmic change
+	- W(n+1) is computed in a blockwise manner and the computed block is used instantly in the multiplications needed to calculate H(n+2)
+	- All multiplications were done optimally with blocking and simplified index calculations and scalar replacement
+	- Since this optimization plays accross the iteration border, we precalculate H1 before we go into the loop, then calculate W(n+1) and H(n+2) in the loop body. But the error test is still done on top of W(n+1), H(n+1)
+
+*Optimization 36:
+	- On top of the algorithmic change from Optimization 34
+	- Multiple block multiplications are merged into one triple-loops
+	- Performance is the same (a bit worse runtime)	
+	- Probably has to do with the fact that I reduced computation so the memory-bound nature was even more visible
+
 *Optimization 41: 
 	- on top of opt 24
 	- uses dsyrk and dsymm to exploit the fact that WtW HHt are symmetric matrices. Surprisingly, no runtime improvement with 

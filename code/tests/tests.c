@@ -876,20 +876,20 @@ int main(int argc, char const *argv[]) {
     }
 
     // TODO: Please add following the number of functions you would like to test:
-    int n_mmulrtrans = 0;  //BACK TO 2
-    int n_mmulltrans = 0;  //BACK TO 2
-    int n_mmul = 0;  //BACK TO 2
-    int n_nnm = 0;  //BACK TO 2
+    int n_mmulrtrans = 2;
+    int n_mmulltrans = 2;
+    int n_mmul = 2;
+    int n_nnm = 2;
 
     void (*mmulrtrans[n_mmulrtrans])(Matrix *A, Matrix *B, Matrix *R);
     void (*mmulltrans[n_mmulltrans])(Matrix *A, Matrix *B, Matrix *R);
     void (*mmul[n_mmul])(Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n_nnm])(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    int n_mmulrtrans_opt = 0; //BACK TO 16
+    int n_mmulrtrans_opt = 17;
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 0; //BACK TO 16
-    int n_nnm_opt = 3; //BACK TO 16
+    int n_mmul_opt = 17;
+    int n_nnm_opt = 17;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -898,7 +898,7 @@ int main(int argc, char const *argv[]) {
 
     // START TODO:
     // Now add the functions you would like to test from the impleemntations:
-    /*mmul[0] = matrix_mul_bs1;
+    mmul[0] = matrix_mul_bs1;
     mmul[1] = matrix_mul_bs2;
 
     mmulltrans[0] = matrix_ltrans_mul_bs1;
@@ -908,11 +908,11 @@ int main(int argc, char const *argv[]) {
     mmulrtrans[1] = matrix_rtrans_mul_bs2;
 
     nnm[0] = nnm_factorization_bs1;
-    nnm[1] = nnm_factorization_bs2;*/
+    nnm[1] = nnm_factorization_bs2;
 
     run_tests(n_mmul, mmul, n_mmulltrans, mmulltrans, n_mmulrtrans, mmulrtrans, n_nnm, nnm);
 
-    /*mmuld[0] = matrix_mul_opt0;
+    mmuld[0] = matrix_mul_opt0;
     mmuld[1] = matrix_mul_opt1;
     mmuld[2] = matrix_mul_aopt1;
     mmuld[3] = matrix_mul_aopt2;
@@ -927,7 +927,8 @@ int main(int argc, char const *argv[]) {
     mmuld[12] = matrix_mul_opt33;
     mmuld[13] = matrix_mul_opt34;
     mmuld[14] = matrix_mul_opt35;
-    mmuld[15] = matrix_mul_opt41;
+    mmuld[15] = matrix_mul_opt36;
+    mmuld[16] = matrix_mul_opt41;
 
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
@@ -945,7 +946,8 @@ int main(int argc, char const *argv[]) {
     mmulrtransd[12] = matrix_rtrans_mul_opt33;
     mmulrtransd[13] = matrix_rtrans_mul_opt34;
     mmulrtransd[14] = matrix_rtrans_mul_opt35;
-    mmulrtransd[15] = matrix_rtrans_mul_opt41;
+    mmulrtransd[15] = matrix_rtrans_mul_opt36;
+    mmulrtransd[16] = matrix_rtrans_mul_opt41;
 
     nnmd[0] = nnm_factorization_opt0;
     nnmd[1] = nnm_factorization_opt1;
@@ -962,11 +964,8 @@ int main(int argc, char const *argv[]) {
     nnmd[12] = nnm_factorization_opt33;
     nnmd[13] = nnm_factorization_opt34;
     nnmd[14] = nnm_factorization_opt35;
-    nnmd[15] = nnm_factorization_opt41;*/
-
-    nnmd[0] = nnm_factorization_opt3;
-    nnmd[1] = nnm_factorization_opt35;
-    nnmd[2] = nnm_factorization_opt36;
+    nnmd[15] = nnm_factorization_opt36;
+    nnmd[16] = nnm_factorization_opt41;
 
     // END TODO
 
