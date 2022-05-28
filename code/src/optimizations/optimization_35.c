@@ -491,6 +491,8 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
         /*for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];*/
 
+        memcpy(W, W_new, d_mr);
+
         //computation for Hn+2
         transpose(W, Wt, m, r);
         matrix_mul_opt35(Wt, r, m, V, m, n, numerator, r, n);
