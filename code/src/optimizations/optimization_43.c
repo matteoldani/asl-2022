@@ -7,8 +7,8 @@
 #include <optimizations/optimizations_43.h>
 #include <immintrin.h>
 
-// PREV - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly
-// Unrolling inside matrix multiplication
+//NEW MMM vectorized
+
 typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
@@ -121,9 +121,7 @@ void matrix_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                             idx_b += B_n_col;
                         }
 
-                        // _mm256_storeu_pd((double *)&R[Rij], r0);
-                        // _mm256_storeu_pd((double *)&R[Rij + R_n_col], r1);
-
+                
                         _mm256_storeu_pd((double *)&R[Rij], r0);
                         _mm256_storeu_pd((double *)&R[Rij + 4], r1);
                         _mm256_storeu_pd((double *)&R[Rij + 8], r2);

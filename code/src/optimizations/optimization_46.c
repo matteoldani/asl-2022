@@ -7,15 +7,13 @@
 #include <optimizations/optimizations_46.h>
 #include <immintrin.h>
 
-// NEW: the matrices are now padded and unpadded at the beginning and end of the nnmf computation
-//      this allow us to not have to use cleanups loops which were the killer points of blas 
+// NEW matrices W, H and V are padded with zeros such that all dimensions are multiple of the blocksize 16. 
+//     matrices are unpadded at the end of the nmf computation  
 
 
 static unsigned int double_size = sizeof(double);
 
 
-// NEW: the transpose is not optimized because the cleanup loop was not implemented and this version of
-//      opt does support any type of inputs
 void transpose(double *src, double *dst,  const int N, const int M) {
 
     int nB = 1;
@@ -35,7 +33,6 @@ void transpose(double *src, double *dst,  const int N, const int M) {
     }   
 }
 
-// NEW: this is the function that pads the matrix to a multiple of the block size
 void pad_matrix(double ** M, int *r, int *c){
     int temp_r;
     int temp_c;
@@ -73,7 +70,6 @@ void pad_matrix(double ** M, int *r, int *c){
 
 }
 
-// NEW: this is the function that unpard the matrix to the oringinal size
 void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
 
     // lets suppose that are always row majour
@@ -124,7 +120,7 @@ void matrix_mul_opt46(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     int nBA_n_col = nB * A_n_col;
     int unroll_i = 2, unroll_j = 16;
     int kk, i, j, k;
-
+    
 
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
@@ -209,7 +205,7 @@ void matrix_mul_opt46(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
         Ai += nBA_n_col;
     }
     
-
+    
 }
 
 
@@ -303,7 +299,7 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
     memcpy(W, W_final, m * r * double_size);
     memcpy(H, H_final, r * n * double_size);
 
-    // pdding all the values to multiple of BLOCKSIZE
+    // padding all the values to multiple of BLOCKSIZE
     int temp_r = r;
     int temp_m = m;
     int temp_n = n;
@@ -387,33 +383,19 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
            
 
         //computation for Hn+1
+
+
         
         transpose(W, Wt, m, r);
         matrix_mul_opt46(Wt, r, m, V, m, n, numerator, r, n);
         matrix_mul_opt46(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt46(denominator_l, r, r, H, r, n, denominator, r, n);
- 
-        for (i = 0; i < rn; i+=8){
-            H[i] =   H[i]   * numerator[i]   / denominator[i];
-            H[i+1] = H[i+1] * numerator[i+1] / denominator[i+1];
-            H[i+2] = H[i+2] * numerator[i+2] / denominator[i+2];
-            H[i+3] = H[i+3] * numerator[i+3] / denominator[i+3];
-            H[i+4] = H[i+4] * numerator[i+4] / denominator[i+4];
-            H[i+5] = H[i+5] * numerator[i+5] / denominator[i+5];
-            H[i+6] = H[i+6] * numerator[i+6] / denominator[i+6];
-            H[i+7] = H[i+7] * numerator[i+7] / denominator[i+7];
-        }
+        
 
-        for(i=0; i< rn; i+=8){
-            if(isnan(H[i])   || isnan(-H[i]))  { H[i]   = 0;}
-            if(isnan(H[i+1]) || isnan(-H[i+1])){ H[i+1] = 0;}
-            if(isnan(H[i+2]) || isnan(-H[i+2])){ H[i+2] = 0;}
-            if(isnan(H[i+3]) || isnan(-H[i+3])){ H[i+3] = 0;}
-            if(isnan(H[i+4]) || isnan(-H[i+4])){ H[i+4] = 0;}
-            if(isnan(H[i+5]) || isnan(-H[i+5])){ H[i+5] = 0;}
-            if(isnan(H[i+6]) || isnan(-H[i+6])){ H[i+6] = 0;}
-            if(isnan(H[i+7]) || isnan(-H[i+7])){ H[i+7] = 0;}
-
+        for(i = 0; i < original_r; i ++){
+            for(int j = 0; j < original_n; j++){
+                H[i * n + j] =   H[i * n + j]   * numerator[i * n + j]   / denominator[i * n + j];
+            }
         }
 
         //computation for Wn+1
@@ -421,27 +403,11 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt46(V, m, n, Ht, n, r, numerator_W, m, r);
         matrix_mul_opt46(H, r, n, Ht, n, r, denominator_l, r, r);
         matrix_mul_opt46(W, m, r, denominator_l, r, r, denominator_W, m, r);
-
-        for (i = 0; i < mr; i+=8){
-            W[i] =   W[i]   * numerator_W[i]   / denominator_W[i];
-            W[i+1] = W[i+1] * numerator_W[i+1] / denominator_W[i+1];
-            W[i+2] = W[i+2] * numerator_W[i+2] / denominator_W[i+2];
-            W[i+3] = W[i+3] * numerator_W[i+3] / denominator_W[i+3];
-            W[i+4] = W[i+4] * numerator_W[i+4] / denominator_W[i+4];
-            W[i+5] = W[i+5] * numerator_W[i+5] / denominator_W[i+5];
-            W[i+6] = W[i+6] * numerator_W[i+6] / denominator_W[i+6];
-            W[i+7] = W[i+7] * numerator_W[i+7] / denominator_W[i+7];
-        }
-        
-        for(i=0; i< mr; i+=8){
-            if(isnan(W[i]) || isnan(  -W[i]))  { W[i]   = 0;}
-            if(isnan(W[i+1]) || isnan(-W[i+1])){ W[i+1] = 0;}
-            if(isnan(W[i+2]) || isnan(-W[i+2])){ W[i+2] = 0;}
-            if(isnan(W[i+3]) || isnan(-W[i+3])){ W[i+3] = 0;}
-            if(isnan(W[i+4]) || isnan(-W[i+4])){ W[i+4] = 0;}
-            if(isnan(W[i+5]) || isnan(-W[i+5])){ W[i+5] = 0;}
-            if(isnan(W[i+6]) || isnan(-W[i+6])){ W[i+6] = 0;}
-            if(isnan(W[i+7]) || isnan(-W[i+7])){ W[i+7] = 0;}
+      
+        for(i = 0; i < original_m; i ++){
+            for(int j = 0; j < original_r; j++){
+                W[i * r + j] =   W[i * r + j]   * numerator_W[i * r + j]   / denominator_W[i * r + j];
+            }
         }
     }
 
@@ -466,6 +432,13 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
     free(V);
     free(H);
     free(W);
+
+   
+    // print_matrix(V, m, n);
+    // printf("\n");
+    // print_matrix(W, m, r);
+    // printf("\n");
+    // print_matrix(H, r, n);
 
     return err;
 }

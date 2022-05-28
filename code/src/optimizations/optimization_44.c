@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_44.h>
 #include <immintrin.h>
-//NEW - optimization done on optimization_1 but with blas
+//NEW from opt 24 call to blas substituted to call to matrix mul from 43
 
 static unsigned int double_size = sizeof(double);
 

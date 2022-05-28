@@ -7,11 +7,14 @@
 #include <optimizations/optimizations_45.h>
 #include <immintrin.h>
 
+// NEW optimized clean up code in the MMM on the i to perfrom well even if A_col is not a multiple of the block
+// In the clean up code the number of rows per block is the same as the remaining rows to be computed
+
 static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst,  const int N, const int M) {
 
-    int nB = BLOCK_SIZE_TRANS;
+    int nB = 1;
     int nBM = nB * M;
     int src_i = 0, src_ii;
 
@@ -521,7 +524,7 @@ double nnm_factorization_opt45(double *V, double*W, double*H, int m, int n, int 
         }
 
         //computation for Wn+1
-        double *Ht = malloc(double_size * rn);
+
         transpose(H, Ht, r, n);
         matrix_mul_opt45(V, m, n, Ht, n, r, numerator_W, m, r);
         matrix_mul_opt45(H, r, n, Ht, n, r, denominator_l, r, r);

@@ -6,8 +6,9 @@
 #include <assert.h>
 #include <optimizations/optimizations_42.h>
 
-// PREV - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly
-// Unrolling inside matrix multiplication
+//NEW  Unrolling the computation block by block to increase ILP. 2 on ii and 4 on jj. 
+//     So two lines of A are multiplyied by 4 columns of B
+
 typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
