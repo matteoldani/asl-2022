@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <optimizations/optimizations_45.h>
 #include <immintrin.h>
-//NEW - optimization done on optimization_1 but with blas
 
 static unsigned int double_size = sizeof(double);
 
@@ -140,16 +139,17 @@ void matrix_mul_opt45(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                         _mm256_storeu_pd((double *)&R[idx_r + 12], r7);
 
 
-                        for (; kk < k + nB; kk++)
-                        {
-                            R[Rij] += A[Aii + kk] * B[kk * B_n_col + jj];
-                        }
+                        // for (; kk < k + nB; kk++)
+                        // {
+                        //     R[Rij] += A[Aii + kk] * B[kk * B_n_col + jj];
+                        // }
                     }
                     Rii += R_n_col * unroll_i;
                     Aii += A_n_col * unroll_i;
                 }
             }
             //// clean up on k
+            // clean up on K should be to finish the last cols of A and rows of B left from blocking
             for (int ii = i; ii < i + nB; ii++)
             {
                 for (int jj = j; jj < j + nB; jj++)

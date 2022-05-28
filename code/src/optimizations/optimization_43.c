@@ -4,7 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include <assert.h>
-#include <optimizations/optimizations_42.h>
+#include <optimizations/optimizations_43.h>
 #include <immintrin.h>
 
 // PREV - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly

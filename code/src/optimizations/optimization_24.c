@@ -103,9 +103,8 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
 
     norm_approx = 0;
 
-    int idx_unroll = mn/8;
     int i;
-    for (i=0; i<idx_unroll; i+=8){
+    for (i=0; i<mn -7; i+=8){
         temp1 = V[i] - approx[i];
         temp2 = V[i+1] - approx[i+1];
         temp3 = V[i+2] - approx[i+2];
@@ -185,12 +184,11 @@ double nnm_factorization_opt24(double *V, double*W, double*H, int m, int n, int 
     double norm_V8 = 0;
 
 
-    int idx_unroll = mn/8;
     int i;
 
     ///// NORM
 
-    for (i=0; i<idx_unroll; i+=8){
+    for (i=0; i<mn -7; i+=8){
         norm_V1 += V[i]   * V[i];
         norm_V2 += V[i+1] * V[i+1];
         norm_V3 += V[i+2] * V[i+2];
@@ -225,8 +223,7 @@ double nnm_factorization_opt24(double *V, double*W, double*H, int m, int n, int 
         matrix_mul_opt24(denominator_l, r, r, H, r, n, denominator, r, n);
  
 
-        idx_unroll = rn/8;
-        for (i = 0; i < idx_unroll; i+=8){
+        for (i = 0; i < rn -7; i+=8){
             H[i] = H[i] * numerator[i] / denominator[i];
             H[i+1] = H[i+1] * numerator[i+1] / denominator[i+1];
             H[i+2] = H[i+2] * numerator[i+2] / denominator[i+2];
@@ -245,8 +242,7 @@ double nnm_factorization_opt24(double *V, double*W, double*H, int m, int n, int 
         matrix_rtrans_mul_opt24(H, r, n, H, r, n, denominator_l, r, r);
         matrix_mul_opt24(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
-        idx_unroll = mr / 8;
-        for (i = 0; i < idx_unroll; i+=8){
+        for (i = 0; i < mr - 7; i+=8){
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
             W[i+1] = W[i+1] * numerator_W[i+1] / denominator_W[i+1];
             W[i+2] = W[i+2] * numerator_W[i+2] / denominator_W[i+2];
