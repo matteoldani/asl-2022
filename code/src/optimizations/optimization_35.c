@@ -451,17 +451,14 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                 }
 
                 //W(HHt) mul
-                ni1 = ni;
                 ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
-                        ri1j1 = ri1 + j1;
                         accumulator = 0;
                         for (int k1 = 0; k1 < r; k1++)
                             accumulator += W[ri1 + k1] * denominator_l[k1 * r + j1];
-                        denominator[ri1j1] += accumulator;
+                        denominator_W[ri1 + j1] += accumulator;
                     }
-                    ni1 += n;
                     ri1 += r;
                 }
 
