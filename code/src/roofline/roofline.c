@@ -20,7 +20,7 @@ void baseline(int numTests, int input_size, int b, FILE * fout, fact_function fa
         random_matrix_init(&H, 0, 1);
         random_matrix_init(&V, 0, 1);
 
-        nnm_factorization_bs1(&V, &W, &H, 100, 0.005);
+        fact_function(&V, &W, &H, 100, 0.005);
     }
     matrix_deallocation(&V);
     matrix_deallocation(&W);
