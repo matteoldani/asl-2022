@@ -49,19 +49,8 @@ void matrix_mul_opt44(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
-    int unrolling_factor = 32;
     int unroll_i = 2, unroll_j = 16;
     int kk, i, j, k;
-    double R_Ri0j0;
-    double R_Ri0j1;
-    double R_Ri0j2;
-    double R_Ri0j3;
-    double R_Ri1j0;
-    double R_Ri1j1;
-    double R_Ri1j2;
-    double R_Ri1j3;
-    double Aik0, Aik1, Bi0j0, Bi0j1, Bi0j2, Bi0j3, Bi1j0, Bi1j1, Bi1j2, Bi1j3;
-    double R_Rij;
 
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
@@ -167,10 +156,6 @@ void matrix_mul_opt44(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
             //// end clean up
         }
         //// clean up
-        int x;
-        // printf("Clean up on j\n");
-        // printf("I: %d J: %d K: %d\n", i, j, k);
-        // scanf("%d", &x);
         for (int ii = i; ii < i + nB; ii++)
         {
 

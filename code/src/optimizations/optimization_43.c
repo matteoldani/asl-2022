@@ -56,19 +56,8 @@ void matrix_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
-    int unrolling_factor = 32;
     int unroll_i = 2, unroll_j = 16;
     int kk, i, j, k;
-    double R_Ri0j0;
-    double R_Ri0j1;
-    double R_Ri0j2;
-    double R_Ri0j3;
-    double R_Ri1j0;
-    double R_Ri1j1;
-    double R_Ri1j2;
-    double R_Ri1j3;
-    double Aik0, Aik1, Bi0j0, Bi0j1, Bi0j2, Bi0j3, Bi1j0, Bi1j1, Bi1j2, Bi1j3;
-    double R_Rij;
 
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
@@ -174,10 +163,6 @@ void matrix_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
             //// end clean up
         }
         //// clean up
-        int x;
-        // printf("Clean up on j\n");
-        // printf("I: %d J: %d K: %d\n", i, j, k);
-        // scanf("%d", &x);
         for (int ii = i; ii < i + nB; ii++)
         {
 
@@ -224,13 +209,11 @@ void matrix_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
 void matrix_rtrans_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
 {
 
-    int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
+    int Rij = 0, Ri = 0, Ai = 0, Rii, Aii;
     int nB = BLOCK_SIZE_RTRANSMUL;
     int nBR_n_col = nB * R_n_col;
     int nBA_n_col = nB * A_n_col;
-    int nBB_n_col = nB * B_n_col;
 
-    int unrolling_factor = 8;
     int unroll_i = 2, unroll_j = 4;
     int kk, i, j, k;
     double R_Ri0j0;
@@ -241,8 +224,7 @@ void matrix_rtrans_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int
     double R_Ri1j1;
     double R_Ri1j2;
     double R_Ri1j3;
-    double Aik0, Aik1, Bi0j0, Bi0j1, Bi0j2, Bi0j3, Bi1j0, Bi1j1, Bi1j2, Bi1j3;
-    double R_Rij;
+    double Aik0, Aik1, Bi0j0, Bi0j1, Bi0j2, Bi0j3;
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
@@ -308,7 +290,6 @@ void matrix_rtrans_mul_opt43(double *A, int A_n_row, int A_n_col, double *B, int
         }
 
         //clean up
-        int x;
         for (int ii = i; ii < i + nB; ii++) {
           
             for (int jj = j; jj < B_n_row; jj++) {
