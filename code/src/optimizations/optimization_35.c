@@ -399,7 +399,6 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
         memset(denominator_W, 0, d_mr);
 
         matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_l, r, r);
-        matrix_mul_opt35(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
         ri = mi = ni = 0;
         for (int i = 0; i < m; i += nB) {
@@ -451,20 +450,20 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                 }
 
-                /*//(WtW)*H mul
+                //W(HHt) mul
                 ni1 = ni;
                 ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
-                        ni1j1 = ni1 + j1;
+                        ri1j1 = ri1 + j1;
                         accumulator = 0;
                         for (int k1 = 0; k1 < r; k1++)
-                            accumulator += denominator_l[ri1 + k1] * H[k1 * n + j1];
-                        denominator[ni1j1] += accumulator;
+                            accumulator += W[ri1 + k1] * denominator_l[k1 * r + j1];
+                        denominator[ri1j1] += accumulator;
                     }
                     ni1 += n;
                     ri1 += r;
-                }*/
+                }
 
                 //element-wise multiplication and division
                 ri1 = ri;
