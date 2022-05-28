@@ -226,7 +226,7 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
 
     int nB = BLOCK_SIZE_W;
     int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
-    int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
+    int ri, mi, ni, nj, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
 
     double accumulator;
 
@@ -400,6 +400,7 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
         ri = mi = ni = 0;
         for (int i = 0; i < m; i += nB) {
             inB = i + nB;
+            nj = 0;
             for (int j = 0; j < r; j += nB) {
                 jnB = j + nB;
 
@@ -432,16 +433,18 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
 
                 //VH rmul
                 ni1 = ni;
+                ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
-                    nj1 = ni;
+                    nj1 = nj;
                     for (int j1 = j; j1 < jnB; j1++) {
                         accumulator = 0;
                         for (int k1 = 0; k1 < n; k1++)
                             accumulator += V[ni1 + k1] * H[nj1 + k1];
-                        numerator_W[ni1 + j1] += accumulator;
+                        numerator_W[ri1 + j1] += accumulator;
                         nj1 += n;
                     }
                     ni1 += n;
+                    ri1 += r;
                 }
 
                 /*//(WtW)*H mul
@@ -468,6 +471,7 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                     }
                     ni1 += n;
                 }*/
+                nj += nnB;
             }
             ri += rnB;
             mi += mnB;
