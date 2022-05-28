@@ -889,7 +889,7 @@ int main(int argc, char const *argv[]) {
     int n_mmulrtrans_opt = 0; //BACK TO 16
     int n_mmulltrans_opt = 0;
     int n_mmul_opt = 0; //BACK TO 16
-    int n_nnm_opt = 2; //BACK TO 16
+    int n_nnm_opt = 3; //BACK TO 16
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -966,6 +966,7 @@ int main(int argc, char const *argv[]) {
 
     nnmd[0] = nnm_factorization_opt3;
     nnmd[1] = nnm_factorization_opt35;
+    nnmd[2] = nnm_factorization_opt36;
 
     // END TODO
 
