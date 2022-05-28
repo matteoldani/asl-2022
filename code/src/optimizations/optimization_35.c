@@ -454,7 +454,7 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                 for (int i1 = j; i1 < jnB; i1++) {
                     for (int j1 = 0; j1 < n; j1++) {
                         accumulator = 0;
-                        for (int k1 = j; k1 < jnB; k1++)
+                        for (int k1 = i; k1 < inB; k1++)
                             accumulator += W_new[k1 * r + i1] * V[k1 * n + j1];
                         numerator[ni1 + j1] += accumulator;
                     }
