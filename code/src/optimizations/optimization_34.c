@@ -348,6 +348,7 @@ double nnm_factorization_opt34(double *V, double*W, double*H, int m, int n, int 
             ni += nnB;
         }
 
+        //remaining computation for Wn+1
         matrix_rtrans_mul_opt34(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
