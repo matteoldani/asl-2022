@@ -177,7 +177,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
-    double *Wt, *H_new;
+    double *Wt, *H_new, *W_new;
     int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;
@@ -192,6 +192,7 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
     
     Wt = malloc(d_mr);
     H_new = malloc(d_rn);
+    W_new = malloc(d_mr);
 
     //Operands needed to compute Hn+1
     double *numerator;      //r x n
@@ -397,6 +398,9 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
         memset(denominator_l, 0, d_rr);
         memset(denominator_W, 0, d_mr);
 
+        matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_l, r, r);
+        matrix_mul_opt35(W, m, r, denominator_l, r, r, denominator_W, m, r);
+
         ri = mi = ni = 0;
         for (int i = 0; i < m; i += nB) {
             inB = i + nB;
@@ -460,17 +464,18 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                     }
                     ni1 += n;
                     ri1 += r;
-                }
+                }*/
 
                 //element-wise multiplication and division
-                ni1 = ni;
+                ri1 = ri;
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1++) {
-                        ni1j1 = ni1 + j1;
-                        H_new[ni1j1] = H[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
+                        ri1j1 = ri1 + j1;
+                        W_new[ri1j1] = W[ri1j1] * numerator_W[ri1j1] / denominator_W[ri1j1];
                     }
-                    ni1 += n;
-                }*/
+                    ri1 += r;
+                }
+
                 nj += nnB;
             }
             ri += rnB;
@@ -480,11 +485,11 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
 
         //computation for Wn+1
         //matrix_rtrans_mul_opt35(V, m, n, H, r, n, numerator_W, m, r);
-        matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_l, r, r);
-        matrix_mul_opt35(W, m, r, denominator_l, r, r, denominator_W, m, r);
+        //matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_l, r, r);
+        //matrix_mul_opt35(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
-        for (int i = 0; i < mr; i++)
-            W[i] = W[i] * numerator_W[i] / denominator_W[i];
+        /*for (int i = 0; i < mr; i++)
+            W[i] = W[i] * numerator_W[i] / denominator_W[i];*/
 
         //computation for Hn+2
         transpose(W, Wt, m, r);
@@ -504,6 +509,7 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
     free(denominator_W);
     free(Wt);
     free(H_new);
+    free(W_new);
     free(approximation);
     return err;
 }
