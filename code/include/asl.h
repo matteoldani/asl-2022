@@ -11,6 +11,11 @@
 #define BLOCK_SIZE_MMUL 8
 #define BLOCK_SIZE_RTRANSMUL 8
 #define BLOCK_SIZE_TRANS 8
-#define BLOCK_SIZE_H 4
+#define BLOCK_SIZE_H_ROW 8
+#define BLOCK_SIZE_H_COL 4
+#define BLOCK_SIZE_H_MUL 2
 #define BLOCK_SIZE_W 8
+#define BLOCK_SIZE_W_ROW 4
+#define BLOCK_SIZE_W_COL 8
+#define BLOCK_SIZE_W_MUL 2
 typedef unsigned long long myInt64;

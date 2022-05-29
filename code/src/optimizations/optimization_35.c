@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_35.h>
 
-//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate W block by block and reuse instantly
+//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate W block by block and reuse instantly (blocks of W are rectangular)
 
 typedef unsigned long long myInt64;
 
@@ -225,8 +225,9 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
     //NEW - All multiplications are done in the most optimal manner - blocked and with index calculation optimizations and scalar replacement
     //NOTE - We may also try calling BLAS on the level of blocks
 
-    int nB = BLOCK_SIZE_W;
-    int inB, jnB, rnB = r * nB, nnB = n * nB;
+    int nB_i = BLOCK_SIZE_W_ROW;
+    int nB_j = BLOCK_SIZE_W_COL;
+    int inB, jnB, rnB_i = r * nB_i, nnB_i = n * nB_i, rnB_j = r * nB_j, nnB_j = n * nB_j;
     int ri, ni, rj, nj, ri1, ni1, nj1, ri1j1;
 
     double accumulator;
@@ -261,12 +262,12 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
         matrix_rtrans_mul_opt35(H, r, n, H, r, n, denominator_r, r, r);
 
         ri = ni = 0;
-        for (int i = 0; i < m; i += nB) {
-            inB = i + nB;
+        for (int i = 0; i < m; i += nB_i) {
+            inB = i + nB_i;
             nj = 0;
             rj = 0;
-            for (int j = 0; j < r; j += nB) {
-                jnB = j + nB;
+            for (int j = 0; j < r; j += nB_j) {
+                jnB = j + nB_j;
 
                 //computation for Wn+1
                 
@@ -345,11 +346,11 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                 }
 
-                nj += nnB;
-                rj += rnB;
+                nj += nnB_j;
+                rj += rnB_j;
             }
-            ri += rnB;
-            ni += nnB;
+            ri += rnB_i;
+            ni += nnB_i;
         }
 
         //remaining computation for Hn+2

@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_33.h>
 
-//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly
+//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly (blocks of H are rectangular)
 
 typedef unsigned long long myInt64;
 
@@ -224,8 +224,10 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     //NEW - All multiplications are done in the most optimal manner - blocked and with index calculation optimizations and scalar replacement
     //NOTE - We may also try calling BLAS on the level of blocks
 
-    int nB = BLOCK_SIZE_H;
-    int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
+    int nB_i = BLOCK_SIZE_H_ROW;
+    int nB_j = BLOCK_SIZE_H_COL;
+    int nB_mul = BLOCK_SIZE_H_MUL;
+    int inB, jnB, mnB_mul = m * nB_mul, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i;
     int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
 
     double accumulator;
@@ -249,8 +251,8 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
         transpose(W, Wt, m, r);
 
         ri = mi = ni = 0;
-        for (int i = 0; i < r; i += nB) {
-            inB = i + nB;
+        for (int i = 0; i < r; i += nB_i) {
+            inB = i + nB_i;
 
             //computation for Hn+1
             
@@ -259,26 +261,26 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             ri1 = ri, mi1 = mi;
             for (int i1 = i; i1 < inB; i1++) {
                 mj1 = 0;
-                for (int j1 = 0; j1 < r; j1 += nB) {
-                    for (int k1 = 0; k1 < m; k1 += nB) {
+                for (int j1 = 0; j1 < r; j1 += nB_mul) {
+                    for (int k1 = 0; k1 < m; k1 += nB_mul) {
                         mjj1 = mj1;
-                        for (int jj1 = j1; jj1 < j1 + nB; jj1++) {
+                        for (int jj1 = j1; jj1 < j1 + nB_mul; jj1++) {
                             ri1jj1 = ri1 + jj1;
                             accumulator = 0;
-                            for (int kk1 = k1; kk1 < k1 + nB; kk1++)
+                            for (int kk1 = k1; kk1 < k1 + nB_mul; kk1++)
                                 accumulator += Wt[mi1 + kk1] * Wt[mjj1 + kk1];
                             denominator_l[ri1jj1] += accumulator;
                             mjj1 += m;
                         }
                     }
-                    mj1 += mnB;
+                    mj1 += mnB_mul;
                 }
                 ri1 += r;
                 mi1 += m;
             }
 
-            for (int j = 0; j < n; j += nB) {
-                jnB = j + nB;
+            for (int j = 0; j < n; j += nB_j) {
+                jnB = j + nB_j;
                 
                 //computation for Hn+1
                 
@@ -372,9 +374,9 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     ni1 += n;
                 }
             }
-            ri += rnB;
-            mi += mnB;
-            ni += nnB;
+            ri += rnB_i;
+            mi += mnB_i;
+            ni += nnB_i;
         }
 
         //remaining computation for Wn+1
