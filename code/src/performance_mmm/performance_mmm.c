@@ -3,6 +3,7 @@
 #include <mmm/mmm_2.h>
 #include <mmm/mmm_3.h>
 #include <mmm/mmm_4.h>
+#include <stdlib.h>
 
 
 #include <asl.h>
@@ -14,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
 
 #define CPU_FREQ 3.5e9
 typedef void (*mmm_m) (Matrix *, Matrix *, Matrix *);
@@ -63,11 +65,11 @@ void pad_matrix(double ** M, int *r, int *c){
 
     *M = realloc(*M, double_size * (*c) * temp_r);
     // i need to pad the rows before and the cols after transposing
-    memset(&(*M)[(*c)*(*r)], 0, double_size * (temp_r-(*r)) * (*c));
+    memset(&(*M)[(*c)*(*r)], 1.5, double_size * (temp_r-(*r)) * (*c));
 
     new_Mt = malloc(double_size * temp_c * temp_r);
     transpose(*M, new_Mt, temp_r, *c);
-    memset(&new_Mt[temp_r * (*c)], 0, double_size * (temp_c - (*c)) * temp_r);
+    memset(&new_Mt[temp_r * (*c)], 2.5, double_size * (temp_c - (*c)) * temp_r);
 
     free(*M);
     *M = malloc(double_size * temp_c * temp_r);
@@ -119,13 +121,14 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
     double rand_max_r = 1 / (double)RAND_MAX;
 
     int steps = (max - min) / numTests;
+    printf("Steps %d\n", steps);
     for (int i = min; i < max; i += steps) {
-    for (int i = max - steps; i >= 0; i -= steps) {
+    //for (int i = max - steps; i >= min; i -= steps) {
     
         m = i;
         n = i; //+ steps; 
         r = RANK;
-        cost = 2 * m * r * n;
+   
         double * A, * B, * C;
 
         A = malloc(sizeof(double) * m * r);
@@ -140,6 +143,10 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
         for(int i = 0; i<n*r; i++){
             B[i]= rand_from(0, 1);
         }
+        int original_m = m;
+        int original_r = r;
+        int original_n = n;
+
 
         int temp_m = m;
         int temp_n = n;
@@ -150,6 +157,31 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
             pad_matrix(&C, &m, &n);
         }
 
+        cost = 2 * m * r * n;
+
+        double * A_p = aligned_alloc(32, sizeof(double) * m * r);
+        double * B_p = aligned_alloc(32, sizeof(double) * r * n);
+        double * C_p = aligned_alloc(32, sizeof(double) * m * n);
+        
+        memcpy(A_p, A, m * r * double_size);
+        memcpy(B_p, B, r * n * double_size);
+        memcpy(C_p, C, m * n * double_size);
+
+   
+        printf("Pointer A: %p\n", A);
+
+        if (!((int)((const void *)(A_p)) % (32) == 0)){
+          //TODO handle alignment 
+          printf("A NOT aligned\n");
+        }
+        if (!((int)((const void *)(B_p)) % (32) == 0)){
+          //TODO handle alignment 
+          printf("B NOT aligned\n");
+        }
+        if (!((int)((const void *)(C_p)) % (32) == 0)){
+          //TODO handle alignment 
+          printf("C NOT aligned\n");
+        }
 
 
         //Call adequate cost functio
@@ -163,7 +195,7 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
         while(num_runs < (1 << 14)) {
             start = start_tsc();
             for (int j = 0; j < num_runs; j++) {
-                 run_mmm_v(A, m, r, B, r, n, C, m, n);
+                 run_mmm_v(A_p, m, r, B_p, r, n, C_p, m, n);
             }
             cycles = stop_tsc(start);
 
@@ -176,7 +208,7 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
         start = start_tsc();
 
         for (int j = 0; j < num_runs; j++) {
-                run_mmm_v(A, m, r, B, r, n, C, m, n);
+                run_mmm_v(A_p, m, r, B_p, r, n, C_p, m, n);
         }
 
         cycles = stop_tsc(start)/num_runs;
@@ -185,14 +217,20 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
         #endif
 
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
+        printf("Sizes: m=%llu, n=%llu, r=%llu:\n", original_m,original_r,original_n);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
+        
          if(fout != NULL){
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",m,r,n,cost, performance);
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",original_m,original_r,original_n,cost, performance);
         }
 
         free(A);
         free(B);
         free(C);
+
+        free(A_p);
+        free(B_p);
+        free(C_p);
     }
 }
 

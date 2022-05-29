@@ -44,6 +44,12 @@ void transpose(double *src, double *dst,  const int N, const int M) {
 void pad_matrix(double ** M, int *r, int *c){
     int temp_r;
     int temp_c;
+    // if( ((*r) %BLOCK_SIZE_MMUL == 0 ) && ((*c)%BLOCK_SIZE_MMUL == 0)){
+    //     printf("NO NEED TO PAD\n");
+    //     return;
+    // }
+
+    // printf("PADDING FUNCTION\n");
 
     if( (*r) %BLOCK_SIZE_MMUL != 0){
         temp_r = (((*r) / BLOCK_SIZE_MMUL ) + 1)*BLOCK_SIZE_MMUL;   
@@ -65,7 +71,7 @@ void pad_matrix(double ** M, int *r, int *c){
 
     new_Mt = malloc(double_size * temp_c * temp_r);
     transpose(*M, new_Mt, temp_r, *c);
-    memset(&new_Mt[temp_r * (*c)], 0, double_size * (temp_c - (*c)) * temp_r);
+    memset(&new_Mt[temp_r * (*c)], 0, double_size * (temp_c - (*c)) * temp_r); 
 
     free(*M);
     *M = malloc(double_size * temp_c * temp_r);
@@ -142,6 +148,20 @@ void perf_m(Matrix A, Matrix B, Matrix C, int iterations){
 
 }
 
+
+static void print_matrix(double* matrix, int n_row, int n_col) {
+
+    printf("Printing a matrix with %d rows and %d cols\n\n", n_row, n_col);
+    for (int row = 0; row < n_row; row++) {
+        for (int col = 0; col < n_col; col++) {
+            fprintf(stdout, "%.2lf\t", matrix[row * n_col + col]);
+        }
+        fprintf(stdout, "\n\n");
+    }
+    fprintf(stdout, "\n\n");
+}
+
+
 void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations){
     myInt64 cost;
     double performance;
@@ -169,7 +189,6 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     }
     #endif
 
-    start = start_tsc();
 
     int temp_m = m;
     int temp_n = n;
@@ -183,11 +202,13 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     int save_m = m;
     int save_n = n;
     int save_r = r;
+    start = start_tsc();
 
     for(int i=0; i<iterations; i++){
         run_mmm_v(A, m, r, B, r, n, C, m, n);
     }   
     
+    cycles = stop_tsc(start);
     
     if(run_mmm_v == &matrix_mul_3){
         temp_m = m;
@@ -198,12 +219,12 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
         unpad_matrix(&C, &temp_m, &n, original_m, original_n);
     }
 
-    cycles = stop_tsc(start);
 
     cost = ((myInt64)(2 * save_m * save_n * save_r)) * iterations;
     performance =  (double )cost / (double) cycles;
 
     double seconds = ((double)(cycles)) / CPU_FREQ;
+
 
     printf("Cycles: %llu\tPerformance(f/c): %lf\tCost: %llu\tRuntime: %.4lfs\n", cycles, performance, cost, seconds);
 
