@@ -886,10 +886,10 @@ int main(int argc, char const *argv[]) {
     void (*mmul[n_mmul])(Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n_nnm])(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    int n_mmulrtrans_opt = 14;
+    int n_mmulrtrans_opt = 17;
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 14;
-    int n_nnm_opt = 14;
+    int n_mmul_opt = 17;
+    int n_nnm_opt = 17;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -926,6 +926,9 @@ int main(int argc, char const *argv[]) {
     mmuld[11] = matrix_mul_opt32;
     mmuld[12] = matrix_mul_opt33;
     mmuld[13] = matrix_mul_opt34;
+    mmuld[14] = matrix_mul_opt35;
+    mmuld[15] = matrix_mul_opt36;
+    mmuld[16] = matrix_mul_opt41;
 
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
@@ -942,6 +945,9 @@ int main(int argc, char const *argv[]) {
     mmulrtransd[11] = matrix_rtrans_mul_opt32;
     mmulrtransd[12] = matrix_rtrans_mul_opt33;
     mmulrtransd[13] = matrix_rtrans_mul_opt34;
+    mmulrtransd[14] = matrix_rtrans_mul_opt35;
+    mmulrtransd[15] = matrix_rtrans_mul_opt36;
+    mmulrtransd[16] = matrix_rtrans_mul_opt41;
 
     nnmd[0] = nnm_factorization_opt0;
     nnmd[1] = nnm_factorization_opt1;
@@ -957,6 +963,9 @@ int main(int argc, char const *argv[]) {
     nnmd[11] = nnm_factorization_opt32;
     nnmd[12] = nnm_factorization_opt33;
     nnmd[13] = nnm_factorization_opt34;
+    nnmd[14] = nnm_factorization_opt35;
+    nnmd[15] = nnm_factorization_opt36;
+    nnmd[16] = nnm_factorization_opt41;
 
     // END TODO
 

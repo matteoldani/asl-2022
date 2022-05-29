@@ -12,6 +12,9 @@
 #include <optimizations/optimizations_32.h>
 #include <optimizations/optimizations_33.h>
 #include <optimizations/optimizations_34.h>
+#include <optimizations/optimizations_35.h>
+#include <optimizations/optimizations_36.h>
+#include <optimizations/optimizations_41.h>
 #include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
@@ -105,6 +108,9 @@ int main(int argc, char const* argv[]) {
         printf("\t11. Optimisation 32\n");
         printf("\t12. Optimisation 33\n");
         printf("\t13. Optimisation 34\n");
+        printf("\t14. Optimisation 35\n");
+        printf("\t15. Optimisation 36\n");
+        printf("\t16. Optimisation 41\n");
 
         return -1;
     }
@@ -188,6 +194,15 @@ int main(int argc, char const* argv[]) {
         break;
     case 13:
         run_factorization = &nnm_factorization_opt34;
+        break;
+    case 14:
+        run_factorization = &nnm_factorization_opt35;
+        break;
+    case 15:
+        run_factorization = &nnm_factorization_opt36;
+        break;
+    case 16:
+        run_factorization = &nnm_factorization_opt41;
         break;
 
     default:
