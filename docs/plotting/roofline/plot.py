@@ -4,7 +4,7 @@ import sys
 import os
 import math
 from matplotlib import rc
-rc('text', usetex=True) # this is if you want to use latex to print text. If you do you can create strings that go on labels or titles like this for example (with an r in front): r"$n=$ " + str(int(n))
+#rc('text', usetex=True) # this is if you want to use latex to print text. If you do you can create strings that go on labels or titles like this for example (with an r in front): r"$n=$ " + str(int(n))
 from numpy import *
 from pylab import *
 import random
@@ -15,8 +15,8 @@ from scipy import stats
 from matplotlib.patches import Polygon
 import matplotlib.font_manager as fm
 
-font = fm.FontProperties(
-        family = 'Gill Sans', fname = 'GillSans.ttc')
+#font = fm.FontProperties(
+#        family = 'Gill Sans', fname = 'GillSans.ttc')
 
 
 background_color =(0.85,0.85,0.85) #'#C0C0C0'    
@@ -43,7 +43,7 @@ def addPerfLine(peakPerf, label):
 
 
 def addBWLine(BW, label):
-	x = np.linspace(X_MIN, X_MAX, X_MAX)
+	x = np.linspace(X_MIN, X_MAX)
 	y = x*BW
 	ax.plot(x, y, linewidth=0.75, color='black')
 	yCoordinateTransformed = (log(X_MIN*BW)-log(Y_MIN))/(log(Y_MAX/Y_MIN))+0.16 #0.16 is the offset of the lower axis
@@ -55,23 +55,19 @@ GIGA = 1000000000
 def gflops_to_flops_per_cycle(gflops):
 	return (gflops * GIGA) / FREQ
 
-#X_MIN=0.01
+
 X_MIN=0.1
-#X_MAX=100.0
-X_MAX=100.0
-#Y_MIN=0.1
+X_MAX=10.0
 Y_MIN=0.1
 Y_MAX=200.0
-#PEAK_PERF=8.0
-#PEAK_BW=11.95
 
-PEAK_PERF=[7.0, 28.0, 56]
-PEAK_PERF_LABELS=['Scalar Add', 'Vector Add', 'Vector FMA']
+PEAK_PERF=[7.0] # , 28.0, 56
+PEAK_PERF_LABELS=['Scalar Add'] # , 'Vector Add', 'Vector FMA'
 PEAK_BW=[24.3, 60.0, 97, 297]
 PEAK_BW_LABELS = ['DRAM', 'L3', 'L2', 'L1']
 
 for i in range(len(PEAK_BW)):
-	PEAK_BW[i] = (PEAK_BW[i] * GIGA) / FREQ
+	PEAK_BW[i] = round((PEAK_BW[i] * GIGA) / FREQ, 2)
 
 INVERSE_GOLDEN_RATIO=0.618
 OUTPUT_FILE="rooflinePlotTotal.pdf"
@@ -92,8 +88,8 @@ ax.set_xscale('log')
 
 #formatting:
 ax.set_title(TITLE,fontsize=14,fontweight='bold')
-ax.set_xlabel(X_LABEL, fontproperties = font, fontsize=12)
-ax.set_ylabel(Y_LABEL, fontproperties = font, fontsize=12)
+ax.set_xlabel(X_LABEL, fontsize=12)
+ax.set_ylabel(Y_LABEL, fontsize=12)
 
 #x-y range
 ax.axis([X_MIN,X_MAX,Y_MIN,Y_MAX])
@@ -135,9 +131,51 @@ yticks(newlocs, newlabels)
 sizes = [80, 160, 320, 400, 640]
 series = ['bs1', 'bs2', 'opt0', 'opt1', 'aopt1', 'aopt2', 'opt2', 'opt3', 'opt21', 'opt22', 'opt23', 'opt24', 'opt31', 'opt32', 'opt33', 'opt34']
 dataTotal = [
-	(),
-	(),
-	()
+	[ 
+		(2.24, 0.082), (2.18, 0.083), (2.09, 0.083), (2.11, 0.083), (1.85, 0.083)
+	],
+	[
+		(6.01, 0.39), (17.02, 0.45), (17.71, 0.43), (16.67, 0.44), (17.42, 0.44)
+	],
+	[
+		(2.26, 0.12), (2.16, 0.12), (2.04, 0.12), (1.99, 0.12), (1.71, 0.12) # Uninteresting
+	],
+	[
+		(2.31, 0.13), (2.31, 0.12), (2.15, 0.12), (2.09, 0.12), (1.73, 0.12)
+	],
+	[
+		(2.76, 0.13), (2.45, 0.13), (2.27, 0.13), (2.23, 0.13), (2.18, 0.13)
+	],
+	[
+		(2.38, 0.12), (2.3, 0.12), (2.17, 0.12), (2.17, 0.12), (2.13, 0.12) # Uninteresting
+	],
+	[
+		(2.51, 0.12), (2.55, 0.12), (2.34, 0.12), (2.36, 0.12), (2.31, 0.12) # Uninteresting
+	],
+	[
+		(2.91, 0.12), (2.56, 0.12), (2.4, 0.12), (2.36, 0.12), (2.31, 0.12)
+	],
+	[
+		(2.85, 0.12), (2.57, 0.12), (2.4, 0.12), (2.36, 0.12), (2.32, 0.12) # Uninteresting
+	],
+	[
+		(1.56, 0.12), (2.71, 0.14), (2.53, 0.14), (2.51, 0.14), (2.46, 0.13)
+	],
+	[
+		(7.73, 0.37), (7.97, 0.22), (9.26, 0.21), (8.96, 0.2), (9.67, 0.2)
+	],
+	[
+		(10.42, 0.5), (17.14, 0.5), (21.12, 0.48), (20.71, 0.47), (19.73, 0.45)
+	],
+	[
+		(2.77, 0.092), (2.45, 0.093), (2.29, 0.093), (2.24, 0.093), (2.1, 0.093) # Uninteresting
+	],
+	[
+		(3.03, 0.13), (2.73, 0.13), (2.57, 0.13), (2.53, 0.13), (2.39, 0.13) # Uninteresting
+	],
+	[
+		(3.11, 0.14), (3.18, 0.14), (3.17, 0.15), (3.26, 0.15), (2.6, 0.15)
+	]
 ]
 
 pp = []
@@ -165,7 +203,6 @@ for serie,i in zip(series,range(len(series))):
 		xerr_high.append(stats.scoreatpercentile(xDataItem, 75))	
 	
 	for yDataItem in yData:
-		yDataItem = gflops_to_flops_per_cycle(yDataItem)
 		y.append(stats.scoreatpercentile(yDataItem, 50))
 		yerr_low.append(stats.scoreatpercentile(yDataItem, 25))
 		yerr_high.append(stats.scoreatpercentile(yDataItem, 75)) 
@@ -185,10 +222,10 @@ for serie,i in zip(series,range(len(series))):
 	ax.scatter(x[0], y[0], s=4,zorder=12,  color=dark_grey_color)
 	ax.scatter(x[len(x)-1], y[len(y)-1],s=4, zorder=12, color=dark_grey_color)
 
-	p, =ax.plot(x, y, '-', color=colors[i],label=serie)
+	p, = ax.plot(x, y, '-',label=serie) # , color=colors[i]
 	pp.append(p)
 	ss.append(serie)
-	ax.errorbar(x, y, yerr=[yerr_low, yerr_high], xerr=[xerr_low, xerr_high], fmt='b.',elinewidth=0.4, ecolor = 'Black', capsize=0, color=colors[i])  
+	#ax.errorbar(x, y, yerr=[yerr_low, yerr_high], xerr=[xerr_low, xerr_high], fmt='b.',elinewidth=0.4, ecolor = 'Black', capsize=0)  # , color=colors[i]
 
 	if ANNOTATE_POINTS:
 		ax.annotate(sizes[0],
