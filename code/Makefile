@@ -40,7 +40,7 @@ MKLROOT=/opt/intel/oneapi/mkl/latest
 #INTEL_FLAG= -DMKL_ILP64  -m64  -I"$(MKLROOT)/include"
 
 
-all: baseline performance verification optimisations tests
+all: baseline performance optimisations tests
 
 .build_dir_creation:
 	mkdir -p $(BIN_DIR)

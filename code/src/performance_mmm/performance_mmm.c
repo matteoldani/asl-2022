@@ -2,7 +2,6 @@
 //#include <mmm/mmm_1.h>
 #include <mmm/mmm_2.h>
 #include <mmm/mmm_3.h>
-#include <mmm/mmm_4.h>
 #include <stdlib.h>
 
 
@@ -111,7 +110,7 @@ void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
 
 void perf_v(int numTests, int min, int max, int opt, FILE * fout){
     int m, n, r;
-    printf("Opt alg %d performance evaluation\n\n", opt);
+    printf("MMM %d performance evaluation\n\n", opt);
     srand(SEED);
 
     myInt64 cost = 0;
@@ -168,20 +167,20 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
         memcpy(C_p, C, m * n * double_size);
 
    
-        printf("Pointer A: %p\n", A);
+        // printf("Pointer A: %p\n", A);
 
-        if (!((int)((const void *)(A_p)) % (32) == 0)){
-          //TODO handle alignment 
-          printf("A NOT aligned\n");
-        }
-        if (!((int)((const void *)(B_p)) % (32) == 0)){
-          //TODO handle alignment 
-          printf("B NOT aligned\n");
-        }
-        if (!((int)((const void *)(C_p)) % (32) == 0)){
-          //TODO handle alignment 
-          printf("C NOT aligned\n");
-        }
+        // if (!((int)((const void *)(A_p)) % (32) == 0)){
+        //   //TODO handle alignment 
+        //   printf("A NOT aligned\n");
+        // }
+        // if (!((int)((const void *)(B_p)) % (32) == 0)){
+        //   //TODO handle alignment 
+        //   printf("B NOT aligned\n");
+        // }
+        // if (!((int)((const void *)(C_p)) % (32) == 0)){
+        //   //TODO handle alignment 
+        //   printf("C NOT aligned\n");
+        // }
 
 
         //Call adequate cost functio
@@ -242,12 +241,8 @@ int main(int argc, char const *argv[])
         printf("\t./build/run_mmm <id> <min> <max> <num-test>\n\n");
 
         printf("IDs:\n");
-        printf("\t- 0: Baseline 1 mmm\n");
-        printf("\t- 1: Baseline 2 mmm\n");
-        printf("\t- 2: Opt 45 (best w/o blas) mmm\n");
-        printf("\t- 3: Opt 46 (opt 45 padded) mmm\n");
-        printf("\t- 4: Opt big block mmm\n");
-
+        printf("\t- 0: Matrix Mul 2\n");
+        printf("\t- 1: Matrix Mul 3\n");
         printf("\n");
 
         return 0;
@@ -287,10 +282,6 @@ int main(int argc, char const *argv[])
         run_mmm_v = &matrix_mul_3;
         break;
 
-    case 2:
-        run_mmm_v = &matrix_mul_4;
-        break;
-    
     default:
         printf("Wrong id\n");
         break;

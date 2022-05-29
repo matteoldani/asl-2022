@@ -228,7 +228,7 @@ void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
-inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
+static inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul_opt47(W, m, r, H, r, n, approx, m, n);
 
@@ -356,10 +356,8 @@ double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final,
     __m256d t;
 
     __m256d r0, r1, r2, r3;
-    __m256d r4, r5, r6, r7;
-    __m256d t0, t1, t2, t3;
 
-    __m256d sum0, sum1, sum2;
+    __m256d sum0, sum1;
 
     norm_approx0 = _mm256_setzero_pd();
     norm_approx1 = _mm256_setzero_pd();

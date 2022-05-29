@@ -157,12 +157,9 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
         real_m = (((m-1)/16) + 1)*16;
         real_n = (((n-1)/16) + 1)*16;
         real_r = (((r-1)/16) + 1)*16;
-
-        printf("%lld %lld %lld --> %lld %lld %lld\n", m, n, r, real_m, real_n, real_r);
-        
-      
+              
         //Call adequate cost functions
-        if(fact_function == &nnm_factorization_opt47){
+        if(fact_function == &nnm_factorization_opt47 || fact_function == &nnm_factorization_opt46 ){
             
             cost = matrix_rand_init_cost(real_n, real_m);
             cost += matrix_rand_init_cost(real_m, real_r);

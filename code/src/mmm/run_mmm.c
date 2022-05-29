@@ -22,6 +22,7 @@ mmm_v run_mmm_v;
 
 static int double_size = sizeof(double);
 
+// NOTE THAT IS WORKING BECAUSE BLOCK SIZE HARDOCDED TO 1
 void transpose(double *src, double *dst,  const int N, const int M) {
 
     int nB = 1;
@@ -44,12 +45,12 @@ void transpose(double *src, double *dst,  const int N, const int M) {
 void pad_matrix(double ** M, int *r, int *c){
     int temp_r;
     int temp_c;
+
+    // THIS IF NEEDS MORE TESTING BECAUSE ADDING IT MAKES PADDED AND UNPADDED PERF THE SAME
+
     // if( ((*r) %BLOCK_SIZE_MMUL == 0 ) && ((*c)%BLOCK_SIZE_MMUL == 0)){
-    //     printf("NO NEED TO PAD\n");
     //     return;
     // }
-
-    // printf("PADDING FUNCTION\n");
 
     if( (*r) %BLOCK_SIZE_MMUL != 0){
         temp_r = (((*r) / BLOCK_SIZE_MMUL ) + 1)*BLOCK_SIZE_MMUL;   
@@ -149,19 +150,6 @@ void perf_m(Matrix A, Matrix B, Matrix C, int iterations){
 }
 
 
-static void print_matrix(double* matrix, int n_row, int n_col) {
-
-    printf("Printing a matrix with %d rows and %d cols\n\n", n_row, n_col);
-    for (int row = 0; row < n_row; row++) {
-        for (int col = 0; col < n_col; col++) {
-            fprintf(stdout, "%.2lf\t", matrix[row * n_col + col]);
-        }
-        fprintf(stdout, "\n\n");
-    }
-    fprintf(stdout, "\n\n");
-}
-
-
 void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations){
     myInt64 cost;
     double performance;
@@ -193,6 +181,8 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     int temp_m = m;
     int temp_n = n;
     int temp_r = r;
+
+    // PADDING DONE BEFORE TO NOT AFFECT THE COMPUTATION
     if(run_mmm_v == &matrix_mul_3){
         pad_matrix(&A, &temp_m, &temp_r);
         pad_matrix(&B, &r, &temp_n);
@@ -210,6 +200,7 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     
     cycles = stop_tsc(start);
     
+
     if(run_mmm_v == &matrix_mul_3){
         temp_m = m;
         temp_n = n;

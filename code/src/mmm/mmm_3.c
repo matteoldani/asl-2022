@@ -1,6 +1,7 @@
 #include <mmm/mmm_3.h>
 static int double_size = sizeof(double);
 
+// POSSIBLE IMPROVMENT --> ask for alloc_aling 32 bytes, should gain 0.5ish
 void matrix_mul_3(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
 {  
 
