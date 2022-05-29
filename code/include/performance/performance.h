@@ -37,7 +37,7 @@
 #include <performance/tsc_x86.h>
 #endif
 
-#define NUM_RUNS 10
+#define NUM_RUNS 50
 #define CYCLES_REQUIRED 1e8
 #define FREQUENCY 3.5e9	
 #define CALIBRATE

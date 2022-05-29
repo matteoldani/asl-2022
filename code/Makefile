@@ -16,6 +16,8 @@ VF_DIR=$(BS_DIR)/verification
 PERF_DIR=$(SRC_DIR)/performance
 OPT_DIR=$(SRC_DIR)/optimizations
 MMM_DIR=$(SRC_DIR)/mmm
+PERF_MMM_DIR=$(SRC_DIR)/performance_mmm
+
 
 CINCLUDE=-I $(IDIR_LOCALC)
 CINCLUDE+=-I $(IDIR_BLAS)
@@ -85,6 +87,13 @@ mmm: .build_dir_creation
 	$(BS_DIR)/baselines_utils/baselines_utils.c \
 	$(MMM_DIR)/*.c \
 	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
+
+mmm_performance: .build_dir_creation
+				$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/performance_mmm \
+				$(BS_DIR)/baselines_utils/baselines_utils.c \
+				$(MMM_DIR)/mmm_*.c \
+				$(PERF_MMM_DIR)/*.c\
+				$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
 
 clean:
 	rm -r $(BIN_DIR)/*
