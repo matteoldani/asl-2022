@@ -21,13 +21,13 @@ def generate_factorization(m, n, r,max_val = 1000):
     np.savetxt(input_files + "H_nnm.matrix", H, fmt="%.12f", header = f"{H.shape[0]} {H.shape[1]}",comments = "")
 
 
-def generate_mul(m, n):
-    A = generate_matrix(m,n)
-    B = generate_matrix(n, m)
+def generate_mul(m, n, r):
+    A = generate_matrix(m,r)
+    B = generate_matrix(r, n)
     R = np.matmul(A, B)
-    np.savetxt(input_files + "/A_mul.matrix", A, fmt="%.12f", header = f"{A.shape[0]} {A.shape[1]}",comments = "")
-    np.savetxt(input_files + "/B_mul.matrix", B, fmt="%.12f", header = f"{B.shape[0]} {B.shape[1]}",comments = "")
-    np.savetxt(input_files + "/R_mul.matrix", R, fmt="%.12f", header = f"{R.shape[0]} {R.shape[1]}",comments = "")
+    np.savetxt(input_files + f"/A_mul_{m}_{n}_{r}.matrix", A, fmt="%.12f", header = f"{A.shape[0]} {A.shape[1]}",comments = "")
+    np.savetxt(input_files + f"/B_mul_{m}_{n}_{r}.matrix", B, fmt="%.12f", header = f"{B.shape[0]} {B.shape[1]}",comments = "")
+    np.savetxt(input_files + f"/R_mul_{m}_{n}_{r}.matrix", R, fmt="%.12f", header = f"{R.shape[0]} {R.shape[1]}",comments = "")
 
 
 def generate_ltrans_mul(m, n):
@@ -54,10 +54,10 @@ def generate_rtrans_mul(m, n):
 def generate_matrix(r,c, max_val = 1000):
     return np.random.rand(r,c) * max_val
 
-r = 400
-c = 200
+r = 15
+c = 32
 
-generate_mul(r, c)
-generate_ltrans_mul(r, c)
-generate_rtrans_mul(r, c)
-generate_factorization(400, 400, 10)
+generate_mul(17, 17, 16)
+# generate_ltrans_mul(r, c)
+# generate_rtrans_mul(r, c)
+# generate_factorization(400, 400, 10)

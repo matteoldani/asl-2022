@@ -15,14 +15,19 @@ BS_DIR=$(SRC_DIR)/baselines
 VF_DIR=$(BS_DIR)/verification
 PERF_DIR=$(SRC_DIR)/performance
 OPT_DIR=$(SRC_DIR)/optimizations
+MMM_DIR=$(SRC_DIR)/mmm
+PERF_MMM_DIR=$(SRC_DIR)/performance_mmm
+
 
 CINCLUDE=-I $(IDIR_LOCALC)
 CINCLUDE+=-I $(IDIR_BLAS)
 
 CFLAGS=-Wall
-CFLAGS+=-O3
+CFLAGS+=-O3 -mfma
 CFLAGS+=-g 
 CFLAGS+=-fno-tree-vectorize
+#CFLAGS+=-ffast-math
+CFLAGS+=-march=native
 
 
 FLAG_LINK=-lm
@@ -35,7 +40,7 @@ MKLROOT=/opt/intel/oneapi/mkl/latest
 #INTEL_FLAG= -DMKL_ILP64  -m64  -I"$(MKLROOT)/include"
 
 
-all: baseline performance verification optimisations tests
+all: baseline performance optimisations tests
 
 .build_dir_creation:
 	mkdir -p $(BIN_DIR)
@@ -77,6 +82,18 @@ optimisations: .build_dir_creation
 least_square: .build_dir_creation
 	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/least_square $(BS_DIR)/least_square.c $(FLAG_LINK)
 
+mmm: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/mmm \
+	$(BS_DIR)/baselines_utils/baselines_utils.c \
+	$(MMM_DIR)/*.c \
+	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
+
+mmm_performance: .build_dir_creation
+				$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/performance_mmm \
+				$(BS_DIR)/baselines_utils/baselines_utils.c \
+				$(MMM_DIR)/mmm_*.c \
+				$(PERF_MMM_DIR)/*.c\
+				$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
 
 clean:
 	rm -r $(BIN_DIR)/*

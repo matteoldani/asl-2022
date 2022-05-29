@@ -5,6 +5,7 @@
 #include <baselines/baseline2.h>
 #include <optimizations/alg_opt_1.h>
 #include <optimizations/alg_opt_2.h>
+#include <optimizations/optimizations_0.h>
 #include <optimizations/optimizations_1.h>
 #include <optimizations/optimizations_2.h>
 #include <optimizations/optimizations_3.h>
@@ -20,11 +21,20 @@
 #include <optimizations/optimizations_35.h>
 #include <optimizations/optimizations_36.h>
 #include <optimizations/optimizations_41.h>
+#include <optimizations/optimizations_42.h>
+#include <optimizations/optimizations_43.h>
+#include <optimizations/optimizations_44.h>
+#include <optimizations/optimizations_45.h>
+#include <optimizations/optimizations_46.h>
+#include <optimizations/optimizations_47.h>
 
 
 #ifndef WIN32
+
 #include <sys/time.h>
+
 #endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -33,16 +43,21 @@
 #include <performance/tsc_x86.h>
 #endif
 
-#define NUM_RUNS 10
 #define CYCLES_REQUIRED 1e8
-#define FREQUENCY 3.5e9	
+#define FREQUENCY 3.5e9
 #define CALIBRATE
 
-typedef myInt64 (*fact_cost) (Matrix *, Matrix *, Matrix *, int);
-typedef double (*fact_function) (Matrix *, Matrix *, Matrix *, int, double);
-typedef double (*opt_fact_function)(double *, double*, double*, int, int, int, int, double);
+typedef myInt64 (*fact_cost)(Matrix *, Matrix *, Matrix *, int);
+
+typedef double (*fact_function)(Matrix *, Matrix *, Matrix *, int, double);
+
+typedef double (*opt_fact_function)(double *, double *, double *, int, int, int, int, double);
+
 typedef myInt64 (*opt_fact_cost)(int, int, int, int, int, int, int);
 
 
-void     baseline(int numTests, int min, int max, int b,   FILE * fout, fact_function fact_function, fact_cost fact_cost_function);
-void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact_function fact_function, opt_fact_cost fact_cost_function);
+void
+baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_function, fact_cost fact_cost_function);
+
+void optimization(int numTests, int min, int max, int opt, FILE *fout, opt_fact_function fact_function,
+                  opt_fact_cost fact_cost_function);

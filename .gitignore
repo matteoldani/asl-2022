@@ -12,6 +12,10 @@
 .idea/
 .vscode/
 
+# advisor too many files 
+code/advi_results
+code/config
+
 cmake-build-debug/
 .DS_Store
 ./src/baseline2/.vs
