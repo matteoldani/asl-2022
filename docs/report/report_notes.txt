@@ -106,6 +106,7 @@
 	- W(n+1) is computed in a blockwise manner and the computed block is used instantly in the multiplications needed to calculate H(n+2)
 	- All multiplications were done optimally with blocking and simplified index calculations and scalar replacement
 	- Since this optimization plays accross the iteration border, we precalculate H1 before we go into the loop, then calculate W(n+1) and H(n+2) in the loop body. But the error test is still done on top of W(n+1), H(n+1)
+	- Blocks of W are rectangular which allows for flexibility and can lead to performance benefits when the right block sizes are chosen
 
 *Optimization 36:
 	- On top of the algorithmic change from Optimization 34
