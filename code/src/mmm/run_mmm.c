@@ -171,9 +171,12 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
 
     start = start_tsc();
 
+    int temp_m = m;
+    int temp_n = n;
+    int temp_r = r;
     if(run_mmm_v == &matrix_mul_3){
-        pad_matrix(&A, &m, &r);
-        pad_matrix(&B, &r, &n);
+        pad_matrix(&A, &temp_m, &temp_r);
+        pad_matrix(&B, &r, &temp_n);
         pad_matrix(&C, &m, &n);
     }
 
@@ -184,11 +187,12 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     for(int i=0; i<iterations; i++){
         run_mmm_v(A, m, r, B, r, n, C, m, n);
     }   
-    int temp_m = m;
-    int temp_n = n;
-    int temp_r = r;
+    
     
     if(run_mmm_v == &matrix_mul_3){
+        temp_m = m;
+        temp_n = n;
+        temp_r = r;
         unpad_matrix(&A, &m, &temp_r, original_m, original_r);
         unpad_matrix(&B, &temp_n, &r, original_r, original_n);
         unpad_matrix(&C, &temp_m, &n, original_m, original_n);
