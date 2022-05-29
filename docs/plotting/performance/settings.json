@@ -1,34 +1,22 @@
 {
-    "title" : "Padding & mmm opt & new err",
+    "title" : "Spikes due to pow2 strides",
     "type"  : "performance",
     "action": "save",
-    "output_file":"/home/asl/asl-2022-moldani/docs/outputs/padding_new_err.pdf",
+    "output_file":"/home/asl/asl-2022-moldani/docs/outputs/pow2_strides.pdf",
     "xlabel": "Input matrix size",
     "ylabel": "Flops/Cycle",
     
     "lines" : [
 
-        {"label" : "bs 2",
-            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf2_2.out",
+        {"label" : "opt46",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_3_17_spikes.out",
             "color" : "black",
             "marker": "s"
         },
         
-        {"label" : "op24 - blas opt",
-            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf12_2.out",
+        {"label" : "opt47",
+            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_3_18_spikes.out",
             "color" : "firebrick",
-            "marker": "s"
-        },
-       
-        {"label" : "opt 46 - mmm & padded",
-            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf17_2.out",
-            "color" : "darkseagreen",
-            "marker": "s"
-        },
-
-        {"label" : "opt 47 - mmm & padded - new_err",
-            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf18_2.out",
-            "color" : "orange",
             "marker": "s"
         }
     ]
