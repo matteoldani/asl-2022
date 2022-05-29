@@ -137,7 +137,7 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
     printf("Opt alg %d performance evaluation\n\n", opt);
     srand(SEED);
 
-    myInt64 cost;
+    myInt64 cost = 0;
     double performance;
     
     int num_runs = NUM_RUNS;
@@ -152,14 +152,32 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
         V = malloc(m * n * sizeof(double));
         W = malloc(m * r * sizeof(double));
         H = malloc(r * n * sizeof(double));
+
+        int real_m, real_n, real_r;
+        real_m = (((m-1)/16) + 1)*16;
+        real_n = (((n-1)/16) + 1)*16;
+        real_r = (((r-1)/16) + 1)*16;
+
+        printf("%lld %lld %lld --> %lld %lld %lld\n", m, n, r, real_m, real_n, real_r);
+        
       
         //Call adequate cost functions
+        if(fact_function == &nnm_factorization_opt47){
+            
+            cost = matrix_rand_init_cost(real_n, real_m);
+            cost += matrix_rand_init_cost(real_m, real_r);
+            cost += matrix_rand_init_cost(real_r, real_n);
 
-        cost += matrix_rand_init_cost(n, m);
-        cost = matrix_rand_init_cost(m, r);
-        cost += matrix_rand_init_cost(r, n);
+            cost += fact_cost_function(real_m, real_n, real_m, real_r, real_r, real_n, max_iterations);
 
-        cost += fact_cost_function(m, n, m, r, r, n, max_iterations);
+        }else{
+
+            cost = matrix_rand_init_cost(n, m);
+            cost += matrix_rand_init_cost(m, r);
+            cost += matrix_rand_init_cost(r, n);
+
+            cost += fact_cost_function(m, n, m, r, r, n, max_iterations);
+        }
 
         #ifdef __x86_64__
         myInt64 cycles;

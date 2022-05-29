@@ -230,7 +230,7 @@ void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  */
 inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
 
-    matrix_mul_opt46(W, m, r, H, r, n, approx, m, n);
+    matrix_mul_opt47(W, m, r, H, r, n, approx, m, n);
 
     double* norm;
     double res;
