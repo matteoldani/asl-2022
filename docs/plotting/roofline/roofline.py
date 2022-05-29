@@ -2,7 +2,7 @@ import os
 import time 
 
 labels = ['bs1', 'bs2', 'opt0', 'opt1', 'aopt1', 'aopt2', 'opt2', 'opt3', 'opt21', 'opt22', 'opt23', 'opt24', 'opt31', 'opt32', 'opt33', 'opt34']
-sizes = [80, 160, 320, 400, 640]
+sizes = [240, 320, 400, 480, 560, 640] # 80, 160, 
 
 
 for size in sizes:
