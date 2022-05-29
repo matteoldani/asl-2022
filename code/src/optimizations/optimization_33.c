@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <optimizations/optimizations_33.h>
 
-//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly
+//NEW - optimization done on optimization_3 - Introduced algorithic changes to nnmf - calculate H block by block and reuse instantly (blocks of H are rectangular)
 
 typedef unsigned long long myInt64;
 

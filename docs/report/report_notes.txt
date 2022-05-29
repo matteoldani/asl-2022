@@ -93,6 +93,7 @@
 	- Intoduces an algorithmic change
 	- H(n+1) is computed in a blockwise manner and the computed block is used instantly in the multiplications needed to calculate W(n+1)
 	- All multiplications were done optimally with blocking and simplified index calculations and scalar replacement
+	- Blocks of H are rectangular which allows for flexibility and can lead to performance benefits when the right block sizes are chosen
 
 *Optimization 34:
 	- On top of the algorithmic change from Optimization 33
