@@ -876,20 +876,20 @@ int main(int argc, char const *argv[]) {
     }
 
     // TODO: Please add following the number of functions you would like to test:
-    int n_mmulrtrans = 2;
-    int n_mmulltrans = 2;
-    int n_mmul = 2;
-    int n_nnm = 2;
+    int n_mmulrtrans = 0; //BACK 2
+    int n_mmulltrans = 0; //BACK 2
+    int n_mmul = 0; //BACK 2
+    int n_nnm = 0; //BACK 2
 
     void (*mmulrtrans[n_mmulrtrans])(Matrix *A, Matrix *B, Matrix *R);
     void (*mmulltrans[n_mmulltrans])(Matrix *A, Matrix *B, Matrix *R);
     void (*mmul[n_mmul])(Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n_nnm])(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    int n_mmulrtrans_opt = 17;
+    int n_mmulrtrans_opt = 0; //BACK 17
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 17;
-    int n_nnm_opt = 17;
+    int n_mmul_opt = 0; //BACK 17
+    int n_nnm_opt = 2; //BACK 17
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
     void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
@@ -898,7 +898,7 @@ int main(int argc, char const *argv[]) {
 
     // START TODO:
     // Now add the functions you would like to test from the impleemntations:
-    mmul[0] = matrix_mul_bs1;
+   /* mmul[0] = matrix_mul_bs1;
     mmul[1] = matrix_mul_bs2;
 
     mmulltrans[0] = matrix_ltrans_mul_bs1;
@@ -965,7 +965,10 @@ int main(int argc, char const *argv[]) {
     nnmd[13] = nnm_factorization_opt34;
     nnmd[14] = nnm_factorization_opt35;
     nnmd[15] = nnm_factorization_opt36;
-    nnmd[16] = nnm_factorization_opt41;
+    nnmd[16] = nnm_factorization_opt41;*/
+
+    nnmd[0] = nnm_factorization_opt33;
+    nnmd[1] = nnm_factorization_opt37;
 
     // END TODO
 
