@@ -22,6 +22,8 @@
 #include <optimizations/optimizations_36.h>
 #include <optimizations/optimizations_41.h>
 #include <optimizations/optimizations_46.h>
+#include <optimizations/optimizations_47.h>
+#include <optimizations/optimizations_45.h>
 
 
 #ifndef WIN32

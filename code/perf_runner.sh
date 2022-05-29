@@ -1,10 +1,12 @@
 #!/bin/bash
 
-for i in {1..11}
-do
-	if [ $i != 9 ] 
-	then
-		./build/performance $i 512 1024 32 ../docs/outputs/perf_2_$i.out
-	fi
-
-done
+./build/performance 2 200 1500 52 ../docs/outputs/perf_3_2.out
+./build/performance 12 200 1500 52 ../docs/outputs/perf_3_12.out
+./build/performance 17 200 1500 52 ../docs/outputs/perf_3_17.out
+./build/performance 18 200 1500 52 ../docs/outputs/perf_3_18.out
+./build/performance 19 200 1500 52 ../docs/outputs/perf_3_19.out
+	
+	
+	
+	
+	
