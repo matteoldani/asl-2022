@@ -882,7 +882,7 @@ int main(int argc, char const *argv[]) {
     void (*mmul[n_mmul])(Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n_nnm])(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    int n_mmulrtrans_opt = 23;
+    int n_mmulrtrans_opt = 19;
     int n_mmulltrans_opt = 0;
     int n_mmul_opt = 23;
     int n_nnm_opt = 23;
@@ -951,11 +951,6 @@ int main(int argc, char const *argv[]) {
     mmulrtransd[16] = matrix_rtrans_mul_opt41;
     mmulrtransd[17] = matrix_rtrans_mul_opt42;
     mmulrtransd[18] = matrix_rtrans_mul_opt43;
-    mmulrtransd[19] = matrix_rtrans_mul_opt44;
-    mmulrtransd[20] = matrix_rtrans_mul_opt45;
-    mmulrtransd[21] = matrix_rtrans_mul_opt46;
-    mmulrtransd[22] = matrix_rtrans_mul_opt47;
-
 
     nnmd[0] = nnm_factorization_opt0;
     nnmd[1] = nnm_factorization_opt1;

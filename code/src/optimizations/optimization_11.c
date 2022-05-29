@@ -208,7 +208,7 @@ nnm_factorization_opt11(double *V, double *W, double *H, int m, int n, int r, in
         H[i] = H[i] * numerator[i] / denominator[i];
     }
 
-    int inB, jnB, mnB = m * nB, rnB = r * nB, nnB = n * nB;
+    int inB, jnB, mnB = m * nB, rnB = r * nB;
     int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
 
     for (int count = 0; count < maxIteration; count++) {
