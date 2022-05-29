@@ -5,7 +5,8 @@
 
 #include <performance/performance.h>
 
-void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function fact_function, fact_cost fact_cost_function){
+void
+baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_function, fact_cost fact_cost_function) {
     Matrix V;
     Matrix W, H;
     myInt64 m, n, r;
@@ -14,7 +15,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
 
     myInt64 cost;
     double performance;
-    
+
     int num_runs = NUM_RUNS;
     int max_iterations = MAX_ITERATIONS;
 
@@ -36,10 +37,10 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
 
         cost += fact_cost_function(&V, &W, &H, max_iterations);
 
-        #ifdef __x86_64__
+#ifdef __x86_64__
         myInt64 cycles;
         myInt64 start;
-        #ifdef CALIBRATE
+#ifdef CALIBRATE
         while(num_runs < (1 << 7)) {
             start = start_tsc();
             for (int j = 0; j < num_runs; j++) {
@@ -56,7 +57,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
 
             num_runs *= 2;
         }
-        #endif
+#endif
 
         start = start_tsc();
         for (int j = 0; j < num_runs; j++) {
@@ -71,12 +72,12 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
         cycles = stop_tsc(start)/num_runs;
         performance =  (double )cost / (double) cycles;
 
-        #endif
+#endif
 
-        #ifndef __x86_64__
+#ifndef __x86_64__
         double cycles;
         clock_t start, end;
-        #ifdef CALIBRATE
+#ifdef CALIBRATE
         while(num_runs < (1 << 14)) {
             start = clock();
             for (int j = 0; j < num_runs; j++) {
@@ -96,7 +97,7 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
 
             num_runs *= 2;
         }
-        #endif
+#endif
 
         start = clock();
         for (int j = 0; j < num_runs; j++) {
@@ -109,12 +110,12 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
         }
         end = clock();
 
-        cycles = (double)(end - start) / num_runs;
+        cycles = (double) (end - start) / num_runs;
         //cycles = (cycles / CLOCKS_PER_SEC) * FREQUENCY;
         //performance = cost / cycles;
         performance = ((cost / cycles) / FREQUENCY) * CLOCKS_PER_SEC;
-        
-        #endif
+
+#endif
 
         matrix_deallocation(&V);
         matrix_deallocation(&W);
@@ -123,26 +124,27 @@ void baseline(int numTests, int min, int max, int b, FILE * fout, fact_function 
 
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
-         if(fout != NULL){
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",m,r,n,cost, performance);
+        if (fout != NULL) {
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n", m, r, n, cost, performance);
         }
     }
 }
 
-void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact_function fact_function, opt_fact_cost fact_cost_function){
-    double* V;
-    double* W;
-    double* H;
+void optimization(int numTests, int min, int max, int opt, FILE *fout, opt_fact_function fact_function,
+                  opt_fact_cost fact_cost_function) {
+    double *V;
+    double *W;
+    double *H;
     myInt64 m, n, r;
     printf("Opt alg %d performance evaluation\n\n", opt);
     srand(SEED);
 
     myInt64 cost = 0;
     double performance;
-    
+
     int num_runs = NUM_RUNS;
     int max_iterations = MAX_ITERATIONS;
-    double rand_max_r = 1 / (double)RAND_MAX;
+    double rand_max_r = 1 / (double) RAND_MAX;
 
     int steps = (max - min) / numTests;
     for (int i = min; i < max; i += steps) {
@@ -154,20 +156,20 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
         H = malloc(r * n * sizeof(double));
 
         int real_m, real_n, real_r;
-        real_m = (((m-1)/16) + 1)*16;
-        real_n = (((n-1)/16) + 1)*16;
-        real_r = (((r-1)/16) + 1)*16;
-              
+        real_m = (((m - 1) / 16) + 1) * 16;
+        real_n = (((n - 1) / 16) + 1) * 16;
+        real_r = (((r - 1) / 16) + 1) * 16;
+
         //Call adequate cost functions
-        if(fact_function == &nnm_factorization_opt47 || fact_function == &nnm_factorization_opt46 ){
-            
+        if (fact_function == &nnm_factorization_opt47 || fact_function == &nnm_factorization_opt46) {
+
             cost = matrix_rand_init_cost(real_n, real_m);
             cost += matrix_rand_init_cost(real_m, real_r);
             cost += matrix_rand_init_cost(real_r, real_n);
 
             cost += fact_cost_function(real_m, real_n, real_m, real_r, real_r, real_n, max_iterations);
 
-        }else{
+        } else {
 
             cost = matrix_rand_init_cost(n, m);
             cost += matrix_rand_init_cost(m, r);
@@ -176,10 +178,10 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
             cost += fact_cost_function(m, n, m, r, r, n, max_iterations);
         }
 
-        #ifdef __x86_64__
+#ifdef __x86_64__
         myInt64 cycles;
         myInt64 start;
-        #ifdef CALIBRATE
+#ifdef CALIBRATE
         while(num_runs < (1 << 14)) {
             start = start_tsc();
             for (int j = 0; j < num_runs; j++) {
@@ -195,7 +197,7 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
 
             num_runs *= 2;
         }
-        #endif 
+#endif
 
         start = start_tsc();
         for (int j = 0; j < num_runs; j++) {
@@ -209,12 +211,12 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
         cycles = stop_tsc(start)/num_runs;
         performance =  (double )cost / (double) cycles;
 
-        #endif
+#endif
 
-        #ifndef __x86_64__
+#ifndef __x86_64__
         double cycles;
         clock_t start, end;
-        #ifdef CALIBRATE
+#ifdef CALIBRATE
         while(num_runs < (1 << 14)) {
             start = clock();
             for (int j = 0; j < num_runs; j++) {
@@ -234,7 +236,7 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
 
             num_runs *= 2;
         }
-        #endif
+#endif
 
         start = clock();
         for (int j = 0; j < num_runs; j++) {
@@ -247,13 +249,13 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
         }
         end = clock();
 
-        cycles = (double)(end - start) / num_runs;
+        cycles = (double) (end - start) / num_runs;
         //cycles = (cycles / CLOCKS_PER_SEC) * FREQUENCY;
         //performance = cost / cycles;
         performance = ((cost / cycles) / FREQUENCY) * CLOCKS_PER_SEC;
-        
-        #endif
-    
+
+#endif
+
         free(V);
         free(W);
         free(H);
@@ -261,16 +263,15 @@ void optimization(int numTests, int min, int max, int opt, FILE * fout, opt_fact
 
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
-         if(fout != NULL){
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",m,r,n,cost, performance);
+        if (fout != NULL) {
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n", m, r, n, cost, performance);
         }
     }
 }
 
 
-int main(int argc, char const* argv[])
-{
-    if(argc <= 1){
+int main(int argc, char const *argv[]) {
+    if (argc <= 1) {
         printf("How to use this tool:\n");
         printf("./build/performance ");
         printf("<program number [1,2,3,4,5]> ");
@@ -299,10 +300,12 @@ int main(int argc, char const* argv[])
         printf("\t17. Optimisation 35\n");
         printf("\t18. Optimisation 36\n");
         printf("\t19. Optimisation 41\n");
-        printf("\t20. Optimisation 46\n");
-        printf("\t21. Optimisation 47\n");
-        printf("\t22. Optimisation 45\n");
-
+        printf("\t20. Optimisation 42\n");
+        printf("\t21. Optimisation 43\n");
+        printf("\t22. Optimisation 44\n");
+        printf("\t23. Optimisation 45\n");
+        printf("\t24. Optimisation 46\n");
+        printf("\t25. Optimisation 47\n");
 
 
         return 0;
@@ -311,114 +314,126 @@ int main(int argc, char const* argv[])
     int b, tests, min, max;
     FILE *fout = NULL;
     b = atoi(argv[1]);
-    
+
     min = atoi(argv[2]);
     max = atoi(argv[3]);
     tests = atoi(argv[4]);
 
-    if (argc > 5){
+    if (argc > 5) {
         fout = fopen(argv[5], "w+");
-        if (fout == NULL){
+        if (fout == NULL) {
             printf("Can't open output file\n");
             exit(-1);
         }
         fprintf(fout, "m,r,n,cycles,performance\n");
     }
 
-    switch(b){
-    case 1:
-        baseline(tests, min, max, b, fout, &nnm_factorization_bs1, &nnm_factorization_bs1_cost);
-        break;
-    
-    case 2:
-        baseline(tests, min, max, b, fout, &nnm_factorization_bs2, &nnm_factorization_bs2_cost);
-        break;
+    switch (b) {
+        case 1:
+            baseline(tests, min, max, b, fout, &nnm_factorization_bs1, &nnm_factorization_bs1_cost);
+            break;
 
-    case 3:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt0, &nnm_cost_2);
-        break;
-    
-    case 4:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt1 ,&nnm_cost_2);
-        break;
+        case 2:
+            baseline(tests, min, max, b, fout, &nnm_factorization_bs2, &nnm_factorization_bs2_cost);
+            break;
 
-    case 5:
-        optimization(tests, min, max, b, fout, &nnm_factorization_aopt1 ,&nnm_cost_2);
-        break;
+        case 3:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt0, &nnm_cost_2);
+            break;
 
-    case 6:
-        optimization(tests, min, max, b, fout, &nnm_factorization_aopt2 ,&nnm_cost_2);
-        break;
+        case 4:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt1, &nnm_cost_2);
+            break;
 
-    case 7:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt2 ,&nnm_cost_2);
-        break;
+        case 5:
+            optimization(tests, min, max, b, fout, &nnm_factorization_aopt1, &nnm_cost_2);
+            break;
 
-    case 8:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt3 ,&nnm_cost_2);
-        break;
-    
-    case 9:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt21 ,&nnm_cost_2);
-        break;
-    
-    case 10:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt22 ,&nnm_cost_2);
-        break;
-    
-    case 11:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt23 ,&nnm_cost_2);
-        break;
+        case 6:
+            optimization(tests, min, max, b, fout, &nnm_factorization_aopt2, &nnm_cost_2);
+            break;
 
-    case 12:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt24 ,&nnm_cost_2);
-        break;
+        case 7:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt2, &nnm_cost_2);
+            break;
 
-    case 13:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt31, &nnm_cost_2);
-        break;
+        case 8:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt3, &nnm_cost_2);
+            break;
 
-    case 14:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt32, &nnm_cost_2);
-        break;
+        case 9:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt21, &nnm_cost_2);
+            break;
 
-    case 15:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt33, &nnm_cost_2);
-        break;
+        case 10:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt22, &nnm_cost_2);
+            break;
 
-    case 16:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt34, &nnm_cost_2);
-        break;
+        case 11:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt23, &nnm_cost_2);
+            break;
 
-    case 17:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt35, &nnm_cost_2);
-        break;
+        case 12:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt24, &nnm_cost_2);
+            break;
 
-    case 18:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt36, &nnm_cost_2);
-        break;
+        case 13:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt31, &nnm_cost_2);
+            break;
 
-    case 19:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt41, &nnm_cost_2);
-        break;
+        case 14:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt32, &nnm_cost_2);
+            break;
 
-    case 20:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt46, &nnm_cost_2);
-        break;
+        case 15:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt33, &nnm_cost_2);
+            break;
 
-    case 21:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt47, &nnm_cost_2);
-        break;
+        case 16:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt34, &nnm_cost_2);
+            break;
 
-    case 22:
-        optimization(tests, min, max, b, fout, &nnm_factorization_opt45, &nnm_cost_2);
-        break;
+        case 17:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt35, &nnm_cost_2);
+            break;
+
+        case 18:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt36, &nnm_cost_2);
+            break;
+
+        case 19:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt41, &nnm_cost_2);
+            break;
+
+        case 20:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt42, &nnm_cost_2);
+            break;
+
+        case 21:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt43, &nnm_cost_2);
+            break;
+
+        case 22:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt44, &nnm_cost_2);
+            break;
+
+        case 23:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt45, &nnm_cost_2);
+            break;
+
+        case 24:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt46, &nnm_cost_2);
+            break;
+
+        case 25:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt47, &nnm_cost_2);
+            break;
 
 
-    default:
-        break;
+        default:
+            break;
     }
-    if( fout != NULL)
+    if (fout != NULL)
         fclose(fout);
 
     return 0;

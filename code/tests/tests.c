@@ -490,7 +490,6 @@ PerfResults performance_analysis_matrix_mult(void (*mmul)(Matrix *A, Matrix *B, 
         matrix_allocation(&H, M_PERF, M_PERF);
 
 
-
 #ifdef __x86_64__
         myInt64 cycles;
         myInt64 start;
@@ -887,9 +886,12 @@ int main(int argc, char const *argv[]) {
     int n_mmul_opt = 23;
     int n_nnm_opt = 23;
 
-    void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
-    void(*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
-    void (*mmuld[n_mmul_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col);
+    void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col,
+                                          double *R, int R_n_row, int R_n_col);
+    void (*mmulltransd[n_mmulltrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col,
+                                          double *R, int R_n_row, int R_n_col);
+    void (*mmuld[n_mmul_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R,
+                              int R_n_row, int R_n_col);
     double (*nnmd[n_nnm_opt])(double *V, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon);
 
     // START TODO:
