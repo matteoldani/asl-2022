@@ -15,6 +15,7 @@ BS_DIR=$(SRC_DIR)/baselines
 VF_DIR=$(BS_DIR)/verification
 PERF_DIR=$(SRC_DIR)/performance
 OPT_DIR=$(SRC_DIR)/optimizations
+MMM_DIR=$(SRC_DIR)/mmm
 
 CINCLUDE=-I $(IDIR_LOCALC)
 CINCLUDE+=-I $(IDIR_BLAS)
@@ -79,6 +80,11 @@ optimisations: .build_dir_creation
 least_square: .build_dir_creation
 	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/least_square $(BS_DIR)/least_square.c $(FLAG_LINK)
 
+mmm: .build_dir_creation
+	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/mmm \
+	$(BS_DIR)/baselines_utils/baselines_utils.c \
+	$(MMM_DIR)/*.c \
+	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
 
 clean:
 	rm -r $(BIN_DIR)/*

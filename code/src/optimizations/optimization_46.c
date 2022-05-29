@@ -7,9 +7,15 @@
 #include <optimizations/optimizations_46.h>
 #include <immintrin.h>
 
+// NEW: the matrices are now padded and unpadded at the beginning and end of the nnmf computation
+//      this allow us to not have to use cleanups loops which were the killer points of blas 
+
+
 static unsigned int double_size = sizeof(double);
 
 
+// NEW: the transpose is not optimized because the cleanup loop was not implemented and this version of
+//      opt does support any type of inputs
 void transpose(double *src, double *dst,  const int N, const int M) {
 
     int nB = 1;
@@ -29,6 +35,7 @@ void transpose(double *src, double *dst,  const int N, const int M) {
     }   
 }
 
+// NEW: this is the function that pads the matrix to a multiple of the block size
 void pad_matrix(double ** M, int *r, int *c){
     int temp_r;
     int temp_c;
@@ -66,6 +73,7 @@ void pad_matrix(double ** M, int *r, int *c){
 
 }
 
+// NEW: this is the function that unpard the matrix to the oringinal size
 void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
 
     // lets suppose that are always row majour
@@ -379,28 +387,12 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
            
 
         //computation for Hn+1
-
-        // print_matrix(V, m, n);
-        // printf("\n");
-        // print_matrix(W, m, r);
-        // printf("\n");
-        // print_matrix(H, r, n);
-
-        // int x;
-        // scanf("%d", &x);
         
         transpose(W, Wt, m, r);
         matrix_mul_opt46(Wt, r, m, V, m, n, numerator, r, n);
         matrix_mul_opt46(Wt, r, m, W, m, r, denominator_l, r, r);
-        // matrix_ltrans_mul_opt24(W, m, r, V, m, n, numerator, r, n);
-        // matrix_ltrans_mul_opt24(W, m, r, W, m, r, denominator_l, r, r);
         matrix_mul_opt46(denominator_l, r, r, H, r, n, denominator, r, n);
  
-        // print_matrix(numerator, r, n);
-        // printf("Num above\n\n");
-        // print_matrix(denominator, r, n);
-        // printf("DEN above\n\n");
-
         for (i = 0; i < rn; i+=8){
             H[i] =   H[i]   * numerator[i]   / denominator[i];
             H[i+1] = H[i+1] * numerator[i+1] / denominator[i+1];
@@ -429,9 +421,6 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt46(V, m, n, Ht, n, r, numerator_W, m, r);
         matrix_mul_opt46(H, r, n, Ht, n, r, denominator_l, r, r);
         matrix_mul_opt46(W, m, r, denominator_l, r, r, denominator_W, m, r);
-        // matrix_rtrans_mul_opt24(V, m, n, H, r, n, numerator_W, m, r);
-        // matrix_rtrans_mul_opt24(H, r, n, H, r, n, denominator_l, r, r);
-        // matrix_mul_opt24(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
         for (i = 0; i < mr; i+=8){
             W[i] =   W[i]   * numerator_W[i]   / denominator_W[i];
@@ -477,13 +466,6 @@ double nnm_factorization_opt46(double *V_final, double *W_final, double*H_final,
     free(V);
     free(H);
     free(W);
-
-   
-    // print_matrix(V, m, n);
-    // printf("\n");
-    // print_matrix(W, m, r);
-    // printf("\n");
-    // print_matrix(H, r, n);
 
     return err;
 }
