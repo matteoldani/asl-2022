@@ -931,8 +931,8 @@ int main(int argc, char const *argv[]) {
     mmuld[18] = matrix_mul_opt43;
     mmuld[19] = matrix_mul_opt44;
     mmuld[20] = matrix_mul_opt45;
-    mmuld[21] = matrix_mul_opt46;
-    mmuld[22] = matrix_mul_opt47;
+    mmuld[21] = matrix_mul_opt46_padding;
+    mmuld[22] = matrix_mul_opt47_padding;
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
     mmulrtransd[1] = matrix_rtrans_mul_opt1;
