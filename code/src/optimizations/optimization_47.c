@@ -100,6 +100,63 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
     
 }
 
+/**
+ * @brief compute the multiplication of A and B
+ * @param A         is the first factor
+ * @param A_n_row   is the number of rows in matrix A
+ * @param A_n_col   is the number of columns in matrix A
+ * @param B         is the other factor of the multiplication
+ * @param B_n_row   is the number of rows in matrix B
+ * @param B_n_col   is the number of columns in matrix B
+ * @param R         is the matrix that will hold the result
+ * @param R_n_row   is the number of rows in the result
+ * @param R_n_col   is the number of columns in the result
+ */
+void matrix_mul_opt47_padding(double *A_final, int A_n_row, int A_n_col, double *B_final, int B_n_row, int B_n_col, double *R_final, int R_n_row, int R_n_col)
+{   int m = A_n_row;
+    int n = B_n_col;
+    int r = B_n_row;
+    double *V, *H, *W;
+    V = malloc(double_size * m * n);
+    H = malloc(double_size * r * n);
+    W = malloc(double_size * m * r);
+
+    memcpy(V, R_final, m * n * double_size );
+    memcpy(W, A_final, m * r * double_size);
+    memcpy(H, B_final, r * n * double_size);
+
+   // padding all the values to multiple of BLOCKSIZE
+    int temp_r = r;
+    int temp_m = m;
+    int temp_n = n;
+
+    int original_m = m;
+    int original_n = n;
+    int original_r = r;
+
+    // i do not have to modify m n yet
+    pad_matrix(&V, &temp_m, &temp_n);
+    // i do not have to modify r but i can modify m
+    pad_matrix(&W, &m, &temp_r);
+    // i can modify both r and n
+    pad_matrix(&H, &r, &n);
+    
+    matrix_mul_opt47(W, m, r, H, r, m, V, m, n);
+
+
+    unpad_matrix(&V, &temp_m, &temp_n, original_m, original_n);
+    unpad_matrix(&W, &m, &temp_r, original_m, original_r);
+    unpad_matrix(&H, &r, &n, original_r, original_n);
+
+    memcpy(R_final, V, m * n * double_size);
+    memcpy(A_final, W, m * r * double_size);
+    memcpy(B_final, H, r * n * double_size);
+
+    free(V);
+    free(H);
+    free(W);
+}
+
 
 // NOTE a possible improvement is to  write the version with j - i order to use for computation of Hn+1
 /**
