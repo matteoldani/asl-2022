@@ -17,10 +17,10 @@ inline void transpose4x4(double* dst, double* src, const int n, const int m) {
     __m256d tmp0, tmp1, tmp2, tmp3;
     __m256d row0, row1, row2, row3;
 
-    row0 = _mm256_load_pd(&src[0 * m]);
-    row1 = _mm256_load_pd(&src[1 * m]);
-    row2 = _mm256_load_pd(&src[2 * m]);
-    row3 = _mm256_load_pd(&src[3 * m]);
+    row0 = _mm256_loadu_pd(&src[0 * m]);
+    row1 = _mm256_loadu_pd(&src[1 * m]);
+    row2 = _mm256_loadu_pd(&src[2 * m]);
+    row3 = _mm256_loadu_pd(&src[3 * m]);
 
     tmp0 = _mm256_shuffle_pd(row0, row1, 0x0);
     tmp2 = _mm256_shuffle_pd(row0, row1, 0xF);
@@ -32,10 +32,10 @@ inline void transpose4x4(double* dst, double* src, const int n, const int m) {
     row2 = _mm256_permute2f128_pd(tmp0, tmp1, 0x31);
     row3 = _mm256_permute2f128_pd(tmp2, tmp3, 0x31);
 
-    _mm256_store_pd(&dst[0 * n], row0);
-    _mm256_store_pd(&dst[1 * n], row1);
-    _mm256_store_pd(&dst[2 * n], row2);
-    _mm256_store_pd(&dst[3 * n], row3);
+    _mm256_storeu_pd(&dst[0 * n], row0);
+    _mm256_storeu_pd(&dst[1 * n], row1);
+    _mm256_storeu_pd(&dst[2 * n], row2);
+    _mm256_storeu_pd(&dst[3 * n], row3);
 }
 
 //NEW - the transpose function is now vectorized and generalized
