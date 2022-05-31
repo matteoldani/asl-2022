@@ -433,8 +433,6 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     // i can modify both r and n
     pad_matrix(&H, &r, &n);
 
-
-
     int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;
@@ -504,14 +502,17 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     double err = -1;	
 
     double *Wt = malloc(d_mr);
-    double *Ht = malloc(d_ rn);
+    double *Ht = malloc(d_rn);
     double *H_new = malloc(d_rn);
 
     int nB_i = BLOCK_SIZE_H_ROW;
     int nB_j = BLOCK_SIZE_H_COL;
     int nB_mul = BLOCK_SIZE_H_MUL;
-    int inB, jnB, mnB_mul = m * nB_mul, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i;
-    int ri, mi, ni, ri1, mi1, ni1, nj1, ni1j1, ri1j1, ri1jj1, mj1, mjj1;
+    int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i;
+    int ri, mi, ni, ri1, ni1, nj1, ni1j1, ri1j1;
+
+    __m256d num_1, num_2, h_1, h_2, den_1, den_2, h_num_1, h_num_2, res_1, res_2;
+    __m256d num_3, num_4, h_3, h_4, den_3, den_4, h_num_3, h_num_4, res_3, res_4;
 
     double accumulator;
 
@@ -534,6 +535,11 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         //computation for Hn+1
         
         ri = mi = ni = 0;
+
+        //Calculate Wt*W
+        matrix_mul_opt51(Wt, r, m, W, m, r, denominator_l, r, r);
+        matrix_mul_opt51(Wt, r, m, V, m, n, numerator, r, n);
+
         for (int i = 0; i < r; i += nB_i) {
             inB = i + nB_i;
 
@@ -541,47 +547,11 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
 
             //We need the whole row of WtW for calculating a single block of H, so we calculate the row only once and use it for all blocks of H with the same i
             //Wt*Wt rmul
-            ri1 = ri, mi1 = mi;
-            for (int i1 = i; i1 < inB; i1++) {
-                mj1 = 0;
-                for (int j1 = 0; j1 < r; j1 += nB_mul) {
-                    for (int k1 = 0; k1 < m; k1 += nB_mul) {
-                        mjj1 = mj1;
-                        for (int jj1 = j1; jj1 < j1 + nB_mul; jj1++) {
-                            ri1jj1 = ri1 + jj1;
-                            accumulator = 0;
-                            for (int kk1 = k1; kk1 < k1 + nB_mul; kk1++)
-                                accumulator += Wt[mi1 + kk1] * Wt[mjj1 + kk1];
-                            denominator_l[ri1jj1] += accumulator;
-                            mjj1 += m;
-                        }
-                    }
-                    mj1 += mnB_mul;
-                }
-                ri1 += r;
-                mi1 += m;
-            }
 
             for (int j = 0; j < n; j += nB_j) {
                 jnB = j + nB_j;
 
                 //computation for Hn+1
-
-                //Wt*V mul
-                mi1 = mi;
-                ni1 = ni;
-                for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 < jnB; j1++) {
-                        ni1j1 = ni1 + j1;
-                        accumulator = 0;
-                        for (int k1 = 0; k1 < m; k1++)
-                            accumulator += Wt[mi1 + k1] * V[k1 * n + j1];
-                        numerator[ni1j1] += accumulator;
-                    }
-                    mi1 += m;
-                    ni1 += n;
-                }
-
                 //(WtW)*H mul
                 ni1 = ni;
                 ri1 = ri;
@@ -600,13 +570,22 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 //element-wise multiplication and division
                 ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 < jnB; j1++) {
+                    for (int j1 = j; j1 < jnB; j1+=4) {
                         ni1j1 = ni1 + j1;
-                        H_new[ni1j1] = H[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
+                        num_1 = _mm256_loadu_pd((double *)&numerator[ni1j1]);
+
+                        h_1 = _mm256_loadu_pd((double *)&H[ni1j1]);
+
+                        den_1 = _mm256_loadu_pd((double *)&denominator[ni1j1]);
+
+                        h_num_1 = _mm256_mul_pd(h_1, num_1);
+
+                        res_1 = _mm256_div_pd(h_num_1, den_1);
+
+                        _mm256_storeu_pd(&H_new[ni1j1], res_1);
                     }
                     ni1 += n;
                 }
-
 
                 //computation for Wn+1
 
@@ -665,7 +644,40 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         //remaining computation for Wn+1
         matrix_mul_opt51(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
-        for (int i = 0; i < mr; i++)
+        int i = 0;
+        for (i = 0; i < jnB; i+=16) {
+            num_1 = _mm256_loadu_pd((double *)&numerator_W[i]);
+            num_2 = _mm256_loadu_pd((double *)&numerator_W[i + 4]);
+            num_3 = _mm256_loadu_pd((double *)&numerator_W[i + 8]);
+            num_4 = _mm256_loadu_pd((double *)&numerator_W[i + 12]);
+
+            h_1 = _mm256_loadu_pd((double *)&W[i]);
+            h_2 = _mm256_loadu_pd((double *)&W[i + 4]);
+            h_3 = _mm256_loadu_pd((double *)&W[i + 8]);
+            h_4 = _mm256_loadu_pd((double *)&W[i + 12]);
+
+            den_1 = _mm256_loadu_pd((double *)&denominator_W[i]);
+            den_2 = _mm256_loadu_pd((double *)&denominator_W[i + 4]);
+            den_3 = _mm256_loadu_pd((double *)&denominator_W[i + 8]);
+            den_4 = _mm256_loadu_pd((double *)&denominator_W[i + 12]);
+
+            h_num_1 = _mm256_mul_pd(h_1, num_1);
+            h_num_2 = _mm256_mul_pd(h_2, num_2);
+            h_num_3 = _mm256_mul_pd(h_3, num_3);
+            h_num_4 = _mm256_mul_pd(h_4, num_4);
+
+            res_1 = _mm256_div_pd(h_num_1, den_1);
+            res_2 = _mm256_div_pd(h_num_2, den_2);
+            res_3 = _mm256_div_pd(h_num_3, den_3);
+            res_4 = _mm256_div_pd(h_num_4, den_4);
+
+            _mm256_storeu_pd(&W[i], res_1);
+            _mm256_storeu_pd(&W[i + 4], res_2);
+            _mm256_storeu_pd(&W[i + 8], res_3);
+            _mm256_storeu_pd(&W[i + 12], res_4);
+        }
+
+        for (; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
 
         memcpy(H, H_new, d_rn);
