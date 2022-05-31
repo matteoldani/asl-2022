@@ -730,12 +730,6 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         _mm256_storeu_pd(&denominator_r[idx_r + 4], r5);
                         _mm256_storeu_pd(&denominator_r[idx_r + 8], r6);
                         _mm256_storeu_pd(&denominator_r[idx_r + 12], r7);
-
-                        
-                        /*accumulator = 0;
-                        for (int k1 = j; k1 < jnB; k1++)
-                            accumulator += H_new[ni1 + k1] * Ht[k1 * r + j1];
-                        denominator_r[ri1j1] += accumulator;*/
                     }
                     ni1 += n_2;
                     ri1 += r_2;
@@ -789,15 +783,6 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         _mm256_storeu_pd(&denominator_r[idx_r + 4], r5);
                         _mm256_storeu_pd(&denominator_r[idx_r + 8], r6);
                         _mm256_storeu_pd(&denominator_r[idx_r + 12], r7);
-
-
-
-                        
-                        
-                        /*accumulator = 0;
-                        for (int k1 = j; k1 < jnB; k1++)
-                            accumulator += H_new[ni1 + k1] * Ht[k1 * r + j1];
-                        denominator_r[ri1j1] += accumulator;*/
                     }
                     ri1 += r_2;
                     ni1 += n_2;
@@ -809,7 +794,6 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         }
 
         //remaining computation for Wn+1
-        //matrix_mul_opt51(H_new, r, n, Ht, n, r, denominator_r, r, r);
         matrix_mul_opt51(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         int i;
