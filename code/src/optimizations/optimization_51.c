@@ -508,14 +508,13 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     int nB_i = BLOCK_SIZE_H_ROW;
     int nB_j = BLOCK_SIZE_H_COL;
     int nB_mul = BLOCK_SIZE_H_MUL;
-    int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i, n2 = n << 1, r2 = r << 1;
+    int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i, n_2 = n << 1, r_2 = r << 1;
     int ri, mi, ni, ri1, ni1, nj1, ni1j1, ri1j1, idx_r, idx_b;
 
     __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
     __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
-    __m256d r0, r1, r2, r3;
     __m256d r4, r5, r6, r7;
 
     double accumulator;
@@ -559,7 +558,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         r0 = _mm256_loadu_pd(&denominator[ni1j1]);
                         r1 = _mm256_loadu_pd(&denominator[ni1j1 + 4]);
                         r2 = _mm256_loadu_pd(&denominator[ni1j1 + 8]);
-                        r3 = _mm256_loadu_pd(&denominator[ni1j1 + 12];
+                        r3 = _mm256_loadu_pd(&denominator[ni1j1 + 12]);
 
                         r4 = _mm256_loadu_pd(&denominator[idx_r]);
                         r5 = _mm256_loadu_pd(&denominator[idx_r + 4]);
@@ -599,8 +598,8 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         _mm256_storeu_pd(&denominator[idx_r + 8], r6);
                         _mm256_storeu_pd(&denominator[idx_r + 12], r7);
                     }
-                    ni1 += n2;
-                    ri1 += r2;
+                    ni1 += n_2;
+                    ri1 += r_2;
                 }
 
                 //element-wise multiplication and division
