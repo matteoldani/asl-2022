@@ -22,6 +22,8 @@
 #include <optimizations/optimizations_46.h>
 #include <optimizations/optimizations_47.h>
 #include <optimizations/optimizations_37.h>
+#include <optimizations/optimizations_51.h>
+#include <optimizations/optimizations_52.h>
 #include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
@@ -126,6 +128,9 @@ int main(int argc, char const *argv[]) {
         printf("\t21. Optimisation 46\n");
         printf("\t22. Optimisation 47\n");
         printf("\t23. Optimisation 37\n");
+        printf("\t24. Optimisation 51\n");
+        printf("\t25. Optimisation 52\n");
+
 
         return -1;
     }
@@ -239,7 +244,12 @@ int main(int argc, char const *argv[]) {
         case 23:
             run_factorization = &nnm_factorization_opt37;
             break;
-
+        case 24:
+            run_factorization = &nnm_factorization_opt51;
+            break;
+        case 25:
+            run_factorization = &nnm_factorization_opt52;
+            break;
         default:
             printf("Invalid opt number. Quitting\n");
             return -1;

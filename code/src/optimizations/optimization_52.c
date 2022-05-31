@@ -11,7 +11,6 @@
 
 static unsigned int double_size = sizeof(double);
 
-
 inline void transpose4x4(double* dst, double* src, const int n, const int m) {
 
     __m256d tmp0, tmp1, tmp2, tmp3;
@@ -38,6 +37,7 @@ inline void transpose4x4(double* dst, double* src, const int n, const int m) {
     _mm256_storeu_pd(&dst[3 * n], row3);
 }
 
+//NEW - optimal transpose
 static void transpose(double* src, double* dst, const int n, const int m) {
 
     int nB = BLOCK_SIZE_TRANS;
@@ -517,6 +517,7 @@ double nnm_factorization_opt52(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt52(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt52(denominator_l, r, r, H, r, n, denominator, r, n);
 
+        //NEW - optimal element-wise mult-div
         for (int i = 0; i <= original_r * original_n - 16; i += 16) {
             num_1 = _mm256_loadu_pd(&numerator[i]);
             num_2 = _mm256_loadu_pd(&numerator[i + 4]);
@@ -555,6 +556,7 @@ double nnm_factorization_opt52(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt52(H, r, n, Ht, n, r, denominator_l, r, r);
         matrix_mul_opt52(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
+        //NEW - optimal element-wise mult-div
         for (int i = 0; i <= original_m * original_r - 16; i += 16) {
             num_1 = _mm256_loadu_pd(&numerator_W[i]);
             num_2 = _mm256_loadu_pd(&numerator_W[i + 4]);

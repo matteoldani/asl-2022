@@ -7,7 +7,7 @@
 #include <optimizations/optimizations_51.h>
 #include <immintrin.h>
 
-//NEW - On top of opt_47 using the MM improvements, opt_33 using the algorithmic improvements and opt_37 using the improved transpose
+//NEW - On top of opt_47 using the MM improvements, opt_34 using the algorithmic improvements and opt_37 using the improved transpose
 
 static unsigned int double_size = sizeof(double);
 
@@ -507,19 +507,16 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
 
     int nB_i = BLOCK_SIZE_H_ROW;
     int nB_j = BLOCK_SIZE_H_COL;
-    int nB_mul = BLOCK_SIZE_H_MUL;
     int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i, n_2 = n << 1, r_2 = r << 1;
-    int ri, mi, ni, ri1, ni1, nj1, ni1j1, ri1j1, idx_r, idx_b;
+    int ri, mi, ni, ri1, ni1, ni1j1, ri1j1, idx_r, idx_b;
 
     __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
     __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
-    __m256d num_5, num_6, fac_5, fac_6, den_5, den_6, res_5, res_6;
-    __m256d num_7, num_8, fac_7, fac_8, den_7, den_8, res_7, res_8;
+    __m256d num_5, num_6, fac_5, fac_6, res_5, res_6;
+    __m256d num_7, num_8, fac_7, fac_8, res_7, res_8;
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
     __m256d r4, r5, r6, r7;
-
-    double accumulator;
 
     for (int count = 0; count < maxIteration; count++) {
         
@@ -528,7 +525,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
             break;
         }
 
-        memset(denominator_l, 0, d_rr);
+        //memset(denominator_l, 0, d_rr);
         memset(numerator, 0, d_rn);
         memset(denominator, 0, d_rn);
 
@@ -542,6 +539,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt51(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt51(Wt, r, m, V, m, n, numerator, r, n);
 
+        //NEW - All operations done on blocks are now done optimally - using vector instructions
         ri = mi = ni = 0;
         for (int i = 0; i < r; i += nB_i) {
             inB = i + nB_i;
@@ -549,7 +547,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 jnB = j + nB_j;
 
                 //computation for Hn+1
-                //(WtW)*H mul
+                //(WtW)*H mul and element-wise multiplication and division
                 ni1 = ni;
                 ri1 = ri;
                 for (int i1 = i; i1 <= inB - 2; i1 += 2) {
@@ -557,15 +555,15 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         ni1j1 = ni1 + j1;
                         idx_r = ni1j1 + n;
 
-                        r0 = _mm256_loadu_pd(&denominator[ni1j1]);
-                        r1 = _mm256_loadu_pd(&denominator[ni1j1 + 4]);
-                        r2 = _mm256_loadu_pd(&denominator[ni1j1 + 8]);
-                        r3 = _mm256_loadu_pd(&denominator[ni1j1 + 12]);
+                        r0 = _mm256_setzero_pd();
+                        r1 = _mm256_setzero_pd();
+                        r2 = _mm256_setzero_pd();
+                        r3 = _mm256_setzero_pd();
 
-                        r4 = _mm256_loadu_pd(&denominator[idx_r]);
-                        r5 = _mm256_loadu_pd(&denominator[idx_r + 4]);
-                        r6 = _mm256_loadu_pd(&denominator[idx_r + 8]);
-                        r7 = _mm256_loadu_pd(&denominator[idx_r + 12]);
+                        r4 = _mm256_setzero_pd();
+                        r5 = _mm256_setzero_pd();
+                        r6 = _mm256_setzero_pd();
+                        r7 = _mm256_setzero_pd();
 
                         idx_b = j1;
                         for (int k1 = 0; k1 < r; k1++) {
@@ -589,7 +587,8 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
 
                             idx_b += n;
                         }
-
+                        
+                        //NEW - This version interlieves (WtW)*H mul and element-wise multiplication and division
                         num_1 = _mm256_loadu_pd(&numerator[ni1j1]);
                         fac_1 = _mm256_loadu_pd(&H[ni1j1]);
                         num_1 = _mm256_mul_pd(fac_1, num_1);
@@ -638,6 +637,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         res_8 = _mm256_div_pd(num_8, r7);
                         _mm256_storeu_pd(&H_new[idx_r + 12], res_8);
 
+                        //NEW - The non interlieved version is commented out
                         /*_mm256_storeu_pd(&denominator[ni1j1], r0);
                         _mm256_storeu_pd(&denominator[ni1j1 + 4], r1);
                         _mm256_storeu_pd(&denominator[ni1j1 + 8], r2);
@@ -667,7 +667,8 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                     }
                     ni1 += n;
                 }*/
-
+                
+                //NEW - Since now only MMmul exists, no rmul, we have to transpose the current block
                 //Calculate the transpose of current block of H
                 for (int i1 = i; i1 < inB; i1 += 4) {
                     for (int j1 = j; j1 < jnB; j1 += 4)
@@ -846,6 +847,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         //remaining computation for Wn+1
         matrix_mul_opt51(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
+        //NEW - element-wise mult-div is vectorized
         for (int i = 0; i <= mr - 16; i+=16) {
             num_1 = _mm256_loadu_pd(&numerator_W[i]);
             num_2 = _mm256_loadu_pd(&numerator_W[i + 4]);
