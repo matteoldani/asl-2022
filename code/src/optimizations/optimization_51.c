@@ -619,7 +619,6 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 }
 
                 //Calculate the transpose of current block of H
-                ni1 = ni;
                 for (int i1 = i; i1 < inB; i1 += 4) {
                     for (int j1 = j; j1 < jnB; j1 += 4)
                         transpose4x4(&Ht[j1 * r + i1], &H_new[i1 * n + j1], r, n);
@@ -681,7 +680,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
 
         //remaining computation for Wn+1
         matrix_mul_opt51(V, m, n, Ht, n, r, numerator_W, m, r);
-        matrix_mul_opt51(H, r, n, Ht, n, r, denominator_r, r, r);
+        matrix_mul_opt51(H_new, r, n, Ht, n, r, denominator_r, r, r);
         matrix_mul_opt51(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         int i;
