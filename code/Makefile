@@ -4,6 +4,9 @@ define newline
 endef
 
 CC=gcc 
+CLANG=clang
+ICX=icx
+
 IDIR_LOCALC=./include 
 IDIR_BLAS=/opt/openblas/include
 
