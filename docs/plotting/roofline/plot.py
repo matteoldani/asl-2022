@@ -76,7 +76,7 @@ for i in range(len(PEAK_BW)):
 	PEAK_BW[i] = round((PEAK_BW[i] * GIGA) / FREQ, 2)
 
 INVERSE_GOLDEN_RATIO=0.618
-OUTPUT_FILE="rooflinePlotTotal.pdf"
+OUTPUT_FILE= "../../outputs/rooflinePlotTotal.pdf"
 TITLE="Roofline Plot"
 X_LABEL="Operational Intensity [Flops/Byte]"
 Y_LABEL="Performance [Flops/Cycle]"
