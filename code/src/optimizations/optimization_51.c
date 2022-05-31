@@ -511,8 +511,8 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i;
     int ri, mi, ni, ri1, ni1, nj1, ni1j1, ri1j1;
 
-    __m256d num_1, num_2, h_1, h_2, den_1, den_2, h_num_1, h_num_2, res_1, res_2;
-    __m256d num_3, num_4, h_3, h_4, den_3, den_4, h_num_3, h_num_4, res_3, res_4;
+    __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
+    __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
 
     double accumulator;
 
@@ -533,21 +533,13 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         transpose(W, Wt, m, r);
 
         //computation for Hn+1
-        
-        ri = mi = ni = 0;
 
-        //Calculate Wt*W
         matrix_mul_opt51(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt51(Wt, r, m, V, m, n, numerator, r, n);
 
+        ri = mi = ni = 0;
         for (int i = 0; i < r; i += nB_i) {
             inB = i + nB_i;
-
-            //computation for Hn+1
-
-            //We need the whole row of WtW for calculating a single block of H, so we calculate the row only once and use it for all blocks of H with the same i
-            //Wt*Wt rmul
-
             for (int j = 0; j < n; j += nB_j) {
                 jnB = j + nB_j;
 
@@ -572,16 +564,12 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 for (int i1 = i; i1 < inB; i1++) {
                     for (int j1 = j; j1 < jnB; j1+=4) {
                         ni1j1 = ni1 + j1;
-                        num_1 = _mm256_loadu_pd((double *)&numerator[ni1j1]);
-
-                        h_1 = _mm256_loadu_pd((double *)&H[ni1j1]);
-
-                        den_1 = _mm256_loadu_pd((double *)&denominator[ni1j1]);
-
-                        h_num_1 = _mm256_mul_pd(h_1, num_1);
-
-                        res_1 = _mm256_div_pd(h_num_1, den_1);
-
+                        
+                        num_1 = _mm256_loadu_pd(&numerator[ni1j1]);
+                        fac_1 = _mm256_loadu_pd(&H[ni1j1]);
+                        den_1 = _mm256_loadu_pd(&denominator[ni1j1]);
+                        num_1 = _mm256_mul_pd(fac_1, num_1);
+                        res_1 = _mm256_div_pd(num_1, den_1);
                         _mm256_storeu_pd(&H_new[ni1j1], res_1);
                     }
                     ni1 += n;
@@ -644,32 +632,32 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         //remaining computation for Wn+1
         matrix_mul_opt51(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
-        int i = 0;
-        for (i = 0; i < jnB; i+=16) {
-            num_1 = _mm256_loadu_pd((double *)&numerator_W[i]);
-            num_2 = _mm256_loadu_pd((double *)&numerator_W[i + 4]);
-            num_3 = _mm256_loadu_pd((double *)&numerator_W[i + 8]);
-            num_4 = _mm256_loadu_pd((double *)&numerator_W[i + 12]);
+        int i;
+        for (i = 0; i <= mr - 16; i+=16) {
+            num_1 = _mm256_loadu_pd(&numerator_W[i]);
+            num_2 = _mm256_loadu_pd(&numerator_W[i + 4]);
+            num_3 = _mm256_loadu_pd(&numerator_W[i + 8]);
+            num_4 = _mm256_loadu_pd(&numerator_W[i + 12]);
 
-            h_1 = _mm256_loadu_pd((double *)&W[i]);
-            h_2 = _mm256_loadu_pd((double *)&W[i + 4]);
-            h_3 = _mm256_loadu_pd((double *)&W[i + 8]);
-            h_4 = _mm256_loadu_pd((double *)&W[i + 12]);
+            fac_1 = _mm256_loadu_pd(&W[i]);
+            fac_2 = _mm256_loadu_pd(&W[i + 4]);
+            fac_3 = _mm256_loadu_pd(&W[i + 8]);
+            fac_4 = _mm256_loadu_pd(&W[i + 12]);
 
-            den_1 = _mm256_loadu_pd((double *)&denominator_W[i]);
-            den_2 = _mm256_loadu_pd((double *)&denominator_W[i + 4]);
-            den_3 = _mm256_loadu_pd((double *)&denominator_W[i + 8]);
-            den_4 = _mm256_loadu_pd((double *)&denominator_W[i + 12]);
+            den_1 = _mm256_loadu_pd(&denominator_W[i]);
+            den_2 = _mm256_loadu_pd(&denominator_W[i + 4]);
+            den_3 = _mm256_loadu_pd(&denominator_W[i + 8]);
+            den_4 = _mm256_loadu_pd(&denominator_W[i + 12]);
 
-            h_num_1 = _mm256_mul_pd(h_1, num_1);
-            h_num_2 = _mm256_mul_pd(h_2, num_2);
-            h_num_3 = _mm256_mul_pd(h_3, num_3);
-            h_num_4 = _mm256_mul_pd(h_4, num_4);
+            num_1 = _mm256_mul_pd(fac_1, num_1);
+            num_2 = _mm256_mul_pd(fac_2, num_2);
+            num_3 = _mm256_mul_pd(fac_3, num_3);
+            num_4 = _mm256_mul_pd(fac_4, num_4);
 
-            res_1 = _mm256_div_pd(h_num_1, den_1);
-            res_2 = _mm256_div_pd(h_num_2, den_2);
-            res_3 = _mm256_div_pd(h_num_3, den_3);
-            res_4 = _mm256_div_pd(h_num_4, den_4);
+            res_1 = _mm256_div_pd(num_1, den_1);
+            res_2 = _mm256_div_pd(num_2, den_2);
+            res_3 = _mm256_div_pd(num_3, den_3);
+            res_4 = _mm256_div_pd(num_4, den_4);
 
             _mm256_storeu_pd(&W[i], res_1);
             _mm256_storeu_pd(&W[i + 4], res_2);
