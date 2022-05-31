@@ -1,8 +1,9 @@
 import os
 import time 
 
-labels = ['bs1', 'bs2', 'opt0', 'opt1', 'aopt1', 'aopt2', 'opt2', 'opt3', 'opt21', 'opt22', 'opt23', 'opt24', 'opt31', 'opt32', 'opt33', 'opt34']
-sizes = [200, 400, 800, 1600, 2400, 2960, 3200]
+labels = ['bs1', 'bs2', 'opt0', 'opt1', 'aopt1', 'aopt2', 'opt2', 'opt3', 'opt21', 'opt22', 'opt23', 'opt24', 'opt31', 'opt32', 'opt33', 'opt34', 'opt35', 'opt36', 'opt41', 'opt42', 'opt43', 'opt44', 'opt45', 'opt46', 'opt47']
+print(len(labels))
+sizes = [2400, 2960, 3200]
 
 
 for size in sizes:

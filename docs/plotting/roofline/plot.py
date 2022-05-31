@@ -3,6 +3,8 @@
 import sys
 import os
 import math
+from csv import DictReader
+
 from matplotlib import rc
 #rc('text', usetex=True) # this is if you want to use latex to print text. If you do you can create strings that go on labels or titles like this for example (with an r in front): r"$n=$ " + str(int(n))
 from numpy import *
@@ -46,8 +48,8 @@ def addBWLine(BW, label):
 	x = np.linspace(X_MIN, X_MAX)
 	y = x*BW
 	ax.plot(x, y, linewidth=0.75, color='black')
-	yCoordinateTransformed = (log(X_MIN*BW)-log(Y_MIN))/(log(Y_MAX/Y_MIN))+0.16 #0.16 is the offset of the lower axis
-	ax.text(0.01,yCoordinateTransformed+0.05+0.0075*(len(str(BW))-1), label+' ('+str(BW)+' B/C)',fontsize=8, rotation=45, transform=ax.transAxes)
+	yCoordinateTransformed = (log(X_MIN*BW)-log(Y_MIN))/(log(Y_MAX/Y_MIN))
+	ax.text(0.01,yCoordinateTransformed+0.0075*(len(str(BW))-1), label+' ('+str(BW)+' B/C)',fontsize=8, rotation=20, transform=ax.transAxes)
 
 FREQ = 3500000000
 GIGA = 1000000000
@@ -55,16 +57,18 @@ GIGA = 1000000000
 def gflops_to_flops_per_cycle(gflops):
 	return (gflops * GIGA) / FREQ
 
-
-X_MIN=0.1
-X_MAX=10.0
+X_MIN=0.04
+X_MAX=10
 Y_MIN=0.1
 Y_MAX=200.0
 
-PEAK_PERF=[7.0] # , 28.0, 56
-PEAK_PERF_LABELS=['Scalar Add'] # , 'Vector Add', 'Vector FMA'
+PEAK_PERF=[28.0, 56] # 
+PEAK_PERF_LABELS=['Vector Add', 'Vector FMA'] # 
 PEAK_BW=[24.3, 60.0, 97, 297]
 PEAK_BW_LABELS = ['DRAM', 'L3', 'L2', 'L1']
+
+for i in range(len(PEAK_PERF)):
+	PEAK_PERF[i] = round((PEAK_PERF[i] * GIGA) / FREQ, 2)
 
 for i in range(len(PEAK_BW)):
 	PEAK_BW[i] = round((PEAK_BW[i] * GIGA) / FREQ, 2)
@@ -78,7 +82,7 @@ ANNOTATE_POINTS=1
 AXIS_ASPECT_RATIO=log10(X_MAX/X_MIN)/log10(Y_MAX/Y_MIN)
 
 colors=[(0.2117, 0.467, 0.216), (0.258, 0.282, 0.725), (0.776,0.0196,0.07),(1,0,1)  ,'#FF9900', '#00CED1' ]
-fig = plt.figure()
+fig = plt.figure(figsize=(10, 12))
 # Returns the Axes instance
 ax = fig.add_subplot(111)
 
@@ -87,7 +91,7 @@ ax.set_yscale('log')
 ax.set_xscale('log')
 
 #formatting:
-ax.set_title(TITLE,fontsize=14,fontweight='bold')
+#ax.set_title(TITLE,fontsize=14,fontweight='bold')
 ax.set_xlabel(X_LABEL, fontsize=12)
 ax.set_ylabel(Y_LABEL, fontsize=12)
 
@@ -128,66 +132,25 @@ yticks(newlocs, newlabels)
 
 # Load the data 
 
-sizes = [80, 160, 320, 400, 640]
-series = ['bs1', 'bs2', 'opt0', 'opt1', 'aopt1', 'aopt2', 'opt2', 'opt3', 'opt21', 'opt22', 'opt23', 'opt24', 'opt31', 'opt32', 'opt33', 'opt34']
-dataTotal = [
-	[ 
-		(2.24, 0.082), (2.18, 0.083), (2.09, 0.083), (2.11, 0.083), (1.85, 0.083)
-	],
-	[
-		(6.01, 0.39), (17.02, 0.45), (17.71, 0.43), (16.67, 0.44), (17.42, 0.44)
-	],
-	[
-		(2.26, 0.12), (2.16, 0.12), (2.04, 0.12), (1.99, 0.12), (1.71, 0.12) # Uninteresting
-	],
-	[
-		(2.31, 0.13), (2.31, 0.12), (2.15, 0.12), (2.09, 0.12), (1.73, 0.12)
-	],
-	[
-		(2.76, 0.13), (2.45, 0.13), (2.27, 0.13), (2.23, 0.13), (2.18, 0.13)
-	],
-	[
-		(2.38, 0.12), (2.3, 0.12), (2.17, 0.12), (2.17, 0.12), (2.13, 0.12) # Uninteresting
-	],
-	[
-		(2.51, 0.12), (2.55, 0.12), (2.34, 0.12), (2.36, 0.12), (2.31, 0.12) # Uninteresting
-	],
-	[
-		(2.91, 0.12), (2.56, 0.12), (2.4, 0.12), (2.36, 0.12), (2.31, 0.12)
-	],
-	[
-		(2.85, 0.12), (2.57, 0.12), (2.4, 0.12), (2.36, 0.12), (2.32, 0.12) # Uninteresting
-	],
-	[
-		(1.56, 0.12), (2.71, 0.14), (2.53, 0.14), (2.51, 0.14), (2.46, 0.13)
-	],
-	[
-		(7.73, 0.37), (7.97, 0.22), (9.26, 0.21), (8.96, 0.2), (9.67, 0.2)
-	],
-	[
-		(10.42, 0.5), (17.14, 0.5), (21.12, 0.48), (20.71, 0.47), (19.73, 0.45)
-	],
-	[
-		(2.77, 0.092), (2.45, 0.093), (2.29, 0.093), (2.24, 0.093), (2.1, 0.093) # Uninteresting
-	],
-	[
-		(3.03, 0.13), (2.73, 0.13), (2.57, 0.13), (2.53, 0.13), (2.39, 0.13) # Uninteresting
-	],
-	[
-		(3.11, 0.14), (3.18, 0.14), (3.17, 0.15), (3.26, 0.15), (2.6, 0.15)
-	]
-]
+data = dict()
+
+with open('/home/asl/asl-2022-vgsteiger/docs/plotting/roofline/roofline_data.csv', 'r') as input_data:
+	csv_reader = DictReader(input_data)
+	for row in csv_reader:
+		if row['opt'] not in data:
+			data[row['opt']] = dict()
+		data[row['opt']][int(row['size'])] = (float(row['optin']), float(row['perf']))
 
 pp = []
 ss=[]
-for serie,i in zip(series,range(len(series))):
+for serie in data.keys():
 
 	xData = []
 	yData = []
 	
-	for j in range(len(dataTotal[i])):
-		xData.append(dataTotal[i][j][0])
-		yData.append(dataTotal[i][j][1])
+	for size in sorted(data[serie]):
+		xData.append(data[serie][size][0])
+		yData.append(data[serie][size][1])
 
 	x=[]
 	xerr_low=[]
@@ -197,12 +160,12 @@ for serie,i in zip(series,range(len(series))):
 	yerr_low = []
 
 	for xDataItem in xData:
-		xDataItem = gflops_to_flops_per_cycle(xDataItem)
 		x.append(stats.scoreatpercentile(xDataItem, 50))
 		xerr_low.append(stats.scoreatpercentile(xDataItem, 25))
 		xerr_high.append(stats.scoreatpercentile(xDataItem, 75))	
 	
 	for yDataItem in yData:
+		yDataItem = gflops_to_flops_per_cycle(yDataItem)
 		y.append(stats.scoreatpercentile(yDataItem, 50))
 		yerr_low.append(stats.scoreatpercentile(yDataItem, 25))
 		yerr_high.append(stats.scoreatpercentile(yDataItem, 75)) 
@@ -212,37 +175,25 @@ for serie,i in zip(series,range(len(series))):
 	yerr_low = [a - b for a, b in zip(y, yerr_low)]
 	yerr_high = [a - b for a, b in zip(yerr_high, y)]
 
-	#print x
-	#print xerr_low
-	#print xerr_high
-	#print y
-	#print yerr_low
-	#print yerr_high
-
 	ax.scatter(x[0], y[0], s=4,zorder=12,  color=dark_grey_color)
 	ax.scatter(x[len(x)-1], y[len(y)-1],s=4, zorder=12, color=dark_grey_color)
 
-	p, = ax.plot(x, y, '-',label=serie) # , color=colors[i]
+	p, = ax.plot(x, y, '-') # , color=colors[i]
 	pp.append(p)
 	ss.append(serie)
-	#ax.errorbar(x, y, yerr=[yerr_low, yerr_high], xerr=[xerr_low, xerr_high], fmt='b.',elinewidth=0.4, ecolor = 'Black', capsize=0)  # , color=colors[i]
 
 	if ANNOTATE_POINTS:
-		ax.annotate(sizes[0],
+		ax.annotate(sorted(data[serie].keys())[0],
         xy=(x[0], y[0]), xycoords='data',
         xytext=(+3, +1), textcoords='offset points', fontsize=8)
 
-		ax.annotate(sizes[len(sizes)-1],
+		ax.annotate(sorted(data[serie].keys())[len(data[serie].keys())-1],
         xy=(x[len(x)-1],y[len(y)-1]), xycoords='data',
         xytext=(+3, +1), textcoords='offset points', fontsize=8)
 
-# Work around to get rid of the problem with frameon=False and the extra space generated in the plot
-ax.legend(pp,ss, numpoints=1, loc='best',fontsize =6).get_frame().set_visible(False)
-#ax.legend(pp,ss, numpoints=1, loc='best',fontsize =6,frameon = False )
-
-
-
-
+	ax.annotate(serie,
+        xy=(x[int(len(x) / 2)], y[int(len(y) / 2)]), xycoords='data',
+        xytext=(0, -12), textcoords='offset points', fontsize=8)
 
 #Peak performance line and text
 for p,l in zip(PEAK_PERF, PEAK_PERF_LABELS):
@@ -251,6 +202,8 @@ for p,l in zip(PEAK_PERF, PEAK_PERF_LABELS):
 #BW line and text
 for bw,l in zip(PEAK_BW, PEAK_BW_LABELS):
 	addBWLine(bw,l)
+
+matplotlib.pyplot.grid(True, which="both")
 
 #save file
 fig.savefig(OUTPUT_FILE, dpi=250,  bbox_inches='tight')

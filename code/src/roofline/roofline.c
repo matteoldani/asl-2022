@@ -66,26 +66,6 @@ int main(int argc, char const* argv[])
         printf("<program number [1,2,3,4,5]> ");
         printf("<input size> ");
         printf("<number of test>\n");
-
-        printf("Program index:\n");
-        printf("\t1. Baseline 1\n");
-        printf("\t2. Baseline 2\n");
-        printf("\t3. Optimisation 0\n");
-        printf("\t4. Optimisation 1\n");
-        printf("\t5. Alg Opt 1\n");
-        printf("\t6. Alg Opt 2\n");
-        printf("\t7. Optimisation 2\n");
-        printf("\t8. Optimisation 3\n");
-        printf("\t9. Optimisation 21\n");
-        printf("\t10. Optimisation 22\n");
-        printf("\t11. Optimisation 23\n");
-        printf("\t12. Optimisation 24\n");
-        printf("\t13. Optimisation 31\n");
-        printf("\t14. Optimisation 32\n");
-        printf("\t15. Optimisation 33\n");
-        printf("\t16. Optimisation 34\n");
-
-
         return 0;
     }
 
@@ -171,6 +151,30 @@ int main(int argc, char const* argv[])
 
     case 19:
         optimization(tests, input_size, b, fout, &nnm_factorization_opt41);
+        break;
+
+    case 20:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt42);
+        break;
+
+    case 21:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt43);
+        break;
+
+    case 22:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt44);
+        break;
+
+    case 23:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt45);
+        break;
+
+    case 24:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt46);
+        break;
+
+    case 25:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt47);
         break;
 
     default:
