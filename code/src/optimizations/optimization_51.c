@@ -605,38 +605,15 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 //element-wise multiplication and division
                 ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 <= jnB - 16; j1 += 16) {
+                    for (int j1 = j; j1 < jnB; j1 += 4) {
                         ni1j1 = ni1 + j1;
                         
                         num_1 = _mm256_loadu_pd(&numerator[ni1j1]);
-                        num_2 = _mm256_loadu_pd(&numerator[ni1j1 + 4]);
-                        num_3 = _mm256_loadu_pd(&numerator[ni1j1 + 8]);
-                        num_1 = _mm256_loadu_pd(&numerator[ni1j1 + 12]);
-
                         fac_1 = _mm256_loadu_pd(&H[ni1j1]);
-                        fac_2 = _mm256_loadu_pd(&H[ni1j1 + 4]);
-                        fac_3 = _mm256_loadu_pd(&H[ni1j1 + 8]);
-                        fac_4 = _mm256_loadu_pd(&H[ni1j1 + 12]);
-
                         den_1 = _mm256_loadu_pd(&denominator[ni1j1]);
-                        den_2 = _mm256_loadu_pd(&denominator[ni1j1 + 4]);
-                        den_3 = _mm256_loadu_pd(&denominator[ni1j1 + 8]);
-                        den_4 = _mm256_loadu_pd(&denominator[ni1j1 + 12]);
-
                         num_1 = _mm256_mul_pd(fac_1, num_1);
-                        num_2 = _mm256_mul_pd(fac_2, num_2);
-                        num_3 = _mm256_mul_pd(fac_3, num_3);
-                        num_4 = _mm256_mul_pd(fac_4, num_4);
-
                         res_1 = _mm256_div_pd(num_1, den_1);
-                        res_2 = _mm256_div_pd(num_2, den_2);
-                        res_3 = _mm256_div_pd(num_3, den_3);
-                        res_4 = _mm256_div_pd(num_4, den_4);
-
                         _mm256_storeu_pd(&H_new[ni1j1], res_1);
-                        _mm256_storeu_pd(&H_new[ni1j1 + 4], res_2);
-                        _mm256_storeu_pd(&H_new[ni1j1 + 8], res_3);
-                        _mm256_storeu_pd(&H_new[ni1j1 + 12], res_4);
                     }
                     ni1 += n;
                 }
