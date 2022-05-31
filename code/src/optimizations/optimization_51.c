@@ -624,17 +624,18 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         transpose4x4(&Ht[j1 * r + i1], &H_new[i1 * n + j1], r, n);
                 }
 
+
                 //computation for Wn+1
 
-                //V*H rmul
-                /*ri1 = ni1 = 0;
+                //V*Ht mul
+                ri1 = ni1 = 0;
                 for (int i1 = 0; i1 < m; i1++) {
                     nj1 = ni;
                     for (int j1 = i; j1 < inB; j1++) {
                         ri1j1 = ri1 + j1;
                         accumulator = 0;
                         for (int k1 = j; k1 < jnB; k1++)
-                            accumulator += V[ni1 + k1] * H_new[nj1 + k1];
+                            accumulator += V[ni1 + k1] * Ht[k1 * n + j1];
                         numerator_W[ri1j1] += accumulator;
                         nj1 += n;
                     }
@@ -643,7 +644,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 }
 
                 //H*H rmul
-                ni1 = ri1 = 0;
+                /*ni1 = ri1 = 0;
                 for (int i1 = 0; i1 < inB; i1++) {
                     nj1 = ni;
                     for (int j1 = i; j1 < inB; j1++) {
@@ -679,7 +680,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         }
 
         //remaining computation for Wn+1
-        matrix_mul_opt51(V, m, n, Ht, n, r, numerator_W, m, r);
+        //matrix_mul_opt51(V, m, n, Ht, n, r, numerator_W, m, r);
         matrix_mul_opt51(H_new, r, n, Ht, n, r, denominator_r, r, r);
         matrix_mul_opt51(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
