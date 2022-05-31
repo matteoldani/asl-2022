@@ -635,7 +635,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         ri1j1 = ri1 + j1;
                         accumulator = 0;
                         for (int k1 = j; k1 < jnB; k1++)
-                            accumulator += V[ni1 + k1] * Ht[k1 * n + j1];
+                            accumulator += V[ni1 + k1] * Ht[k1 * r + j1];
                         numerator_W[ri1j1] += accumulator;
                         nj1 += n;
                     }
