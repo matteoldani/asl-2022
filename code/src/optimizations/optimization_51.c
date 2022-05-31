@@ -508,11 +508,15 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     int nB_i = BLOCK_SIZE_H_ROW;
     int nB_j = BLOCK_SIZE_H_COL;
     int nB_mul = BLOCK_SIZE_H_MUL;
-    int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i;
-    int ri, mi, ni, ri1, ni1, nj1, ni1j1, ri1j1;
+    int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i, n2 = n << 1, r2 = r << 1;
+    int ri, mi, ni, ri1, ni1, nj1, ni1j1, ri1j1, idx_r, idx_b;
 
     __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
     __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
+    __m256d a0, a1;
+    __m256d b0, b1, b2, b3;
+    __m256d r0, r1, r2, r3;
+    __m256d r4, r5, r6, r7;
 
     double accumulator;
 
@@ -547,16 +551,56 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 //(WtW)*H mul
                 ni1 = ni;
                 ri1 = ri;
-                for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 < jnB; j1++) {
+                for (int i1 = i; i1 <= inB - 2; i1 += 2) {
+                    for (int j1 = j; j1 <= jnB - 16; j1 += 16) {
                         ni1j1 = ni1 + j1;
-                        accumulator = 0;
-                        for (int k1 = 0; k1 < r; k1++)
-                            accumulator += denominator_l[ri1 + k1] * H[k1 * n + j1];
-                        denominator[ni1j1] += accumulator;
+                        idx_r = ni1j1 + n;
+
+                        r0 = _mm256_loadu_pd(&denominator[ni1j1]);
+                        r1 = _mm256_loadu_pd(&denominator[ni1j1 + 4]);
+                        r2 = _mm256_loadu_pd(&denominator[ni1j1 + 8]);
+                        r3 = _mm256_loadu_pd(&denominator[ni1j1 + 12];
+
+                        r4 = _mm256_loadu_pd(&denominator[idx_r]);
+                        r5 = _mm256_loadu_pd(&denominator[idx_r + 4]);
+                        r6 = _mm256_loadu_pd(&denominator[idx_r + 8]);
+                        r7 = _mm256_loadu_pd(&denominator[idx_r + 12]);
+
+                        idx_b = j1;
+                        for (int k1 = 0; k1 < r; k1++) {
+                            a0 = _mm256_set1_pd(denominator_l[ri1 + k1]);
+                            a1 = _mm256_set1_pd(denominator_l[ri1 + r + k1]);
+
+                            b0 = _mm256_loadu_pd(&H[idx_b]);
+                            b1 = _mm256_loadu_pd(&H[idx_b + 4]);
+                            b2 = _mm256_loadu_pd(&H[idx_b + 8]);
+                            b3 = _mm256_loadu_pd(&H[idx_b + 12]);
+
+                            r0 = _mm256_fmadd_pd(a0, b0, r0);
+                            r1 = _mm256_fmadd_pd(a0, b1, r1);
+                            r2 = _mm256_fmadd_pd(a0, b2, r2);
+                            r3 = _mm256_fmadd_pd(a0, b3, r3);
+
+                            r4 = _mm256_fmadd_pd(a1, b0, r4);
+                            r5 = _mm256_fmadd_pd(a1, b1, r5);
+                            r6 = _mm256_fmadd_pd(a1, b2, r6);
+                            r7 = _mm256_fmadd_pd(a1, b3, r7);
+
+                            idx_b += n;
+                        }
+
+                        _mm256_storeu_pd(&denominator[ni1j1], r0);
+                        _mm256_storeu_pd(&denominator[ni1j1 + 4], r1);
+                        _mm256_storeu_pd(&denominator[ni1j1 + 8], r2);
+                        _mm256_storeu_pd(&denominator[ni1j1 + 12], r3);
+
+                        _mm256_storeu_pd(&denominator[idx_r], r4);
+                        _mm256_storeu_pd(&denominator[idx_r + 4], r5);
+                        _mm256_storeu_pd(&denominator[idx_r + 8], r6);
+                        _mm256_storeu_pd(&denominator[idx_r + 12], r7);
                     }
-                    ni1 += n;
-                    ri1 += r;
+                    ni1 += n2;
+                    ri1 += r2;
                 }
 
                 //element-wise multiplication and division
