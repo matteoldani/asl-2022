@@ -883,8 +883,8 @@ int main(int argc, char const *argv[]) {
 
     int n_mmulrtrans_opt = 19;
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 23;
-    int n_nnm_opt = 23;
+    int n_mmul_opt = 24;
+    int n_nnm_opt = 24;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col,
                                           double *R, int R_n_row, int R_n_col);
@@ -933,6 +933,7 @@ int main(int argc, char const *argv[]) {
     mmuld[20] = matrix_mul_opt45;
     mmuld[21] = matrix_mul_opt46_padding;
     mmuld[22] = matrix_mul_opt47_padding;
+    mmuld[23] = matrix_mul_opt37_padding;
 
     mmulrtransd[0] = matrix_rtrans_mul_opt0;
     mmulrtransd[1] = matrix_rtrans_mul_opt1;
@@ -977,6 +978,7 @@ int main(int argc, char const *argv[]) {
     nnmd[20] = nnm_factorization_opt45;
     nnmd[21] = nnm_factorization_opt46;
     nnmd[22] = nnm_factorization_opt47;
+    nnmd[23] = nnm_factorization_opt37;
 
     // END TODO
 

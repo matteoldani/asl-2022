@@ -119,9 +119,23 @@
 	- uses dsyrk and dsymm to exploit the fact that WtW HHt are symmetric matrices. Surprisingly, no runtime improvement with 
 	  respect to opt 24. 
 
+*Optimization 42:
+
+*Optimization 43:
+
+*Optimization 44:
+
+*Optimization 45:
 
 *Optimization 46:
 	- on top of opt 45 matrix multiplication
 	- padds all the matrices s.t. m, n, r are now multiple of the block size. In this way it is possible to remove the cleanup loops
 	- There's a single matrix mul and all the matrices are transposed when necessary
+
+*Optimization 47:
+
+*Optimization 37:
+	- Done on top of optimization 47
+	- Matrix transpose is now vectorized and generalized so it can take input of any size
+
 	
