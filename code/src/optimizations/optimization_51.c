@@ -630,7 +630,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                 //V*Ht mul
                 ri1 = ni1 = 0;
                 for (int i1 = 0; i1 <= m - 2; i1 += 2) {
-                    for (int j1 = i; j1 <= inB + 16; j1 += 16) {
+                    for (int j1 = i; j1 <= inB - 16; j1 += 16) {
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
@@ -676,26 +676,20 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         _mm256_storeu_pd(&numerator_W[idx_r + 4], r5);
                         _mm256_storeu_pd(&numerator_W[idx_r + 8], r6);
                         _mm256_storeu_pd(&numerator_W[idx_r + 12], r7);
-
-
-                        /*accumulator = 0;
-                        for (int k1 = j; k1 < jnB; k1++)
-                            accumulator += V[ni1 + k1] * Ht[k1 * r + j1];
-                        numerator_W[ri1j1] += accumulator;*/
                     }
                     ri1 += r_2;
                     ni1 += n_2;
                 }
 
-                //H*H rmul
-                /*ni1 = ri1 = 0;
+                //H*Ht mul
+                ni1 = ri1 = 0;
                 for (int i1 = 0; i1 < inB; i1++) {
                     nj1 = ni;
                     for (int j1 = i; j1 < inB; j1++) {
                         ri1j1 = ri1 + j1;
                         accumulator = 0;
                         for (int k1 = j; k1 < jnB; k1++)
-                            accumulator += H_new[ni1 + k1] * H_new[nj1 + k1];
+                            accumulator += H_new[ni1 + k1] * Ht[k1 * r + j1];
                         denominator_r[ri1j1] += accumulator;
                         nj1 += n;
                     }
@@ -710,13 +704,13 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         ri1j1 = ri1 + j1;
                         accumulator = 0;
                         for (int k1 = j; k1 < jnB; k1++)
-                            accumulator += H_new[ni1 + k1] * H_new[nj1 + k1];
+                            accumulator += H_new[ni1 + k1] * Ht[k1 * r + j1];
                         denominator_r[ri1j1] += accumulator;
                         nj1 += n;
                     }
                     ri1 += r;
                     ni1 += n;
-                }*/
+                }
             }
             ri += rnB_i;
             mi += mnB_i;
@@ -724,8 +718,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         }
 
         //remaining computation for Wn+1
-        //matrix_mul_opt51(V, m, n, Ht, n, r, numerator_W, m, r);
-        matrix_mul_opt51(H_new, r, n, Ht, n, r, denominator_r, r, r);
+        //matrix_mul_opt51(H_new, r, n, Ht, n, r, denominator_r, r, r);
         matrix_mul_opt51(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         int i;
