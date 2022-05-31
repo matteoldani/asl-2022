@@ -665,7 +665,15 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
             _mm256_storeu_pd(&W[i + 12], res_4);
         }
 
-        for (; i < mr; i++)
+        for (; i <= mr - 4; i += 4) {
+            num_1 = _mm256_loadu_pd(&numerator_W[i]);
+            fac_1 = _mm256_loadu_pd(&W[i]);
+            den_1 = _mm256_loadu_pd(&denominator_W[i]);
+            num_1 = _mm256_mul_pd(fac_1, num_1);
+            res_1 = _mm256_div_pd(num_1, den_1);
+            _mm256_storeu_pd(&W[i], res_1);
+        }
+        for(; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
 
         memcpy(H, H_new, d_rn);
