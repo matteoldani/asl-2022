@@ -4,6 +4,7 @@ import sys
 import os
 import math
 from csv import DictReader
+from xml.etree.ElementInclude import include
 
 from matplotlib import rc
 #rc('text', usetex=True) # this is if you want to use latex to print text. If you do you can create strings that go on labels or titles like this for example (with an r in front): r"$n=$ " + str(int(n))
@@ -20,6 +21,7 @@ import matplotlib.font_manager as fm
 #font = fm.FontProperties(
 #        family = 'Gill Sans', fname = 'GillSans.ttc')
 
+included = ['bs1', 'bs2', 'opt47', 'opt41', 'opt31']
 
 background_color =(0.85,0.85,0.85) #'#C0C0C0'    
 dark_grey_color = (0.298, 0.298, 0.298)
@@ -144,6 +146,9 @@ with open('/home/asl/asl-2022-vgsteiger/docs/plotting/roofline/roofline_data.csv
 pp = []
 ss=[]
 for serie in data.keys():
+
+	if serie not in included:
+		continue
 
 	xData = []
 	yData = []
