@@ -388,7 +388,7 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     norm_approx2 = _mm256_add_pd(norm_approx2, norm_approx3);
     norm_approx0 = _mm256_add_pd(norm_approx0, norm_approx2);
     t = _mm256_hadd_pd(norm_approx0, norm_approx0);
-    _mm256_store_pd(&norm[0], t);
+    _mm256_storeu_pd(&norm[0], t);
     res = sqrt(norm[0] + norm[2]);
     return res * norm_V;
 }
