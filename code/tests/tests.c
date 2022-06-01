@@ -871,20 +871,20 @@ int main(int argc, char const *argv[]) {
     }
 
     // TODO: Please add following the number of functions you would like to test:
-    int n_mmulrtrans = 2;
-    int n_mmulltrans = 2;
-    int n_mmul = 2;
-    int n_nnm = 2;
+    int n_mmulrtrans = 0;
+    int n_mmulltrans = 0;
+    int n_mmul = 0;
+    int n_nnm = 0;
 
     void (*mmulrtrans[n_mmulrtrans])(Matrix *A, Matrix *B, Matrix *R);
     void (*mmulltrans[n_mmulltrans])(Matrix *A, Matrix *B, Matrix *R);
     void (*mmul[n_mmul])(Matrix *A, Matrix *B, Matrix *R);
     double (*nnm[n_nnm])(Matrix *V, Matrix *W, Matrix *H, int maxIteration, double epsilon);
 
-    int n_mmulrtrans_opt = 19;
+    int n_mmulrtrans_opt = 0;
     int n_mmulltrans_opt = 0;
-    int n_mmul_opt = 26;
-    int n_nnm_opt = 26;
+    int n_mmul_opt = 0;
+    int n_nnm_opt = 5;
 
     void (*mmulrtransd[n_mmulrtrans_opt])(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col,
                                           double *R, int R_n_row, int R_n_col);
@@ -896,7 +896,7 @@ int main(int argc, char const *argv[]) {
 
     // START TODO:
     // Now add the functions you would like to test from the impleemntations:
-    mmul[0] = matrix_mul_bs1;
+    /*mmul[0] = matrix_mul_bs1;
     mmul[1] = matrix_mul_bs2;
 
     mmulltrans[0] = matrix_ltrans_mul_bs1;
@@ -980,7 +980,13 @@ int main(int argc, char const *argv[]) {
     nnmd[22] = nnm_factorization_opt47;
     nnmd[23] = nnm_factorization_opt37;
     nnmd[24] = nnm_factorization_opt51;
-    nnmd[25] = nnm_factorization_opt52;
+    nnmd[25] = nnm_factorization_opt52;*/
+
+    nnmd[0] = nnm_factorization_opt33;
+    nnmd[1] = nnm_factorization_opt47;
+    nnmd[2] = nnm_factorization_opt51;
+    nnmd[3] = nnm_factorization_opt52;
+    nnmd[4] = nnm_factorization_opt53;
 
     // END TODO
 

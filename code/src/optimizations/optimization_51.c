@@ -392,6 +392,7 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     res = sqrt(norm[0] + norm[2]);
     return res * norm_V;
 }
+
 /**
  * @brief computes the non-negative matrix factorisation updating the values stored by the 
  *        factorization functions
@@ -785,6 +786,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                     ni1 += n_2;
                     ri1 += r_2;
                 }
+
                 ni1 = ni;
                 ri1 = ri;
                 for (int i1 = i; i1 <= inB - 2; i1 += 2) {
