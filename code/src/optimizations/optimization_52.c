@@ -557,36 +557,10 @@ double nnm_factorization_opt52(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt52(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
         //NEW - optimal element-wise mult-div
-        for (int i = 0; i <= original_m * original_r - 16; i += 16) {
-            num_1 = _mm256_loadu_pd(&numerator_W[i]);
-            num_2 = _mm256_loadu_pd(&numerator_W[i + 4]);
-            num_3 = _mm256_loadu_pd(&numerator_W[i + 8]);
-            num_4 = _mm256_loadu_pd(&numerator_W[i + 12]);
-
-            fac_1 = _mm256_loadu_pd(&W[i]);
-            fac_2 = _mm256_loadu_pd(&W[i + 4]);
-            fac_3 = _mm256_loadu_pd(&W[i + 8]);
-            fac_4 = _mm256_loadu_pd(&W[i + 12]);
-
-            den_1 = _mm256_loadu_pd(&denominator_W[i]);
-            den_2 = _mm256_loadu_pd(&denominator_W[i + 4]);
-            den_3 = _mm256_loadu_pd(&denominator_W[i + 8]);
-            den_4 = _mm256_loadu_pd(&denominator_W[i + 12]);
-
-            num_1 = _mm256_mul_pd(fac_1, num_1);
-            num_2 = _mm256_mul_pd(fac_2, num_2);
-            num_3 = _mm256_mul_pd(fac_3, num_3);
-            num_4 = _mm256_mul_pd(fac_4, num_4);
-
-            res_1 = _mm256_div_pd(num_1, den_1);
-            res_2 = _mm256_div_pd(num_2, den_2);
-            res_3 = _mm256_div_pd(num_3, den_3);
-            res_4 = _mm256_div_pd(num_4, den_4);
-
-            _mm256_storeu_pd(&W[i], res_1);
-            _mm256_storeu_pd(&W[i + 4], res_2);
-            _mm256_storeu_pd(&W[i + 8], res_3);
-            _mm256_storeu_pd(&W[i + 12], res_4);
+        for(i = 0; i < original_m; i ++){
+            for(int j = 0; j < original_r; j++){
+                W[i * r + j] =   W[i * r + j]   * numerator_W[i * r + j]   / denominator_W[i * r + j];
+            }
         }
     }
 
