@@ -407,8 +407,34 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt53(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
-    double *Wt, *H_new, *W_new, *Ht;
+double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, int m, int n, int r, int maxIteration, double epsilon) {
+
+    double *V, *W, *H;
+
+    V = malloc(double_size * m * n);
+    H = malloc(double_size * r * n);
+    W = malloc(double_size * m * r);
+
+    memcpy(V, V_final, m * n * double_size );
+    memcpy(W, W_final, m * r * double_size);
+    memcpy(H, H_final, r * n * double_size);
+
+    // padding all the values to multiple of BLOCKSIZE
+    int temp_r = r;
+    int temp_m = m;
+    int temp_n = n;
+
+    int original_m = m;
+    int original_n = n;
+    int original_r = r;
+
+    // i do not have to modify m n yet
+    pad_matrix(&V, &temp_m, &temp_n);
+    // i do not have to modify r but i can modify m
+    pad_matrix(&W, &m, &temp_r);
+    // i can modify both r and n
+    pad_matrix(&H, &r, &n);
+
     int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;
@@ -420,11 +446,6 @@ double nnm_factorization_opt53(double *V, double*W, double*H, int m, int n, int 
     d_rr = double_size * rr;
     d_mr = double_size * mr;
     d_mn = double_size * mn;
-    
-    Wt = malloc(d_mr);
-    H_new = malloc(d_rn);
-    Ht = malloc(d_rn);
-    W_new = malloc(d_mr);
 
     //Operands needed to compute Hn+1
     double *numerator;      //r x n
@@ -447,15 +468,50 @@ double nnm_factorization_opt53(double *V, double*W, double*H, int m, int n, int 
     double* approximation; //m x n
     approximation = malloc(d_mn);
 
-    double norm_V = 0;
-    for (int i = 0; i < mn; i++){
-        norm_V += V[i] * V[i];
-    }
-    norm_V = 1 / sqrt(norm_V);
+    double norm_V  = 0;
+    double * norm_tmp = malloc(double_size * 4);
+    int i;
 
-    //NEW - Algorithmic optimization, calculating W(n+1) in a blockwise manner and using the current block instantly in the calculation of H(n+2)
-    //NEW - All multiplications are done in the most optimal manner - blocked and with index calculation optimizations and scalar replacement
-    //NOTE - We may also try calling BLAS on the level of blocks
+    __m256d norm_approx0, norm_approx1, norm_approx2, norm_approx3;
+    __m256d t;
+
+    __m256d r0, r1, r2, r3;
+
+    __m256d sum0, sum1;
+
+    norm_approx0 = _mm256_setzero_pd();
+    norm_approx1 = _mm256_setzero_pd();
+    norm_approx2 = _mm256_setzero_pd();
+    norm_approx3 = _mm256_setzero_pd();
+
+    for (i=0; i<mn; i+=16){
+        
+        r0 = _mm256_loadu_pd((double *)&V[i]);
+        r1 = _mm256_loadu_pd((double *)&V[i + 4]);
+        r2 = _mm256_loadu_pd((double *)&V[i + 8]);
+        r3 = _mm256_loadu_pd((double *)&V[i + 12]);
+
+        norm_approx0 = _mm256_fmadd_pd(r0, r0, norm_approx0);
+        norm_approx1 = _mm256_fmadd_pd(r1, r1, norm_approx1);
+        norm_approx2 = _mm256_fmadd_pd(r2, r2, norm_approx2);
+        norm_approx3 = _mm256_fmadd_pd(r3, r3, norm_approx3);
+    }
+
+
+    sum0 = _mm256_add_pd(norm_approx0, norm_approx1);
+    sum1 = _mm256_add_pd(norm_approx2, norm_approx3);
+    sum0 = _mm256_add_pd(sum0, sum1);
+
+    t = _mm256_hadd_pd(sum0, sum0);
+    _mm256_storeu_pd(&norm_tmp[0], t);
+    norm_V = 1 / sqrt(norm_tmp[0] + norm_tmp[2]);
+
+    double *Wt, *H_new, *W_new, *Ht;
+
+    Wt = malloc(d_mr);
+    H_new = malloc(d_rn);
+    Ht = malloc(d_rn);
+    W_new = malloc(d_mr);
 
     int nB_i = BLOCK_SIZE_W_ROW;
     int nB_j = BLOCK_SIZE_W_COL;
@@ -471,9 +527,42 @@ double nnm_factorization_opt53(double *V, double*W, double*H, int m, int n, int 
     matrix_mul_opt53(Wt, r, m, W, m, r, denominator_l, r, r);
     matrix_mul_opt53(denominator_l, r, r, H, r, n, denominator, r, n);
 
-    for (int i = 0; i < rn; i++)
-        H_new[i] = H[i] * numerator[i] / denominator[i];
+    __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
+    __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
 
+    //NEW - element-wise mult-div is vectorized
+    for (int i = 0; i <= rn - 16; i+=16) {
+        num_1 = _mm256_loadu_pd(&numerator[i]);
+        num_2 = _mm256_loadu_pd(&numerator[i + 4]);
+        num_3 = _mm256_loadu_pd(&numerator[i + 8]);
+        num_4 = _mm256_loadu_pd(&numerator[i + 12]);
+
+        fac_1 = _mm256_loadu_pd(&H[i]);
+        fac_2 = _mm256_loadu_pd(&H[i + 4]);
+        fac_3 = _mm256_loadu_pd(&H[i + 8]);
+        fac_4 = _mm256_loadu_pd(&H[i + 12]);
+
+        den_1 = _mm256_loadu_pd(&denominator[i]);
+        den_2 = _mm256_loadu_pd(&denominator[i + 4]);
+        den_3 = _mm256_loadu_pd(&denominator[i + 8]);
+        den_4 = _mm256_loadu_pd(&denominator[i + 12]);
+
+        num_1 = _mm256_mul_pd(fac_1, num_1);
+        num_2 = _mm256_mul_pd(fac_2, num_2);
+        num_3 = _mm256_mul_pd(fac_3, num_3);
+        num_4 = _mm256_mul_pd(fac_4, num_4);
+
+        res_1 = _mm256_div_pd(num_1, den_1);
+        res_2 = _mm256_div_pd(num_2, den_2);
+        res_3 = _mm256_div_pd(num_3, den_3);
+        res_4 = _mm256_div_pd(num_4, den_4);
+
+        _mm256_storeu_pd(&H_new[i], res_1);
+        _mm256_storeu_pd(&H_new[i + 4], res_2);
+        _mm256_storeu_pd(&H_new[i + 8], res_3);
+        _mm256_storeu_pd(&H_new[i + 12], res_4);
+    }
+    
     //real convergence computation
     double err = -1;											
     for (int count = 0; count < maxIteration; count++) {
@@ -606,6 +695,20 @@ double nnm_factorization_opt53(double *V, double*W, double*H, int m, int n, int 
     free(H_new);
     free(W_new);
     free(approximation);
+
+    // here i should remove the padding from the matrices
+    unpad_matrix(&V, &temp_m, &temp_n, original_m, original_n);
+    unpad_matrix(&W, &m, &temp_r, original_m, original_r);
+    unpad_matrix(&H, &r, &n, original_r, original_n);
+
+    memcpy(V_final, V, m * n * double_size);
+    memcpy(W_final, W, m * r * double_size);
+    memcpy(H_final, H, r * n * double_size);
+
+    free(V);
+    free(H);
+    free(W);
+
     return err;
 }
 

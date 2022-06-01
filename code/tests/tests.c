@@ -982,7 +982,7 @@ int main(int argc, char const *argv[]) {
     nnmd[24] = nnm_factorization_opt51;
     nnmd[25] = nnm_factorization_opt52;*/
 
-    nnmd[0] = nnm_factorization_opt33;
+    nnmd[0] = nnm_factorization_opt35;
     nnmd[1] = nnm_factorization_opt47;
     nnmd[2] = nnm_factorization_opt51;
     nnmd[3] = nnm_factorization_opt52;
