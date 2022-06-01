@@ -1,7 +1,7 @@
 #define EPSILON 0.0005
 #define MAX_ITERATIONS 100
 #define SEED 42
-#define RANK 16     //needs to be divisible by BLOCK_SIZE_TRANS, BLOCK_SIZE_MMUL and BLOCK_SIZE_RTRANSMUL
+#define RANK 21     //needs to be divisible by BLOCK_SIZE_TRANS, BLOCK_SIZE_MMUL and BLOCK_SIZE_RTRANSMUL
 #define M_TEST 400  //needs to be divisible by BLOCK_SIZE_TRANS, BLOCK_SIZE_MMUL and BLOCK_SIZE_RTRANSMUL
 #define N_TEST 400  //needs to be divisible by BLOCK_SIZE_TRANS, BLOCK_SIZE_MMUL and BLOCK_SIZE_RTRANSMUL
 #define NUM_RUNS 10

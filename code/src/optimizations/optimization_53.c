@@ -394,6 +394,10 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     return res * norm_V;
 }
 
+static inline int min(int a, int b) {
+    return a < b ? a : b;
+}
+
 /**
  * @brief computes the non-negative matrix factorisation updating the values stored by the 
  *        factorization functions
@@ -515,8 +519,9 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
 
     int nB_i = BLOCK_SIZE_W_ROW;
     int nB_j = BLOCK_SIZE_W_COL;
-    int inB, jnB, rnB_i = r * nB_i, mnB_i = m * nB_i, nnB_i = n * nB_i, rnB_j = r * nB_j, nnB_j = n * nB_j, n_2 = n << 1, r_2 = r << 1, m_2 = m << 1;
-    int ri, ni, mi, rj, nj, ri1, ni1, ni1j1, ri1j1, idx_r, idx_b, idx_n, mi1;
+    int inB, jnB, rnB_i = r * nB_i, mnB_i = m * nB_i, nnB_i = n * nB_i, mnB_j = m * nB_j, rnB_j = r * nB_j, nnB_j = n * nB_j, n_2 = n << 1, r_2 = r << 1, m_2 = m << 1;
+    int ri, ni, mi, rj, nj, mj, ri1, ni1, ni1j1, ri1j1, idx_r, idx_b, idx_n, mi1;
+    int inner_inB, inner_jnB;
 
     double accumulator;
 
@@ -534,36 +539,10 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
     __m256d r4, r5, r6, r7;
 
     //NEW - element-wise mult-div is vectorized
-    for (int i = 0; i <= rn - 16; i+=16) {
-        num_1 = _mm256_loadu_pd(&numerator[i]);
-        num_2 = _mm256_loadu_pd(&numerator[i + 4]);
-        num_3 = _mm256_loadu_pd(&numerator[i + 8]);
-        num_4 = _mm256_loadu_pd(&numerator[i + 12]);
-
-        fac_1 = _mm256_loadu_pd(&H[i]);
-        fac_2 = _mm256_loadu_pd(&H[i + 4]);
-        fac_3 = _mm256_loadu_pd(&H[i + 8]);
-        fac_4 = _mm256_loadu_pd(&H[i + 12]);
-
-        den_1 = _mm256_loadu_pd(&denominator[i]);
-        den_2 = _mm256_loadu_pd(&denominator[i + 4]);
-        den_3 = _mm256_loadu_pd(&denominator[i + 8]);
-        den_4 = _mm256_loadu_pd(&denominator[i + 12]);
-
-        num_1 = _mm256_mul_pd(fac_1, num_1);
-        num_2 = _mm256_mul_pd(fac_2, num_2);
-        num_3 = _mm256_mul_pd(fac_3, num_3);
-        num_4 = _mm256_mul_pd(fac_4, num_4);
-
-        res_1 = _mm256_div_pd(num_1, den_1);
-        res_2 = _mm256_div_pd(num_2, den_2);
-        res_3 = _mm256_div_pd(num_3, den_3);
-        res_4 = _mm256_div_pd(num_4, den_4);
-
-        _mm256_storeu_pd(&H_new[i], res_1);
-        _mm256_storeu_pd(&H_new[i + 4], res_2);
-        _mm256_storeu_pd(&H_new[i + 8], res_3);
-        _mm256_storeu_pd(&H_new[i + 12], res_4);
+    for(i = 0; i < original_r; i ++){
+        for(int j = 0; j < original_n; j++){
+            H_new[i * n + j] =   H[i * n + j]   * numerator[i * n + j] / denominator[i * n + j];
+        }
     }
     
     //real convergence computation
@@ -601,30 +580,39 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
 
                 //element-wise multiplication and division
                 ri1 = ri;
-                for (int i1 = i; i1 < inB; i1++) {
-                    for (int j1 = j; j1 <= jnB - 8; j1+=8) {
+                for (int i1 = i; i1 < min(inB, original_m); i1++) {
+                    for (int j1 = j; j1 < min(jnB - 3, original_r - (original_r % 4)); j1+=4) {
                         ri1j1 = ri1 + j1;
 
                         num_1 = _mm256_loadu_pd(&numerator_W[ri1j1]);
-                        num_2 = _mm256_loadu_pd(&numerator_W[ri1j1 + 4]);
 
                         fac_1 = _mm256_loadu_pd(&W[ri1j1]);
-                        fac_2 = _mm256_loadu_pd(&W[ri1j1 + 4]);
 
                         den_1 = _mm256_loadu_pd(&denominator_W[ri1j1]);
-                        den_2 = _mm256_loadu_pd(&denominator_W[ri1j1 + 4]);
 
                         num_1 = _mm256_mul_pd(fac_1, num_1);
-                        num_2 = _mm256_mul_pd(fac_2, num_2);
 
                         res_1 = _mm256_div_pd(num_1, den_1);
-                        res_2 = _mm256_div_pd(num_2, den_2);
 
                         _mm256_storeu_pd(&W_new[ri1j1], res_1);
-                        _mm256_storeu_pd(&W_new[ri1j1 + 4], res_2);
                     }
                     ri1 += r;
                 }
+
+                for (int i1 = i; i1 < original_m; i1++) {
+                    for (int j1 = original_r - (original_r % 4); j1 < original_r; j1++) {
+                        W_new[i1 * r + j1] = W[i1 * r + j1] * numerator_W[i1 * r + j1] / denominator_W[i1 * r + j1];
+                    }
+                }
+
+                /*ri1 = ri;
+                for (int i1 = i; i1 < min(inB, original_m); i1++) {
+                    for (int j1 = j; j1 < min(jnB, original_r); j1++) {
+                        ri1j1 = ri1 + j1;
+                        W_new[i1 * r + j1] = W[i1 * r + j1] * numerator_W[i1 * r + j1] / denominator_W[i1 * r + j1];
+                    }
+                    ri1 += r;
+                }*/
 
                 //computation for Hn+2
 
@@ -703,6 +691,7 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
                 }*/
 
                 //WW lmul
+                // TODO: Delete if version below works 
                 ri1 = rj;
                 for (int i1 = j; i1 < jnB; i1++) {
                     for (int j1 = 0; j1 < jnB; j1++) {
@@ -725,11 +714,14 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
                 }
                 nj += nnB_j;
                 rj += rnB_j;
+                mj += mnB_j;
 
                 //WtW mul
+                // TODO: uncomment and fix index issues
+                
                 /*mi1 = ri1 = 0;
-                for (int i1 = 0; i1 <= inB - 2; i1 += 2) {
-                    for (int j1 = i; j1 <= inB - 16; j1 += 16) {
+                for (int i1 = j; i1 <= jnB - 2; i1+=2) {
+                    for (int j1 = 0; j1 <= jnB - 16; j1+=16) {
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
@@ -781,8 +773,8 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
                 }
                 mi1 = mi;
                 ri1 = ri;
-                for (int i1 = i; i1 <= inB - 2; i1 += 2) {
-                    for (int j1 = 0; j1 <= i - 16; j1 += 16) {
+                for (int i1 = 0; i1 <= j - 2; i1+=2) {
+                    for (int j1 = j; j1 <= jnB - 16; j1+=16) {
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
@@ -829,10 +821,12 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
                         _mm256_storeu_pd(&denominator_l[idx_r + 8], r6);
                         _mm256_storeu_pd(&denominator_l[idx_r + 12], r7);
                     }
-                    ri1 += r_2;
                     mi1 += m_2;
+                    ri1 += r_2;
                 }
-                */
+                nj += nnB_j;
+                rj += rnB_j;
+                mi += mnB_j;*/
             }
             ri += rnB_i;
             ni += nnB_i;
@@ -842,11 +836,12 @@ double nnm_factorization_opt53(double *V_final, double*W_final, double*H_final, 
         //remaining computation for Hn+2
         matrix_mul_opt53(denominator_l, r, r, H, r, n, denominator, r, n);
         
-        for(i = 0; i < original_m; i ++){
-            for(int j = 0; j < original_r; j++){
-                H_new[i * r + j] =   H[i * r + j]   * numerator[i * r + j]   / denominator[i * r + j];
+        for(i = 0; i < original_r; i ++){
+            for(int j = 0; j < original_n; j++){
+                H_new[i * n + j] =   H[i * n + j]   * numerator[i * n + j] / denominator[i * n + j];
             }
         }
+
         memcpy(W, W_new, d_mr);
     }
 
