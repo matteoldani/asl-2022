@@ -435,7 +435,7 @@ int main(int argc, char const *argv[]) {
         case 26:
             optimization(tests, min, max, b, fout, &nnm_factorization_opt37, &nnm_cost_2);
             break;
-        case 27:
+        case 30:
             optimization(tests, min, max, b, fout, &nnm_factorization_opt48, &nnm_cost_2);
             break;
 
