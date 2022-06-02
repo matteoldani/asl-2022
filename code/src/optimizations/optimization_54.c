@@ -162,66 +162,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt54_padding(double *A_final, int A_n_row, int A_n_col, double *B_final, int B_n_row, int B_n_col, double *R_final, int R_n_row, int R_n_col)
-{   int m = A_n_row;
-    int n = B_n_col;
-    int r = B_n_row;
-    double *V, *H, *W;
-    V = malloc(double_size * m * n);
-    H = malloc(double_size * r * n);
-    W = malloc(double_size * m * r);
-
-    memcpy(V, R_final, m * n * double_size );
-    memcpy(W, A_final, m * r * double_size);
-    memcpy(H, B_final, r * n * double_size);
-
-   // padding all the values to multiple of BLOCKSIZE
-    int temp_r = r;
-    int temp_m = m;
-    int temp_n = n;
-
-    int original_m = m;
-    int original_n = n;
-    int original_r = r;
-
-    // i do not have to modify m n yet
-    pad_matrix(&V, &temp_m, &temp_n);
-    // i do not have to modify r but i can modify m
-    pad_matrix(&W, &m, &temp_r);
-    // i can modify both r and n
-    pad_matrix(&H, &r, &n);
-    
-    matrix_mul_opt54(W, m, r, H, r, m, V, m, n);
-
-
-    unpad_matrix(&V, &temp_m, &temp_n, original_m, original_n);
-    unpad_matrix(&W, &m, &temp_r, original_m, original_r);
-    unpad_matrix(&H, &r, &n, original_r, original_n);
-
-    memcpy(R_final, V, m * n * double_size);
-    memcpy(A_final, W, m * r * double_size);
-    memcpy(B_final, H, r * n * double_size);
-
-    free(V);
-    free(H);
-    free(W);
-}
-
-
-// NOTE a possible improvement is to  write the version with j - i order to use for computation of Hn+1
-/**
- * @brief compute the multiplication of A and B
- * @param A         is the first factor
- * @param A_n_row   is the number of rows in matrix A
- * @param A_n_col   is the number of columns in matrix A
- * @param B         is the other factor of the multiplication
- * @param B_n_row   is the number of rows in matrix B
- * @param B_n_col   is the number of columns in matrix B
- * @param R         is the matrix that will hold the result
- * @param R_n_row   is the number of rows in the result
- * @param R_n_col   is the number of columns in the result
- */
-void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
+inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
 {  
 
     //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
@@ -336,7 +277,6 @@ void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  * @return          is the error
  */
 static inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
-
     matrix_mul_opt54(W, m, r, H, r, n, approx, m, n);
 
     double* norm;
@@ -388,7 +328,8 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     norm_approx2 = _mm256_add_pd(norm_approx2, norm_approx3);
     norm_approx0 = _mm256_add_pd(norm_approx0, norm_approx2);
     t = _mm256_hadd_pd(norm_approx0, norm_approx0);
-    _mm256_storeu_pd(&norm[0], t);
+
+    _mm256_store_pd(&norm[0], t);
     res = sqrt(norm[0] + norm[2]);
     return res * norm_V;
 }
@@ -540,7 +481,6 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
         transpose(W, Wt, m, r);
 
         //computation for Hn+1
-
         matrix_mul_opt54(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt54(Wt, r, m, V, m, n, numerator, r, n);
 
@@ -592,7 +532,6 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
                             idx_b += n;
                         }
-
                         _mm256_storeu_pd(&denominator[ni1j1], r0);
                         _mm256_storeu_pd(&denominator[ni1j1 + 4], r1);
                         _mm256_storeu_pd(&denominator[ni1j1 + 8], r2);
@@ -678,7 +617,6 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
                             idx_b += r;
                         }
-
                         _mm256_storeu_pd(&numerator_W[ri1j1], r0);
                         _mm256_storeu_pd(&numerator_W[ri1j1 + 4], r1);
                         _mm256_storeu_pd(&numerator_W[ri1j1 + 8], r2);
@@ -700,15 +638,15 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
-                        r0 = _mm256_loadu_pd(&denominator_r[ri1j1]);
-                        r1 = _mm256_loadu_pd(&denominator_r[ri1j1 + 4]);
-                        r2 = _mm256_loadu_pd(&denominator_r[ri1j1 + 8]);
-                        r3 = _mm256_loadu_pd(&denominator_r[ri1j1 + 12]);
+                        r0 = _mm256_load_pd(&denominator_r[ri1j1]);
+                        r1 = _mm256_load_pd(&denominator_r[ri1j1 + 4]);
+                        r2 = _mm256_load_pd(&denominator_r[ri1j1 + 8]);
+                        r3 = _mm256_load_pd(&denominator_r[ri1j1 + 12]);
 
-                        r4 = _mm256_loadu_pd(&denominator_r[idx_r]);
-                        r5 = _mm256_loadu_pd(&denominator_r[idx_r + 4]);
-                        r6 = _mm256_loadu_pd(&denominator_r[idx_r + 8]);
-                        r7 = _mm256_loadu_pd(&denominator_r[idx_r + 12]);
+                        r4 = _mm256_load_pd(&denominator_r[idx_r]);
+                        r5 = _mm256_load_pd(&denominator_r[idx_r + 4]);
+                        r6 = _mm256_load_pd(&denominator_r[idx_r + 8]);
+                        r7 = _mm256_load_pd(&denominator_r[idx_r + 12]);
 
                         idx_b = j * r + j1;
                         for (int k1 = j; k1 < jnB; k1++) {
@@ -733,15 +671,15 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                             idx_b += r;
                         }
 
-                        _mm256_storeu_pd(&denominator_r[ri1j1], r0);
-                        _mm256_storeu_pd(&denominator_r[ri1j1 + 4], r1);
-                        _mm256_storeu_pd(&denominator_r[ri1j1 + 8], r2);
-                        _mm256_storeu_pd(&denominator_r[ri1j1 + 12], r3);
+                        _mm256_store_pd(&denominator_r[ri1j1], r0);
+                        _mm256_store_pd(&denominator_r[ri1j1 + 4], r1);
+                        _mm256_store_pd(&denominator_r[ri1j1 + 8], r2);
+                        _mm256_store_pd(&denominator_r[ri1j1 + 12], r3);
 
-                        _mm256_storeu_pd(&denominator_r[idx_r], r4);
-                        _mm256_storeu_pd(&denominator_r[idx_r + 4], r5);
-                        _mm256_storeu_pd(&denominator_r[idx_r + 8], r6);
-                        _mm256_storeu_pd(&denominator_r[idx_r + 12], r7);
+                        _mm256_store_pd(&denominator_r[idx_r], r4);
+                        _mm256_store_pd(&denominator_r[idx_r + 4], r5);
+                        _mm256_store_pd(&denominator_r[idx_r + 8], r6);
+                        _mm256_store_pd(&denominator_r[idx_r + 12], r7);
                     }
                     ni1 += n_2;
                     ri1 += r_2;
@@ -785,16 +723,16 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
                             idx_b += r;
                         }
+                        
+                        _mm256_store_pd(&denominator_r[ri1j1], r0);
+                        _mm256_store_pd(&denominator_r[ri1j1 + 4], r1);
+                        _mm256_store_pd(&denominator_r[ri1j1 + 8], r2);
+                        _mm256_store_pd(&denominator_r[ri1j1 + 12], r3);
 
-                        _mm256_storeu_pd(&denominator_r[ri1j1], r0);
-                        _mm256_storeu_pd(&denominator_r[ri1j1 + 4], r1);
-                        _mm256_storeu_pd(&denominator_r[ri1j1 + 8], r2);
-                        _mm256_storeu_pd(&denominator_r[ri1j1 + 12], r3);
-
-                        _mm256_storeu_pd(&denominator_r[idx_r], r4);
-                        _mm256_storeu_pd(&denominator_r[idx_r + 4], r5);
-                        _mm256_storeu_pd(&denominator_r[idx_r + 8], r6);
-                        _mm256_storeu_pd(&denominator_r[idx_r + 12], r7);
+                        _mm256_store_pd(&denominator_r[idx_r], r4);
+                        _mm256_store_pd(&denominator_r[idx_r + 4], r5);
+                        _mm256_store_pd(&denominator_r[idx_r + 8], r6);
+                        _mm256_store_pd(&denominator_r[idx_r + 12], r7);
                     }
                     ri1 += r_2;
                     ni1 += n_2;
