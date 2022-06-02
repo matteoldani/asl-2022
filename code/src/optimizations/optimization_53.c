@@ -8,6 +8,7 @@
 #include <immintrin.h>
 
 //NEW - on top of opt_47 for the base and opt_35 for the algorithmic optimization
+//NEW - this implementation is generalized - it can run with any m and n
 
 typedef unsigned long long myInt64;
 
@@ -228,7 +229,6 @@ void matrix_mul_opt53_padding(double* A_final, int A_n_row, int A_n_col, double*
  */
 void matrix_mul_opt53(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
 
-    //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
@@ -497,10 +497,9 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
     _mm256_storeu_pd(&norm_tmp[0], t);
     norm_V = 1 / sqrt(norm_tmp[0] + norm_tmp[2]);
 
-    double* Wt, * H_new, * W_new, * Ht;
+    double *Wt, *W_new, *Ht;
 
     Wt = aligned_alloc(32, d_mr);
-    H_new = aligned_alloc(32, d_rn);
     Ht = aligned_alloc(32, d_rn);
     W_new = aligned_alloc(32, d_mr);
 
@@ -512,25 +511,17 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
 
     double accumulator;
 
-    //Precompute first H so we can start with calculating W blockwise and reusing blocks for next H
-    //computation for H1
+    //Precompute first parts of H so we can start with calculating W blockwise and reusing blocks for next H
+    //pre-computation for H1
     transpose(W, Wt, m, r);
     matrix_mul_opt53(Wt, r, m, V, m, n, numerator, r, n);
     matrix_mul_opt53(Wt, r, m, W, m, r, denominator_l, r, r);
-    matrix_mul_opt53(denominator_l, r, r, H, r, n, denominator, r, n);
 
     __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
     __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
     __m256d r4, r5, r6, r7;
-
-    //NEW - element-wise mult-div is vectorized
-    for (i = 0; i < original_r; i++) {
-        for (int j = 0; j < original_n; j++) {
-            H_new[i * n + j] = H[i * n + j] * numerator[i * n + j] / denominator[i * n + j];
-        }
-    }
 
     //real convergence computation
     double err = -1;
@@ -541,18 +532,29 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
             break;
         }
 
-        memcpy(H, H_new, d_rn);
-        memset(numerator_W, 0, d_mr);
-        memset(denominator_W, 0, d_mr);
+        //remaining computation for Hn+1
+        
+        matrix_mul_opt53(denominator_l, r, r, H, r, n, denominator, r, n);
+
+        for (i = 0; i < original_r; i++) {
+            for (int j = 0; j < original_n; j++) {
+                H[i * n + j] = H[i * n + j] * numerator[i * n + j] / denominator[i * n + j];
+            }
+        }
+        
+       
+        //computation for Wn+1  
+        
         memset(numerator, 0, d_rn);
         memset(denominator_l, 0, d_rr);
 
         transpose(H, Ht, r, n);
-
+        
         //Since we need a column of HHt per block of W we would have to calculate all of HHt while calculating the first row of blocks of W, so it's better to calculate it in advance
-        //computation for Wn+1  
         matrix_mul_opt53(H, r, n, Ht, n, r, denominator_r, r, r);
 
+        //NEW - WE calculate W block by block and reuse it instantly for Wt*V and Wt*W
+        //NEW - All operations done on blocks are now done optimally - using vector instructions
         ri = ni = mi = 0;
         for (int i = 0; i < m; i += nB_i) {
             inB = i + nB_i;
@@ -572,15 +574,15 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
-                        r0 = _mm256_load_pd(&numerator_W[ri1j1]);
-                        r1 = _mm256_load_pd(&numerator_W[ri1j1 + 4]);
-                        r2 = _mm256_load_pd(&numerator_W[ri1j1 + 8]);
-                        r3 = _mm256_load_pd(&numerator_W[ri1j1 + 12]);
+                        r0 = _mm256_setzero_pd();
+                        r1 = _mm256_setzero_pd();
+                        r2 = _mm256_setzero_pd();
+                        r3 = _mm256_setzero_pd();
 
-                        r4 = _mm256_load_pd(&numerator_W[idx_r]);
-                        r5 = _mm256_load_pd(&numerator_W[idx_r + 4]);
-                        r6 = _mm256_load_pd(&numerator_W[idx_r + 8]);
-                        r7 = _mm256_load_pd(&numerator_W[idx_r + 12]);
+                        r4 = _mm256_setzero_pd();
+                        r5 = _mm256_setzero_pd();
+                        r6 = _mm256_setzero_pd();
+                        r7 = _mm256_setzero_pd();
 
                         idx_b = j1;
                         for (int k1 = 0; k1 < n; k1++) {
@@ -626,15 +628,15 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
-                        r0 = _mm256_load_pd(&denominator_W[ri1j1]);
-                        r1 = _mm256_load_pd(&denominator_W[ri1j1 + 4]);
-                        r2 = _mm256_load_pd(&denominator_W[ri1j1 + 8]);
-                        r3 = _mm256_load_pd(&denominator_W[ri1j1 + 12]);
+                        r0 = _mm256_setzero_pd();
+                        r1 = _mm256_setzero_pd();
+                        r2 = _mm256_setzero_pd();
+                        r3 = _mm256_setzero_pd();
 
-                        r4 = _mm256_load_pd(&denominator_W[idx_r]);
-                        r5 = _mm256_load_pd(&denominator_W[idx_r + 4]);
-                        r6 = _mm256_load_pd(&denominator_W[idx_r + 8]);
-                        r7 = _mm256_load_pd(&denominator_W[idx_r + 12]);
+                        r4 = _mm256_setzero_pd();
+                        r5 = _mm256_setzero_pd();
+                        r6 = _mm256_setzero_pd();
+                        r7 = _mm256_setzero_pd();
 
                         idx_b = j1;
                         for (int k1 = 0; k1 < r; k1++) {
@@ -876,15 +878,6 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
             mi += mnB_i;
         }
 
-        //remaining computation for Hn+2
-        matrix_mul_opt53(denominator_l, r, r, H, r, n, denominator, r, n);
-
-        for (i = 0; i < original_r; i++) {
-            for (int j = 0; j < original_n; j++) {
-                H_new[i * n + j] = H[i * n + j] * numerator[i * n + j] / denominator[i * n + j];
-            }
-        }
-
         memcpy(W, W_new, d_mr);
     }
 
@@ -895,7 +888,6 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
     free(numerator_W);
     free(denominator_W);
     free(Wt);
-    free(H_new);
     free(W_new);
     free(approximation);
 
