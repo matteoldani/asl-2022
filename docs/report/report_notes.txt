@@ -115,19 +115,30 @@
 	  respect to opt 24. 
 
 *Optimization 42:
+	- matrix multiplication is blocked 16x16, and has clean up loops for generalization
+	- -mfma set in the compiler flags as they were not used (we chacked assembly)
+	- kernel multiplication 16x16 is unrolled 2 times on the i loop and 4 on the j to have a total of 8 
+	  independent computation
+	- better ILP.
 
 *Optimization 43:
+	- vectorized mmul, rmul not vectorized, this is an intermediate optimization (don't plot)
 
 *Optimization 44:
+	- vectorized mmul used in the nmf, clean up loop not optimized were adding significant overhead
 
 *Optimization 45:
+	- optimized most importand clean up loops, the overhead is still significant
 
 *Optimization 46:
+	- because we noted that in terms of cycles adding a border up to 16 doubles to the matrices was not relevant
+	  we pad the matrices to be multiple of the block size (16)
 	- on top of opt 45 matrix multiplication
 	- padds all the matrices s.t. m, n, r are now multiple of the block size. In this way it is possible to remove the cleanup loops
 	- There's a single matrix mul and all the matrices are transposed when necessary
 
 *Optimization 47:
+	- uses vectorized error
 
 *Optimization 37:
 	- Version of 47 that uses non-aligned allocation and load and stores
@@ -156,5 +167,11 @@
 	- On top of opt_51
 	- Generalised implementation that works with arbitrary rank input
 	- There is no interleaving of triple loops in order to achieve generality
+
+*Optimization 48:
+	- builds on top of 47
+	- interlieves computation WtW and WtV / HHt and VVt
+	- removes unnecessary memset and uses a buffer for intermediate result in blocked computation
+	- vectorized transpose and error
 
 	

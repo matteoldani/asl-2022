@@ -28,6 +28,8 @@
 #include <optimizations/optimizations_45.h>
 #include <optimizations/optimizations_46.h>
 #include <optimizations/optimizations_47.h>
+#include <optimizations/optimizations_48.h>
+
 #include <optimizations/optimizations_37.h>
 #include <optimizations/optimizations_51.h>
 #include <optimizations/optimizations_53.h>

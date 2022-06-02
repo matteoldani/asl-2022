@@ -30,6 +30,7 @@
 #include <optimizations/optimizations_51.h>
 #include <optimizations/optimizations_53.h>
 #include <optimizations/optimizations_54.h>
+#include <optimizations/optimizations_48.h>
 
 typedef double (*fact_function) (Matrix *, Matrix *, Matrix *, int, double);
 typedef double (*opt_fact_function)(double *, double*, double*, int, int, int, int, double);
