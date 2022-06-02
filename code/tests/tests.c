@@ -980,13 +980,15 @@ int main(int argc, char const *argv[]) {
     nnmd[22] = nnm_factorization_opt47;
     nnmd[23] = nnm_factorization_opt37;
     nnmd[24] = nnm_factorization_opt51;
-    nnmd[25] = nnm_factorization_opt52;*/
+    nnmd[25] = nnm_factorization_opt52;
+    nnmd[26] = nnm_factorization_opt53;
+    nnmd[27] = nnm_factorization_opt54;*/
 
     //nnmd[0] = nnm_factorization_opt35;
     nnmd[0] = nnm_factorization_opt47;
     nnmd[1] = nnm_factorization_opt51;
     nnmd[2] = nnm_factorization_opt52;
-    nnmd[3] = nnm_factorization_opt53;
+    nnmd[3] = nnm_factorization_opt54;
 
     // END TODO
 
