@@ -162,8 +162,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
-{  
+inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col) {  
 
     //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
@@ -173,30 +172,21 @@ inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int
     int unroll_i = 2, unroll_j = 16;
     int kk, i, j, k;
     
-
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
     __m256d r0, r1, r2, r3;
     __m256d r4, r5, r6, r7;
 
-
-
     memset(R, 0, double_size * R_n_row * R_n_col);
     //MAIN LOOP BLOCKED 16x16
-    for (i = 0; i < A_n_row - nB + 1; i += nB)
-    {   
-        for (j = 0; j < B_n_col - nB + 1; j += nB)
-        {
-            for (k = 0; k < A_n_col - nB + 1; k += nB)
-            {   
+    for (i = 0; i < A_n_row - nB + 1; i += nB) {   
+        for (j = 0; j < B_n_col - nB + 1; j += nB) {
+            for (k = 0; k < A_n_col - nB + 1; k += nB) {   
 
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i)
-                {
-
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j)
-                    {
+                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i) {
+                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j) {
                         
                         Rij = Rii + jj;
                         int idx_r = Rij + R_n_col;
@@ -211,10 +201,8 @@ inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int
                         r6 = _mm256_load_pd((double *)&R[idx_r + 8]);
                         r7 = _mm256_load_pd((double *)&R[idx_r + 12]);
 
-
                         int idx_b = k*B_n_col + jj;
-                        for (kk = k; kk < k + nB; kk++)
-                        {
+                        for (kk = k; kk < k + nB; kk++) {
                             a0 = _mm256_set1_pd(A[Aii + kk]);                //Aik0 = A[Aii + kk];
                             a1 = _mm256_set1_pd(A[Aii + A_n_col + kk]);      //Aik1 = A[Aii + A_n_col + kk]; 
                             
@@ -245,19 +233,15 @@ inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int
                         _mm256_store_pd((double *)&R[idx_r + 4], r5);
                         _mm256_store_pd((double *)&R[idx_r + 8], r6);
                         _mm256_store_pd((double *)&R[idx_r + 12], r7);
-
                     }
                     Rii += R_n_col * unroll_i;
                     Aii += A_n_col * unroll_i;
                 }
             }
         }
-
         Ri += nBR_n_col;
         Ai += nBA_n_col;
-    }
-    
-    
+    }   
 }
 
 
@@ -455,8 +439,10 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
     int nB_j = BLOCK_SIZE_H_COL;
     int inB, jnB, mnB_i = m * nB_i, rnB_i = r * nB_i, nnB_i = n * nB_i, n_2 = n << 1, r_2 = r << 1;
     int ri, mi, ni, ri1, ni1, ni1j1, ri1j1, idx_r, idx_b;
+    int limit_orignial_n = original_n - (original_n % 4);
+    int min_i, min_j;
 
-    __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
+    __m256d num_1, fac_1, den_1, res_1;
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
     __m256d r4, r5, r6, r7;
@@ -467,10 +453,6 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
         if (err <= epsilon) {
             break;
         }
-
-        //memset(denominator_l, 0, d_rr);
-        memset(numerator, 0, d_rn);
-        memset(denominator, 0, d_rn);
 
         memset(numerator_W, 0, d_mr);
         memset(denominator_r, 0, d_rr);
@@ -485,8 +467,10 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
         ri = mi = ni = 0;
         for (int i = 0; i < r; i += nB_i) {
             inB = i + nB_i;
+            min_i = min(inB, original_r);
             for (int j = 0; j < n; j += nB_j) {
                 jnB = j + nB_j;
+                min_j = min(jnB - 3, limit_orignial_n);
 
                 //computation for Hn+1
                 //(WtW)*H mul and element-wise multiplication and division
@@ -546,8 +530,8 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                 //element-wise multiplication and division
                 //NEW Fixed for arbitrary rank input
                 ni1 = ni;
-                for (int i1 = i; i1 < min(inB, original_r); i1++) {
-                    for (int j1 = j; j1 < min(jnB - 3, original_n - (original_n % 4)); j1+=4) {
+                for (int i1 = i; i1 < min_i; i1++) {
+                    for (int j1 = j; j1 < min_j; j1+=4) {
                         ni1j1 = ni1 + j1;
                         
                         num_1 = _mm256_load_pd(&numerator[ni1j1]);
@@ -560,10 +544,13 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                     ni1 += n;
                 }
 
+                ni1 = ni;
                 for (int i1 = i; i1 < original_r; i1++) {
-                    for (int j1 = original_n - (original_n % 4); j1 < original_n; j1++) {
-                        H_new[i1 * n + j1] = H[i1 * n + j1] * numerator[i1 * n + j1] / denominator[i1 * n + j1];
+                    for (int j1 = limit_orignial_n; j1 < original_n; j1++) {
+                        ni1j1 = ni1 + j1;
+                        H_new[ni1j1] = H[ni1j1] * numerator[ni1j1] / denominator[ni1j1];
                     }
+                    ni1 += n;
                 }
                 
                 //Calculate the transpose of current block of H
@@ -745,9 +732,10 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
         for(i = 0; i < original_m; i ++){
             for(int j = 0; j < original_r; j++){
-                W[i * r + j] =   W[i * r + j]   * numerator_W[i * r + j]   / denominator_W[i * r + j];
+                W[i * r + j] = W[i * r + j] * numerator_W[i * r + j] / denominator_W[i * r + j];
             }
         }
+        
         memcpy(H, H_new, d_rn);
     }
 
