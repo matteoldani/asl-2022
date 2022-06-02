@@ -7,7 +7,7 @@
 #include <optimizations/optimizations_52.h>
 #include <immintrin.h>
 
-//NEW - Optimization done on top of opt_47 - added optimal transpose and element-wise mult-div
+//NEW - Optimization done on top of opt_47 - add optimized element-wise mult-div
 
 static unsigned int double_size = sizeof(double);
 
@@ -37,7 +37,6 @@ inline void transpose4x4(double* dst, double* src, const int n, const int m) {
     _mm256_storeu_pd(&dst[3 * n], row3);
 }
 
-//NEW - optimal transpose
 static void transpose(double* src, double* dst, const int n, const int m) {
 
     int nB = BLOCK_SIZE_TRANS;
@@ -125,8 +124,6 @@ static void pad_matrix(double ** M, int *r, int *c){
     transpose(new_Mt, *M, temp_c, temp_r); 
 
     free(new_Mt);
-
-
 }
 
 static void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
@@ -152,7 +149,6 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
     *c = original_c;
 
     free(new_Mt);
-    
 }
 
 /**
@@ -167,8 +163,9 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt52_padding(double *A_final, int A_n_row, int A_n_col, double *B_final, int B_n_row, int B_n_col, double *R_final, int R_n_row, int R_n_col)
-{   int m = A_n_row;
+void matrix_mul_opt52_padding(double *A_final, int A_n_row, int A_n_col, double *B_final, int B_n_row, int B_n_col, double *R_final, int R_n_row, int R_n_col) {   
+    
+    int m = A_n_row;
     int n = B_n_col;
     int r = B_n_row;
     double *V, *H, *W;
@@ -226,10 +223,8 @@ void matrix_mul_opt52_padding(double *A_final, int A_n_row, int A_n_col, double 
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt52(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
-{  
-
-    //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
+void matrix_mul_opt52(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col) {  
+    
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
@@ -237,31 +232,22 @@ void matrix_mul_opt52(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     int unroll_i = 2, unroll_j = 16;
     int kk, i, j, k;
     
-
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
     __m256d r0, r1, r2, r3;
     __m256d r4, r5, r6, r7;
 
-
-
     memset(R, 0, double_size * R_n_row * R_n_col);
     //MAIN LOOP BLOCKED 16x16
-    for (i = 0; i < A_n_row - nB + 1; i += nB)
-    {   
-        for (j = 0; j < B_n_col - nB + 1; j += nB)
-        {
-            for (k = 0; k < A_n_col - nB + 1; k += nB)
-            {   
+    for (i = 0; i < A_n_row - nB + 1; i += nB) {   
+        for (j = 0; j < B_n_col - nB + 1; j += nB) {
+            for (k = 0; k < A_n_col - nB + 1; k += nB) {   
 
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i)
-                {
-
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j)
-                    {
-                        
+                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i) {
+                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j) {
+                    
                         Rij = Rii + jj;
                         int idx_r = Rij + R_n_col;
                         
@@ -275,10 +261,8 @@ void matrix_mul_opt52(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                         r6 = _mm256_loadu_pd((double *)&R[idx_r + 8]);
                         r7 = _mm256_loadu_pd((double *)&R[idx_r + 12]);
 
-
                         int idx_b = k*B_n_col + jj;
-                        for (kk = k; kk < k + nB; kk++)
-                        {
+                        for (kk = k; kk < k + nB; kk++) {
                             a0 = _mm256_set1_pd(A[Aii + kk]);                //Aik0 = A[Aii + kk];
                             a1 = _mm256_set1_pd(A[Aii + A_n_col + kk]);      //Aik1 = A[Aii + A_n_col + kk]; 
                             
@@ -316,12 +300,9 @@ void matrix_mul_opt52(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                 }
             }
         }
-
         Ri += nBR_n_col;
         Ai += nBA_n_col;
-    }
-    
-    
+    }    
 }
 
 
@@ -437,8 +418,6 @@ double nnm_factorization_opt52(double *V_final, double *W_final, double*H_final,
     pad_matrix(&W, &m, &temp_r);
     // i can modify both r and n
     pad_matrix(&H, &r, &n);
-
-
 
     int rn, rr, mr, mn;
     rn = r * n;
@@ -560,7 +539,6 @@ double nnm_factorization_opt52(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt52(H, r, n, Ht, n, r, denominator_l, r, r);
         matrix_mul_opt52(W, m, r, denominator_l, r, r, denominator_W, m, r);
 
-        //NEW - optimal element-wise mult-div
         for(i = 0; i < original_m; i ++){
             for(int j = 0; j < original_r; j++){
                 W[i * r + j] =   W[i * r + j]   * numerator_W[i * r + j]   / denominator_W[i * r + j];
