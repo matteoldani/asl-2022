@@ -10,6 +10,8 @@
 // NEW WtW and WtV computation is interlieved to avoid reading W twice. 
 //     HHt and VHt computation is interlieved to avoid reading V twice.
 //     Using vectorized transpose
+//     Intermediate results of a blocked MMM stored in buffer 
+//     and copied at the end
 
 static unsigned int double_size = sizeof(double);
 
@@ -245,41 +247,41 @@ void matrix_mul_opt48(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     __m256d b0, b1, b2, b3;
     __m256d r0, r1, r2, r3;
     __m256d r4, r5, r6, r7;
+    double buffer[BLOCK_SIZE_MMUL * BLOCK_SIZE_MMUL];
 
-
-
-    memset(R, 0, double_size * R_n_row * R_n_col);
     //MAIN LOOP BLOCKED 16x16
     for (i = 0; i < A_n_row - nB + 1; i += nB)
     {   
         for (j = 0; j < B_n_col - nB + 1; j += nB)
-        {
+        {   
+            memset(buffer, 0, double_size * BLOCK_SIZE_MMUL*BLOCK_SIZE_MMUL);
+
             for (k = 0; k < A_n_col - nB + 1; k += nB)
             {   
 
-                Rii = Ri;
+                Rii = 0;
                 Aii = Ai;
                 for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i)
                 {
 
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j)
+                    for (int jj = 0; jj < nB - unroll_j + 1; jj += unroll_j)
                     {
                         
                         Rij = Rii + jj;
-                        int idx_r = Rij + R_n_col;
+                        int idx_r = Rij + BLOCK_SIZE_MMUL;
                         
-                        r0 = _mm256_loadu_pd((double *)&R[Rij]);
-                        r1 = _mm256_loadu_pd((double *)&R[Rij + 4]);
-                        r2 = _mm256_loadu_pd((double *)&R[Rij + 8]);
-                        r3 = _mm256_loadu_pd((double *)&R[Rij + 12]);
+                        r0 = _mm256_loadu_pd((double *)&buffer[Rij]);
+                        r1 = _mm256_loadu_pd((double *)&buffer[Rij + 4]);
+                        r2 = _mm256_loadu_pd((double *)&buffer[Rij + 8]);
+                        r3 = _mm256_loadu_pd((double *)&buffer[Rij + 12]);
 
-                        r4 = _mm256_loadu_pd((double *)&R[idx_r]);
-                        r5 = _mm256_loadu_pd((double *)&R[idx_r + 4]);
-                        r6 = _mm256_loadu_pd((double *)&R[idx_r + 8]);
-                        r7 = _mm256_loadu_pd((double *)&R[idx_r + 12]);
+                        r4 = _mm256_loadu_pd((double *)&buffer[idx_r]);
+                        r5 = _mm256_loadu_pd((double *)&buffer[idx_r + 4]);
+                        r6 = _mm256_loadu_pd((double *)&buffer[idx_r + 8]);
+                        r7 = _mm256_loadu_pd((double *)&buffer[idx_r + 12]);
 
 
-                        int idx_b = k*B_n_col + jj;
+                        int idx_b = k*B_n_col + j  + jj;
                         for (kk = k; kk < k + nB; kk++)
                         {
                             a0 = _mm256_set1_pd(A[Aii + kk]);                //Aik0 = A[Aii + kk];
@@ -303,20 +305,33 @@ void matrix_mul_opt48(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                             idx_b += B_n_col;
                         }
 
-                        _mm256_storeu_pd((double *)&R[Rij], r0);
-                        _mm256_storeu_pd((double *)&R[Rij + 4], r1);
-                        _mm256_storeu_pd((double *)&R[Rij + 8], r2);
-                        _mm256_storeu_pd((double *)&R[Rij + 12], r3);
+                        _mm256_storeu_pd((double *)&buffer[Rij], r0);
+                        _mm256_storeu_pd((double *)&buffer[Rij + 4], r1);
+                        _mm256_storeu_pd((double *)&buffer[Rij + 8], r2);
+                        _mm256_storeu_pd((double *)&buffer[Rij + 12], r3);
 
-                        _mm256_storeu_pd((double *)&R[idx_r], r4);
-                        _mm256_storeu_pd((double *)&R[idx_r + 4], r5);
-                        _mm256_storeu_pd((double *)&R[idx_r + 8], r6);
-                        _mm256_storeu_pd((double *)&R[idx_r + 12], r7);
+                        _mm256_storeu_pd((double *)&buffer[idx_r], r4);
+                        _mm256_storeu_pd((double *)&buffer[idx_r + 4], r5);
+                        _mm256_storeu_pd((double *)&buffer[idx_r + 8], r6);
+                        _mm256_storeu_pd((double *)&buffer[idx_r + 12], r7);
 
                     }
-                    Rii += R_n_col * unroll_i;
+                    Rii += BLOCK_SIZE_MMUL * unroll_i;
                     Aii += A_n_col * unroll_i;
                 }
+            }
+            Rii = Ri + j;
+            for(int is = 0; is < BLOCK_SIZE_MMUL; is++){
+                r0 = _mm256_loadu_pd((double *)&buffer[0  + is*BLOCK_SIZE_MMUL]);
+                r1 = _mm256_loadu_pd((double *)&buffer[4  + is*BLOCK_SIZE_MMUL]);
+                r2 = _mm256_loadu_pd((double *)&buffer[8  + is*BLOCK_SIZE_MMUL]);
+                r3 = _mm256_loadu_pd((double *)&buffer[12 + is*BLOCK_SIZE_MMUL]);
+
+                _mm256_storeu_pd((double *)&R[Rii + 0], r0);
+                _mm256_storeu_pd((double *)&R[Rii + 4], r1);
+                _mm256_storeu_pd((double *)&R[Rii + 8], r2);
+                _mm256_storeu_pd((double *)&R[Rii + 12],r3);
+                Rii += R_n_col;
             }
         }
 
