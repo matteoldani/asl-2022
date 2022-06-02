@@ -95,6 +95,11 @@ static void pad_matrix(double ** M, int *r, int *c){
     int temp_r;
     int temp_c;
 
+    if((*r % BLOCK_SIZE_MMUL == 0 ) && (*c % BLOCK_SIZE_MMUL == 0 )) {
+        return;
+    }
+
+
     if( (*r) %BLOCK_SIZE_MMUL != 0){
         temp_r = (((*r) / BLOCK_SIZE_MMUL ) + 1)*BLOCK_SIZE_MMUL;   
     }else{
