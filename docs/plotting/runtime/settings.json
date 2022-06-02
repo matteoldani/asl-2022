@@ -1,0 +1,35 @@
+{
+    "title" : "Runtime Plot Test",
+    "type"  : "performance",
+    "action": "save",
+    "output_file":"/home/asl/asl-2022-vgsteiger/docs/outputs/runtime_test.pdf",
+    "xlabel": "Input matrix size",
+    "ylabel": "Cycles",
+    
+    "lines" : [
+
+        {"label" : "opt47",
+            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test.out",
+            "color" : "black",
+            "marker": "s"
+        },
+
+        {"label" : "opt37",
+            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test_2.out",
+            "color" : "firebrick",
+            "marker": "s"
+        },
+
+        {"label" : "bs1",
+            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test_3.out",
+            "color" : "green",
+            "marker": "s"
+        }, 
+
+        {"label" : "bs2",
+            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test_4.out",
+            "color" : "blue",
+            "marker": "s"
+        }
+    ]
+}

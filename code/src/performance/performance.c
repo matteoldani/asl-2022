@@ -125,7 +125,7 @@ baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_f
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
         if (fout != NULL) {
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n", m, r, n, cost, performance);
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf,%llu\n", m, r, n, cost, performance, cycles);
         }
     }
 }
@@ -264,7 +264,7 @@ void optimization(int numTests, int min, int max, int opt, FILE *fout, opt_fact_
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
         if (fout != NULL) {
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n", m, r, n, cost, performance);
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf,%llu\n", m, r, n, cost, performance, cycles);
         }
     }
 }
@@ -328,7 +328,7 @@ int main(int argc, char const *argv[]) {
             printf("Can't open output file\n");
             exit(-1);
         }
-        fprintf(fout, "m,r,n,cycles,performance\n");
+        fprintf(fout, "m,r,n,cost,performance,cycles\n");
     }
 
     switch (b) {
