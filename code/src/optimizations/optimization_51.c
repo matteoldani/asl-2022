@@ -7,7 +7,9 @@
 #include <optimizations/optimizations_51.h>
 #include <immintrin.h>
 
-//NEW - On top of opt_47 using the MM improvements, opt_34 using the algorithmic improvements and opt_37 using the improved transpose
+//NEW - On top of opt_47 using the MM improvements and opt_33 using the algorithmic improvements
+//NEW - Interleaves the calculation of WtW*H and the division
+//NEW - this version is not general, works only if m and n are divisible by 16
 
 static unsigned int double_size = sizeof(double);
 
@@ -222,7 +224,7 @@ void matrix_mul_opt51_padding(double *A_final, int A_n_row, int A_n_col, double 
  * @param R_n_col   is the number of columns in the result
  */
 void matrix_mul_opt51(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col) {  
-    //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
+
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
@@ -517,6 +519,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt51(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt51(Wt, r, m, V, m, n, numerator, r, n);
 
+        //NEW - WE calculate H block by block and reuse it instantly for V*Ht and H*Ht
         //NEW - All operations done on blocks are now done optimally - using vector instructions
         ri = mi = ni = 0;
         for (int i = 0; i < r; i += nB_i) {
@@ -567,6 +570,7 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
                         }
                         
                         //NEW - This version interlieves (WtW)*H mul and element-wise multiplication and division
+                        //NEW - This is the reason why this works only if m and n are divisible by 16
                         num_1 = _mm256_load_pd(&numerator[ni1j1]);
                         fac_1 = _mm256_load_pd(&H[ni1j1]);
                         num_1 = _mm256_mul_pd(fac_1, num_1);

@@ -8,6 +8,7 @@
 #include <immintrin.h>
 
 //NEW - On top of opt_51 generalised so that it works for arbitrary rank input
+//NEW - Uses the version where WtW*H and the division calculation are not interleaved
 
 static unsigned int double_size = sizeof(double);
 
@@ -164,7 +165,6 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
  */
 inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col) {  
 
-    //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
@@ -463,7 +463,6 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt54(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt54(Wt, r, m, V, m, n, numerator, r, n);
 
-        //NEW - All operations done on blocks are now done optimally - using vector instructions
         ri = mi = ni = 0;
         for (int i = 0; i < r; i += nB_i) {
             inB = i + nB_i;
@@ -528,7 +527,8 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                 }
 
                 //element-wise multiplication and division
-                //NEW Fixed for arbitrary rank input
+                //NEW We don't interleave the division with the calculation of WtW*H in order to get a general solution
+                //NEW Is vectorized and works with arbitrary rank input
                 ni1 = ni;
                 for (int i1 = i; i1 < min_i; i1++) {
                     for (int j1 = j; j1 < min_j; j1+=4) {
