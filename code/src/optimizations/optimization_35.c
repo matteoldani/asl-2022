@@ -309,7 +309,6 @@ double nnm_factorization_opt35(double *V, double*W, double*H, int m, int n, int 
                     ri1 += r;
                 }
 
-
                 //computation for Hn+2
                 
                 //WV lmul

@@ -54,18 +54,13 @@
 	  Matrix W and V are transposed to improve cache locality. The obtained performance with 
 	  (m,n,r) = (200, 200, 5) is 0.68.
 
-*Optimization 11:
-    - We tried to block the calculation of a W block with the next iteration of a H calculation. Therefore reusing the same block instead of loading it later on.
-
 *Optimizations 21:
 	- Loop unrolling for norm calculation to optimize error function
 		- No improve (as expected since I was opitimizing lower terms in the cost)
 
-
 *Optimization 22:
 	- FAIL, the goal was to apply an optimization similar to
 	  opt 6 on alg opt 2. We believe it might not be applicable.
-
 
 *Optimization 23:
 	- blocking for cache and using BLAS for inner multiplitcation
@@ -146,8 +141,32 @@
 	- uses vectorized error
 
 *Optimization 37:
-	- Done on top of optimization 47
-	- Matrix transpose is now vectorized and generalized so it can take input of any size
+	- Version of 47 that uses non-aligned allocation and load and stores
+	- For the sake of performance comparison
+	- Introduces optimised version of transpose - vectorized and generalized for any input size
+	- (The optimised transpose is now also in 47 so we need to take taht into account)
+
+*Optimization 51:
+	- Blending the improvements on MMs and transpose with the algorithmic opt reusing H
+	- Uses the base from opt_47, the transpose from opt_37 and the algorithmic restructuring from opt_34 (opt_33 is commented, the difference is wether or not we merge multiple triple-loops into 1)
+	- The interleaving of loops makes this version non general, it works with input sizes that are multiplies of 16
+	- The knowledge from opt_47 MM is used in all multiplications on blocks
+	- Since the only optimal MM is the one where no matrix is transposed, we need to pre-transpose the current calculated block
+	- The element-wise division is also blocked
+	- Very surprisingly and very sadly this yields no improvement, it even carries a bit of a downgrade 
+
+*Optimization 53:
+	- Blending the improvements on MMs and transpose with the algorithmic opt reusing W
+	- Uses the base from opt_47, the transpose from opt_37 and the algorithmic restructuring from opt_35
+- The knowledge from opt_47 MM is used in all multiplications on blocks
+	- Since the only optimal MM is the one where no matrix is transposed, we need to pre-transpose the current calculated block
+	- The element-wise division inside the block is also vectorized
+	- Calculation of H was moved to reduce the number of memcopy calls
+
+*Optimization 54:
+	- On top of opt_51
+	- Generalised implementation that works with arbitrary rank input
+	- There is no interleaving of triple loops in order to achieve generality
 
 *Optimization 48:
 	- builds on top of 47

@@ -307,9 +307,10 @@ int main(int argc, char const *argv[]) {
         printf("\t24. Optimisation 46\n");
         printf("\t25. Optimisation 47\n");
         printf("\t26. Optimisation 37\n");
-        printf("\t27. Optimisation 48\n");
-
-
+        printf("\t27. Optimisation 51\n");
+        printf("\t28. Optimisation 53\n");
+        printf("\t29. Optimisation 54\n");
+        printf("\t30. Optimisation 48\n");
 
         return 0;
     }
@@ -437,6 +438,18 @@ int main(int argc, char const *argv[]) {
             break;
         case 30:
             optimization(tests, min, max, b, fout, &nnm_factorization_opt48, &nnm_cost_2);
+            break;
+
+        case 27:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt51, &nnm_cost_2);
+            break;
+
+        case 28:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt53, &nnm_cost_2);
+            break;
+
+        case 29:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt54, &nnm_cost_2);
             break;
 
         default:

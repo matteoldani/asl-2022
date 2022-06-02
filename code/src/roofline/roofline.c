@@ -177,6 +177,21 @@ int main(int argc, char const* argv[])
         optimization(tests, input_size, b, fout, &nnm_factorization_opt47);
         break;
 
+    case 26:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt37);
+        break;
+
+    case 27:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt51);
+        break;
+
+    case 28:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt53);
+        break;
+        
+    case 29:
+        optimization(tests, input_size, b, fout, &nnm_factorization_opt54);
+
     case 30:
         optimization(tests, input_size, b, fout, &nnm_factorization_opt48);
         break;

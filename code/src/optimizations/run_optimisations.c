@@ -22,6 +22,9 @@
 #include <optimizations/optimizations_46.h>
 #include <optimizations/optimizations_47.h>
 #include <optimizations/optimizations_37.h>
+#include <optimizations/optimizations_51.h>
+#include <optimizations/optimizations_53.h>
+#include <optimizations/optimizations_54.h>
 #include <optimizations/optimizations_utils.h>
 #include <asl.h>
 #include <stdlib.h>
@@ -74,7 +77,7 @@ void allocate_from_file_opt(double *matrix, int *m, int *n, int *r, FILE *file) 
 
     int mn = (*m) * (*n);
 
-    matrix = malloc(sizeof(double) * mn);
+    matrix = aligned_alloc(32, sizeof(double) * mn);
 
     for (int i = 0; i < mn; i++)
         fscanf(file, "%lf", matrix + i);
@@ -126,6 +129,10 @@ int main(int argc, char const *argv[]) {
         printf("\t21. Optimisation 46\n");
         printf("\t22. Optimisation 47\n");
         printf("\t23. Optimisation 37\n");
+        printf("\t24. Optimisation 51\n");
+        printf("\t25. Optimisation 53\n");
+        printf("\t26. Optimisation 54\n");
+
 
         return -1;
     }
@@ -139,7 +146,7 @@ int main(int argc, char const *argv[]) {
         srand(SEED);
 
         mn = m * n;
-        V = malloc(double_size * mn);
+        V = aligned_alloc(32, double_size * mn);
         for (int i = 0; i < mn; i++)
             V[i] = rand() * rand_max_r;
     }
@@ -157,8 +164,8 @@ int main(int argc, char const *argv[]) {
 
     mr = m * r;
     nr = n * r;
-    W = malloc(double_size * mr);
-    H = malloc(double_size * nr);
+    W = aligned_alloc(32, double_size * mr);
+    H = aligned_alloc(32, double_size * nr);
 
     for (int i = 0; i < mr; i++)
         W[i] = rand() * rand_max_r;
@@ -239,7 +246,15 @@ int main(int argc, char const *argv[]) {
         case 23:
             run_factorization = &nnm_factorization_opt37;
             break;
-
+        case 24:
+            run_factorization = &nnm_factorization_opt51;
+            break;
+        case 25:
+            run_factorization = &nnm_factorization_opt53;
+            break;
+        case 26:
+            run_factorization = &nnm_factorization_opt54;
+            break;
         default:
             printf("Invalid opt number. Quitting\n");
             return -1;

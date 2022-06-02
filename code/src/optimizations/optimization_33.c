@@ -380,7 +380,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
         }
 
         //remaining computation for Wn+1
-        matrix_rtrans_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
+        matrix_mul_opt33(W, m, r, denominator_r, r, r, denominator_W, m, r);
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
