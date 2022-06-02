@@ -77,7 +77,7 @@ void allocate_from_file_opt(double *matrix, int *m, int *n, int *r, FILE *file) 
 
     int mn = (*m) * (*n);
 
-    matrix = malloc(sizeof(double) * mn);
+    matrix = aligned_alloc(32, sizeof(double) * mn);
 
     for (int i = 0; i < mn; i++)
         fscanf(file, "%lf", matrix + i);
@@ -146,7 +146,7 @@ int main(int argc, char const *argv[]) {
         srand(SEED);
 
         mn = m * n;
-        V = malloc(double_size * mn);
+        V = aligned_alloc(32, double_size * mn);
         for (int i = 0; i < mn; i++)
             V[i] = rand() * rand_max_r;
     }
@@ -164,8 +164,8 @@ int main(int argc, char const *argv[]) {
 
     mr = m * r;
     nr = n * r;
-    W = malloc(double_size * mr);
-    H = malloc(double_size * nr);
+    W = aligned_alloc(32, double_size * mr);
+    H = aligned_alloc(32, double_size * nr);
 
     for (int i = 0; i < mr; i++)
         W[i] = rand() * rand_max_r;

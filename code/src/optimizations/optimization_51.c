@@ -91,6 +91,10 @@ static void pad_matrix(double ** M, int *r, int *c){
     int temp_r;
     int temp_c;
 
+    if( ((*r) %BLOCK_SIZE_MMUL == 0 ) && ((*c)%BLOCK_SIZE_MMUL == 0)){
+        return;
+    }
+
     if( (*r) %BLOCK_SIZE_MMUL != 0){
         temp_r = (((*r) / BLOCK_SIZE_MMUL ) + 1)*BLOCK_SIZE_MMUL;   
     }else{
@@ -109,12 +113,12 @@ static void pad_matrix(double ** M, int *r, int *c){
     // i need to pad the rows before and the cols after transposing
     memset(&(*M)[(*c)*(*r)], 0, double_size * (temp_r-(*r)) * (*c));
 
-    new_Mt = malloc(double_size * temp_c * temp_r);
+    new_Mt = aligned_alloc(32, double_size * temp_c * temp_r);
     transpose(*M, new_Mt, temp_r, *c);
     memset(&new_Mt[temp_r * (*c)], 0, double_size * (temp_c - (*c)) * temp_r);
 
     free(*M);
-    *M = malloc(double_size * temp_c * temp_r);
+    *M = aligned_alloc(32, double_size * temp_c * temp_r);
     *c = temp_c;
     *r = temp_r;
     transpose(new_Mt, *M, temp_c, temp_r); 
@@ -132,7 +136,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
     *M = realloc(*M, (*c) * original_r * double_size);
 
     // i need to transpose and remove the rest
-    double *new_Mt = malloc((*c) * original_r * double_size );
+    double *new_Mt = aligned_alloc(32, (*c) * original_r * double_size );
     transpose(*M, new_Mt, original_r, *c);
 
     // i need to resize the transoposed
@@ -140,7 +144,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
 
     // ie need to transpose back
     free(*M);
-    *M = malloc(double_size * original_c * original_r);
+    *M = aligned_alloc(32, double_size * original_c * original_r);
     transpose(new_Mt, *M, original_c, original_r);
 
     *r = original_r;
@@ -167,9 +171,9 @@ void matrix_mul_opt51_padding(double *A_final, int A_n_row, int A_n_col, double 
     int n = B_n_col;
     int r = B_n_row;
     double *V, *H, *W;
-    V = malloc(double_size * m * n);
-    H = malloc(double_size * r * n);
-    W = malloc(double_size * m * r);
+    V = aligned_alloc(32, double_size * m * n);
+    H = aligned_alloc(32, double_size * r * n);
+    W = aligned_alloc(32, double_size * m * r);
 
     memcpy(V, R_final, m * n * double_size );
     memcpy(W, A_final, m * r * double_size);
@@ -324,7 +328,7 @@ void matrix_mul_opt51(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  * @brief computes the error based on the Frobenius norm 0.5*||V-WH||^2. The error is
  *        normalized with the norm V
  *
- * @param approx    is the matrix to store the W*H approximation
+ * @param approx    is the matrix to storeu the W*H approximation
  * @param V         is the original matrix
  * @param W         is the first factorization matrix
  * @param H         is the second factorization matrix
@@ -342,7 +346,7 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     double* norm;
     double res;
 
-    norm = malloc(double_size * 4);
+    norm = aligned_alloc(32, double_size * 4);
 
     __m256d norm_approx0;
     __m256d norm_approx1;
@@ -393,7 +397,7 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     return res * norm_V;
 }
 /**
- * @brief computes the non-negative matrix factorisation updating the values stored by the 
+ * @brief computes the non-negative matrix factorisation updating the values storeud by the 
  *        factorization functions
  * 
  * @param V             the matrix to be factorized
@@ -409,9 +413,9 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
 
     double *V, *W, *H;
 
-    V = malloc(double_size * m * n);
-    H = malloc(double_size * r * n);
-    W = malloc(double_size * m * r);
+    V = aligned_alloc(32, double_size * m * n);
+    H = aligned_alloc(32, double_size * r * n);
+    W = aligned_alloc(32, double_size * m * r);
 
     memcpy(V, V_final, m * n * double_size );
     memcpy(W, W_final, m * r * double_size);
@@ -447,21 +451,21 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
 
     //Operands needed to compute Hn+1
     double *numerator, *denominator_l, *denominator;    //r x n, r x r, r x n
-    numerator = malloc(d_rn);
-    denominator_l = malloc(d_rr);
-    denominator = malloc(d_rn);
+    numerator = aligned_alloc(32, d_rn);
+    denominator_l = aligned_alloc(32, d_rr);
+    denominator = aligned_alloc(32, d_rn);
 
     //Operands needed to compute Wn+1
     double *numerator_W, *denominator_W, *denominator_r;      // m x r, m x r, r x r
-    numerator_W = malloc(d_mr);
-    denominator_W = malloc(d_mr);
-    denominator_r = malloc(d_rr);
+    numerator_W = aligned_alloc(32, d_mr);
+    denominator_W = aligned_alloc(32, d_mr);
+    denominator_r = aligned_alloc(32, d_rr);
 
     double* approximation; //m x n
-    approximation = malloc(d_mn);
+    approximation = aligned_alloc(32, d_mn);
 
     double norm_V  = 0;
-    double * norm_tmp = malloc(double_size * 4);
+    double * norm_tmp = aligned_alloc(32, double_size * 4);
     int i;
 
     __m256d norm_approx0, norm_approx1, norm_approx2, norm_approx3;
@@ -501,9 +505,9 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     //real convergence computation
     double err = -1;	
 
-    double *Wt = malloc(d_mr);
-    double *Ht = malloc(d_rn);
-    double *H_new = malloc(d_rn);
+    double *Wt = aligned_alloc(32, d_mr);
+    double *Ht = aligned_alloc(32, d_rn);
+    double *H_new = aligned_alloc(32, d_rn);
 
     int nB_i = BLOCK_SIZE_H_ROW;
     int nB_j = BLOCK_SIZE_H_COL;
