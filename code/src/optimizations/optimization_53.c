@@ -505,11 +505,10 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
 
     int nB_i = BLOCK_SIZE_W_ROW;
     int nB_j = BLOCK_SIZE_W_COL;
-    int inB, jnB, rnB_i = r * nB_i, mnB_i = m * nB_i, nnB_i = n * nB_i, mnB_j = m * nB_j, rnB_j = r * nB_j, nnB_j = n * nB_j, n_2 = n << 1, r_2 = r << 1, m_2 = m << 1;
-    int ri, ni, mi, rj, nj, mj, ri1, ni1, nj1, ni1j1, ri1j1, idx_r, idx_b, idx_n, mi1;
-    int inner_inB, inner_jnB;
-
-    double accumulator;
+    int rnB_i = r * nB_i, nnB_i = n * nB_i, mnB_i = m * nB_i;
+    int rnB_j = r * nB_j, nnB_j = n * nB_j, mnB_j = m * nB_j;
+    int inB, jnB, n_2 = n << 1, r_2 = r << 1, m_2 = m << 1;; 
+    int ri, ni, mi, rj, nj, mj, ri1, ni1, ni1j1, ri1j1, idx_r, idx_b, mi1;
 
     //Precompute first parts of H so we can start with calculating W blockwise and reusing blocks for next H
     //pre-computation for H1
@@ -517,8 +516,7 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
     matrix_mul_opt53(Wt, r, m, V, m, n, numerator, r, n);
     matrix_mul_opt53(Wt, r, m, W, m, r, denominator_l, r, r);
 
-    __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
-    __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
+    __m256d num, fac, den, res;
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
     __m256d r4, r5, r6, r7;
@@ -681,12 +679,12 @@ double nnm_factorization_opt53(double* V_final, double* W_final, double* H_final
                     for (int j1 = j; j1 < min(jnB - 3, original_r - (original_r % 4)); j1 += 4) {
                         ri1j1 = ri1 + j1;
 
-                        num_1 = _mm256_loadu_pd(&numerator_W[ri1j1]);
-                        fac_1 = _mm256_loadu_pd(&W[ri1j1]);
-                        den_1 = _mm256_loadu_pd(&denominator_W[ri1j1]);
-                        num_1 = _mm256_mul_pd(fac_1, num_1);
-                        res_1 = _mm256_div_pd(num_1, den_1);
-                        _mm256_storeu_pd(&W_new[ri1j1], res_1);
+                        num = _mm256_loadu_pd(&numerator_W[ri1j1]);
+                        fac = _mm256_loadu_pd(&W[ri1j1]);
+                        den = _mm256_loadu_pd(&denominator_W[ri1j1]);
+                        num = _mm256_mul_pd(fac, num);
+                        res = _mm256_div_pd(num, den);
+                        _mm256_storeu_pd(&W_new[ri1j1], res);
                     }
                     ri1 += r;
                 }
