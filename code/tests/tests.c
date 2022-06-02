@@ -668,9 +668,9 @@ PerfResults performance_analysis_nnm_d(
     myInt64 performance = 0;
     myInt64 cost = 0;
 
-    V = malloc(sizeof(double *) * mr);
-    W = malloc(sizeof(double *) * rn);
-    H = malloc(sizeof(double *) * mn);
+    V = malloc(sizeof(double *) * mn);
+    W = malloc(sizeof(double *) * mr);
+    H = malloc(sizeof(double *) * rn);
 
     for (int i = 0; i < NUM_RUNS; i++) {
 
@@ -701,11 +701,11 @@ PerfResults performance_analysis_nnm_d(
 #endif
 
         start = start_tsc();
-        for (int i = 0; i < mr; i++)
-            V[i] = rand() * rand_max_r;
-        for (int i = 0; i < rn; i++)
-            W[i] = rand() * rand_max_r;
         for (int i = 0; i < mn; i++)
+            V[i] = rand() * rand_max_r;
+        for (int i = 0; i < mr; i++)
+            W[i] = rand() * rand_max_r;
+        for (int i = 0; i < rn; i++)
             H[i] = rand() * rand_max_r;
 
         nnmd(V, W, H, M_PERF, N_PERF, R_PERF, MAX_ITERATIONS, EPSILON);

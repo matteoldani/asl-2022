@@ -109,12 +109,12 @@ static void pad_matrix(double ** M, int *r, int *c){
     // i need to pad the rows before and the cols after transposing
     memset(&(*M)[(*c)*(*r)], 0, double_size * (temp_r-(*r)) * (*c));
 
-    new_Mt = malloc(double_size * temp_c * temp_r);
+    new_Mt = aligned_alloc(32, double_size * temp_c * temp_r);
     transpose(*M, new_Mt, temp_r, *c);
     memset(&new_Mt[temp_r * (*c)], 0, double_size * (temp_c - (*c)) * temp_r);
 
     free(*M);
-    *M = malloc(double_size * temp_c * temp_r);
+    *M = aligned_alloc(32, double_size * temp_c * temp_r);
     *c = temp_c;
     *r = temp_r;
     transpose(new_Mt, *M, temp_c, temp_r); 
@@ -132,7 +132,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
     *M = realloc(*M, (*c) * original_r * double_size);
 
     // i need to transpose and remove the rest
-    double *new_Mt = malloc((*c) * original_r * double_size );
+    double *new_Mt = aligned_alloc(32, (*c) * original_r * double_size );
     transpose(*M, new_Mt, original_r, *c);
 
     // i need to resize the transoposed
@@ -140,7 +140,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
 
     // ie need to transpose back
     free(*M);
-    *M = malloc(double_size * original_c * original_r);
+    *M = aligned_alloc(32, double_size * original_c * original_r);
     transpose(new_Mt, *M, original_c, original_r);
 
     *r = original_r;
@@ -201,15 +201,15 @@ inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int
                         Rij = Rii + jj;
                         int idx_r = Rij + R_n_col;
                         
-                        r0 = _mm256_loadu_pd((double *)&R[Rij]);
-                        r1 = _mm256_loadu_pd((double *)&R[Rij + 4]);
-                        r2 = _mm256_loadu_pd((double *)&R[Rij + 8]);
-                        r3 = _mm256_loadu_pd((double *)&R[Rij + 12]);
+                        r0 = _mm256_load_pd((double *)&R[Rij]);
+                        r1 = _mm256_load_pd((double *)&R[Rij + 4]);
+                        r2 = _mm256_load_pd((double *)&R[Rij + 8]);
+                        r3 = _mm256_load_pd((double *)&R[Rij + 12]);
 
-                        r4 = _mm256_loadu_pd((double *)&R[idx_r]);
-                        r5 = _mm256_loadu_pd((double *)&R[idx_r + 4]);
-                        r6 = _mm256_loadu_pd((double *)&R[idx_r + 8]);
-                        r7 = _mm256_loadu_pd((double *)&R[idx_r + 12]);
+                        r4 = _mm256_load_pd((double *)&R[idx_r]);
+                        r5 = _mm256_load_pd((double *)&R[idx_r + 4]);
+                        r6 = _mm256_load_pd((double *)&R[idx_r + 8]);
+                        r7 = _mm256_load_pd((double *)&R[idx_r + 12]);
 
 
                         int idx_b = k*B_n_col + jj;
@@ -218,10 +218,10 @@ inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int
                             a0 = _mm256_set1_pd(A[Aii + kk]);                //Aik0 = A[Aii + kk];
                             a1 = _mm256_set1_pd(A[Aii + A_n_col + kk]);      //Aik1 = A[Aii + A_n_col + kk]; 
                             
-                            b0 = _mm256_loadu_pd((double *)&B[idx_b]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b1 = _mm256_loadu_pd((double *)&B[idx_b + 4]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b2 = _mm256_loadu_pd((double *)&B[idx_b + 8]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b3 = _mm256_loadu_pd((double *)&B[idx_b + 12]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b0 = _mm256_load_pd((double *)&B[idx_b]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b1 = _mm256_load_pd((double *)&B[idx_b + 4]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b2 = _mm256_load_pd((double *)&B[idx_b + 8]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b3 = _mm256_load_pd((double *)&B[idx_b + 12]);    // Bi0j0 = B[kk * B_n_col + jj];
   
                             r0 = _mm256_fmadd_pd(a0, b0, r0);
                             r1 = _mm256_fmadd_pd(a0, b1, r1);
@@ -236,15 +236,15 @@ inline void matrix_mul_opt54(double *A, int A_n_row, int A_n_col, double *B, int
                             idx_b += B_n_col;
                         }
 
-                        _mm256_storeu_pd((double *)&R[Rij], r0);
-                        _mm256_storeu_pd((double *)&R[Rij + 4], r1);
-                        _mm256_storeu_pd((double *)&R[Rij + 8], r2);
-                        _mm256_storeu_pd((double *)&R[Rij + 12], r3);
+                        _mm256_store_pd((double *)&R[Rij], r0);
+                        _mm256_store_pd((double *)&R[Rij + 4], r1);
+                        _mm256_store_pd((double *)&R[Rij + 8], r2);
+                        _mm256_store_pd((double *)&R[Rij + 12], r3);
 
-                        _mm256_storeu_pd((double *)&R[idx_r], r4);
-                        _mm256_storeu_pd((double *)&R[idx_r + 4], r5);
-                        _mm256_storeu_pd((double *)&R[idx_r + 8], r6);
-                        _mm256_storeu_pd((double *)&R[idx_r + 12], r7);
+                        _mm256_store_pd((double *)&R[idx_r], r4);
+                        _mm256_store_pd((double *)&R[idx_r + 4], r5);
+                        _mm256_store_pd((double *)&R[idx_r + 8], r6);
+                        _mm256_store_pd((double *)&R[idx_r + 12], r7);
 
                     }
                     Rii += R_n_col * unroll_i;
@@ -282,7 +282,7 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     double* norm;
     double res;
 
-    norm = malloc(double_size * 4);
+    norm = aligned_alloc(32, double_size * 4);
 
     __m256d norm_approx0;
     __m256d norm_approx1;
@@ -303,15 +303,15 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     int i;
     for (i=0; i<mn; i+=16){
         
-        r0 = _mm256_loadu_pd((double *)&V[i]);
-        r1 = _mm256_loadu_pd((double *)&V[i + 4]);
-        r2 = _mm256_loadu_pd((double *)&V[i + 8]);
-        r3 = _mm256_loadu_pd((double *)&V[i + 12]);
+        r0 = _mm256_load_pd((double *)&V[i]);
+        r1 = _mm256_load_pd((double *)&V[i + 4]);
+        r2 = _mm256_load_pd((double *)&V[i + 8]);
+        r3 = _mm256_load_pd((double *)&V[i + 12]);
 
-        r4 = _mm256_loadu_pd((double *)&approx[i]);
-        r5 = _mm256_loadu_pd((double *)&approx[i + 4]);
-        r6 = _mm256_loadu_pd((double *)&approx[i + 8]);
-        r7 = _mm256_loadu_pd((double *)&approx[i + 12]);
+        r4 = _mm256_load_pd((double *)&approx[i]);
+        r5 = _mm256_load_pd((double *)&approx[i + 4]);
+        r6 = _mm256_load_pd((double *)&approx[i + 8]);
+        r7 = _mm256_load_pd((double *)&approx[i + 12]);
 
         t0 = _mm256_sub_pd(r0, r4);
         t1 = _mm256_sub_pd(r1, r5);
@@ -355,9 +355,9 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
     double *V, *W, *H;
 
-    V = malloc(double_size * m * n);
-    H = malloc(double_size * r * n);
-    W = malloc(double_size * m * r);
+    V = aligned_alloc(32, double_size * m * n);
+    H = aligned_alloc(32, double_size * r * n);
+    W = aligned_alloc(32, double_size * m * r);
 
     memcpy(V, V_final, m * n * double_size );
     memcpy(W, W_final, m * r * double_size);
@@ -393,21 +393,21 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
     //Operands needed to compute Hn+1
     double *numerator, *denominator_l, *denominator;    //r x n, r x r, r x n
-    numerator = malloc(d_rn);
-    denominator_l = malloc(d_rr);
-    denominator = malloc(d_rn);
+    numerator = aligned_alloc(32, d_rn);
+    denominator_l = aligned_alloc(32, d_rr);
+    denominator = aligned_alloc(32, d_rn);
 
     //Operands needed to compute Wn+1
     double *numerator_W, *denominator_W, *denominator_r;      // m x r, m x r, r x r
-    numerator_W = malloc(d_mr);
-    denominator_W = malloc(d_mr);
-    denominator_r = malloc(d_rr);
+    numerator_W = aligned_alloc(32, d_mr);
+    denominator_W = aligned_alloc(32, d_mr);
+    denominator_r = aligned_alloc(32, d_rr);
 
     double* approximation; //m x n
-    approximation = malloc(d_mn);
+    approximation = aligned_alloc(32, d_mn);
 
     double norm_V  = 0;
-    double * norm_tmp = malloc(double_size * 4);
+    double * norm_tmp = aligned_alloc(32, double_size * 4);
     int i;
 
     __m256d norm_approx0, norm_approx1, norm_approx2, norm_approx3;
@@ -424,10 +424,10 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
     for (i=0; i<mn; i+=16){
         
-        r0 = _mm256_loadu_pd((double *)&V[i]);
-        r1 = _mm256_loadu_pd((double *)&V[i + 4]);
-        r2 = _mm256_loadu_pd((double *)&V[i + 8]);
-        r3 = _mm256_loadu_pd((double *)&V[i + 12]);
+        r0 = _mm256_load_pd((double *)&V[i]);
+        r1 = _mm256_load_pd((double *)&V[i + 4]);
+        r2 = _mm256_load_pd((double *)&V[i + 8]);
+        r3 = _mm256_load_pd((double *)&V[i + 12]);
 
         norm_approx0 = _mm256_fmadd_pd(r0, r0, norm_approx0);
         norm_approx1 = _mm256_fmadd_pd(r1, r1, norm_approx1);
@@ -441,15 +441,15 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
     sum0 = _mm256_add_pd(sum0, sum1);
 
     t = _mm256_hadd_pd(sum0, sum0);
-    _mm256_storeu_pd(&norm_tmp[0], t);
+    _mm256_store_pd(&norm_tmp[0], t);
     norm_V = 1 / sqrt(norm_tmp[0] + norm_tmp[2]);
 
     //real convergence computation
     double err = -1;	
 
-    double *Wt = malloc(d_mr);
-    double *Ht = malloc(d_rn);
-    double *H_new = malloc(d_rn);
+    double *Wt = aligned_alloc(32, d_mr);
+    double *Ht = aligned_alloc(32, d_rn);
+    double *H_new = aligned_alloc(32, d_rn);
 
     int nB_i = BLOCK_SIZE_H_ROW;
     int nB_j = BLOCK_SIZE_H_COL;
@@ -457,9 +457,6 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
     int ri, mi, ni, ri1, ni1, ni1j1, ri1j1, idx_r, idx_b;
 
     __m256d num_1, num_2, fac_1, fac_2, den_1, den_2, res_1, res_2;
-    __m256d num_3, num_4, fac_3, fac_4, den_3, den_4, res_3, res_4;
-    __m256d num_5, num_6, fac_5, fac_6, res_5, res_6;
-    __m256d num_7, num_8, fac_7, fac_8, res_7, res_8;
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
     __m256d r4, r5, r6, r7;
@@ -515,10 +512,10 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                             a0 = _mm256_set1_pd(denominator_l[ri1 + k1]);
                             a1 = _mm256_set1_pd(denominator_l[ri1 + r + k1]);
 
-                            b0 = _mm256_loadu_pd(&H[idx_b]);
-                            b1 = _mm256_loadu_pd(&H[idx_b + 4]);
-                            b2 = _mm256_loadu_pd(&H[idx_b + 8]);
-                            b3 = _mm256_loadu_pd(&H[idx_b + 12]);
+                            b0 = _mm256_load_pd(&H[idx_b]);
+                            b1 = _mm256_load_pd(&H[idx_b + 4]);
+                            b2 = _mm256_load_pd(&H[idx_b + 8]);
+                            b3 = _mm256_load_pd(&H[idx_b + 12]);
 
                             r0 = _mm256_fmadd_pd(a0, b0, r0);
                             r1 = _mm256_fmadd_pd(a0, b1, r1);
@@ -532,15 +529,15 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
                             idx_b += n;
                         }
-                        _mm256_storeu_pd(&denominator[ni1j1], r0);
-                        _mm256_storeu_pd(&denominator[ni1j1 + 4], r1);
-                        _mm256_storeu_pd(&denominator[ni1j1 + 8], r2);
-                        _mm256_storeu_pd(&denominator[ni1j1 + 12], r3);
+                        _mm256_store_pd(&denominator[ni1j1], r0);
+                        _mm256_store_pd(&denominator[ni1j1 + 4], r1);
+                        _mm256_store_pd(&denominator[ni1j1 + 8], r2);
+                        _mm256_store_pd(&denominator[ni1j1 + 12], r3);
 
-                        _mm256_storeu_pd(&denominator[idx_r], r4);
-                        _mm256_storeu_pd(&denominator[idx_r + 4], r5);
-                        _mm256_storeu_pd(&denominator[idx_r + 8], r6);
-                        _mm256_storeu_pd(&denominator[idx_r + 12], r7);
+                        _mm256_store_pd(&denominator[idx_r], r4);
+                        _mm256_store_pd(&denominator[idx_r + 4], r5);
+                        _mm256_store_pd(&denominator[idx_r + 8], r6);
+                        _mm256_store_pd(&denominator[idx_r + 12], r7);
                     }
                     ni1 += n_2;
                     ri1 += r_2;
@@ -553,12 +550,12 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                     for (int j1 = j; j1 < min(jnB - 3, original_n - (original_n % 4)); j1+=4) {
                         ni1j1 = ni1 + j1;
                         
-                        num_1 = _mm256_loadu_pd(&numerator[ni1j1]);
-                        fac_1 = _mm256_loadu_pd(&H[ni1j1]);
-                        den_1 = _mm256_loadu_pd(&denominator[ni1j1]);
+                        num_1 = _mm256_load_pd(&numerator[ni1j1]);
+                        fac_1 = _mm256_load_pd(&H[ni1j1]);
+                        den_1 = _mm256_load_pd(&denominator[ni1j1]);
                         num_1 = _mm256_mul_pd(fac_1, num_1);
                         res_1 = _mm256_div_pd(num_1, den_1);
-                        _mm256_storeu_pd(&H_new[ni1j1], res_1);
+                        _mm256_store_pd(&H_new[ni1j1], res_1);
                     }
                     ni1 += n;
                 }
@@ -585,25 +582,25 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
-                        r0 = _mm256_loadu_pd(&numerator_W[ri1j1]);
-                        r1 = _mm256_loadu_pd(&numerator_W[ri1j1 + 4]);
-                        r2 = _mm256_loadu_pd(&numerator_W[ri1j1 + 8]);
-                        r3 = _mm256_loadu_pd(&numerator_W[ri1j1 + 12]);
+                        r0 = _mm256_load_pd(&numerator_W[ri1j1]);
+                        r1 = _mm256_load_pd(&numerator_W[ri1j1 + 4]);
+                        r2 = _mm256_load_pd(&numerator_W[ri1j1 + 8]);
+                        r3 = _mm256_load_pd(&numerator_W[ri1j1 + 12]);
 
-                        r4 = _mm256_loadu_pd(&numerator_W[idx_r]);
-                        r5 = _mm256_loadu_pd(&numerator_W[idx_r + 4]);
-                        r6 = _mm256_loadu_pd(&numerator_W[idx_r + 8]);
-                        r7 = _mm256_loadu_pd(&numerator_W[idx_r + 12]);
+                        r4 = _mm256_load_pd(&numerator_W[idx_r]);
+                        r5 = _mm256_load_pd(&numerator_W[idx_r + 4]);
+                        r6 = _mm256_load_pd(&numerator_W[idx_r + 8]);
+                        r7 = _mm256_load_pd(&numerator_W[idx_r + 12]);
 
                         idx_b = j * r + j1;
                         for (int k1 = j; k1 < jnB; k1++) {
                             a0 = _mm256_set1_pd(V[ni1 + k1]);
                             a1 = _mm256_set1_pd(V[ni1 + n + k1]);
 
-                            b0 = _mm256_loadu_pd(&Ht[idx_b]);
-                            b1 = _mm256_loadu_pd(&Ht[idx_b + 4]);
-                            b2 = _mm256_loadu_pd(&Ht[idx_b + 8]);
-                            b3 = _mm256_loadu_pd(&Ht[idx_b + 12]);
+                            b0 = _mm256_load_pd(&Ht[idx_b]);
+                            b1 = _mm256_load_pd(&Ht[idx_b + 4]);
+                            b2 = _mm256_load_pd(&Ht[idx_b + 8]);
+                            b3 = _mm256_load_pd(&Ht[idx_b + 12]);
 
                             r0 = _mm256_fmadd_pd(a0, b0, r0);
                             r1 = _mm256_fmadd_pd(a0, b1, r1);
@@ -617,15 +614,15 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
 
                             idx_b += r;
                         }
-                        _mm256_storeu_pd(&numerator_W[ri1j1], r0);
-                        _mm256_storeu_pd(&numerator_W[ri1j1 + 4], r1);
-                        _mm256_storeu_pd(&numerator_W[ri1j1 + 8], r2);
-                        _mm256_storeu_pd(&numerator_W[ri1j1 + 12], r3);
+                        _mm256_store_pd(&numerator_W[ri1j1], r0);
+                        _mm256_store_pd(&numerator_W[ri1j1 + 4], r1);
+                        _mm256_store_pd(&numerator_W[ri1j1 + 8], r2);
+                        _mm256_store_pd(&numerator_W[ri1j1 + 12], r3);
 
-                        _mm256_storeu_pd(&numerator_W[idx_r], r4);
-                        _mm256_storeu_pd(&numerator_W[idx_r + 4], r5);
-                        _mm256_storeu_pd(&numerator_W[idx_r + 8], r6);
-                        _mm256_storeu_pd(&numerator_W[idx_r + 12], r7);
+                        _mm256_store_pd(&numerator_W[idx_r], r4);
+                        _mm256_store_pd(&numerator_W[idx_r + 4], r5);
+                        _mm256_store_pd(&numerator_W[idx_r + 8], r6);
+                        _mm256_store_pd(&numerator_W[idx_r + 12], r7);
                     }
                     ri1 += r_2;
                     ni1 += n_2;
@@ -653,10 +650,10 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                             a0 = _mm256_set1_pd(H_new[ni1 + k1]);
                             a1 = _mm256_set1_pd(H_new[ni1 + n + k1]);
 
-                            b0 = _mm256_loadu_pd(&Ht[idx_b]);
-                            b1 = _mm256_loadu_pd(&Ht[idx_b + 4]);
-                            b2 = _mm256_loadu_pd(&Ht[idx_b + 8]);
-                            b3 = _mm256_loadu_pd(&Ht[idx_b + 12]);
+                            b0 = _mm256_load_pd(&Ht[idx_b]);
+                            b1 = _mm256_load_pd(&Ht[idx_b + 4]);
+                            b2 = _mm256_load_pd(&Ht[idx_b + 8]);
+                            b3 = _mm256_load_pd(&Ht[idx_b + 12]);
 
                             r0 = _mm256_fmadd_pd(a0, b0, r0);
                             r1 = _mm256_fmadd_pd(a0, b1, r1);
@@ -691,25 +688,25 @@ double nnm_factorization_opt54(double *V_final, double *W_final, double*H_final,
                         ri1j1 = ri1 + j1;
                         idx_r = ri1j1 + r;
 
-                        r0 = _mm256_loadu_pd(&denominator_r[ri1j1]);
-                        r1 = _mm256_loadu_pd(&denominator_r[ri1j1 + 4]);
-                        r2 = _mm256_loadu_pd(&denominator_r[ri1j1 + 8]);
-                        r3 = _mm256_loadu_pd(&denominator_r[ri1j1 + 12]);
+                        r0 = _mm256_load_pd(&denominator_r[ri1j1]);
+                        r1 = _mm256_load_pd(&denominator_r[ri1j1 + 4]);
+                        r2 = _mm256_load_pd(&denominator_r[ri1j1 + 8]);
+                        r3 = _mm256_load_pd(&denominator_r[ri1j1 + 12]);
 
-                        r4 = _mm256_loadu_pd(&denominator_r[idx_r]);
-                        r5 = _mm256_loadu_pd(&denominator_r[idx_r + 4]);
-                        r6 = _mm256_loadu_pd(&denominator_r[idx_r + 8]);
-                        r7 = _mm256_loadu_pd(&denominator_r[idx_r + 12]);
+                        r4 = _mm256_load_pd(&denominator_r[idx_r]);
+                        r5 = _mm256_load_pd(&denominator_r[idx_r + 4]);
+                        r6 = _mm256_load_pd(&denominator_r[idx_r + 8]);
+                        r7 = _mm256_load_pd(&denominator_r[idx_r + 12]);
 
                         idx_b = j * r + j1;
                         for (int k1 = j; k1 < jnB; k1++) {
                             a0 = _mm256_set1_pd(H_new[ni1 + k1]);
                             a1 = _mm256_set1_pd(H_new[ni1 + n + k1]);
 
-                            b0 = _mm256_loadu_pd(&Ht[idx_b]);
-                            b1 = _mm256_loadu_pd(&Ht[idx_b + 4]);
-                            b2 = _mm256_loadu_pd(&Ht[idx_b + 8]);
-                            b3 = _mm256_loadu_pd(&Ht[idx_b + 12]);
+                            b0 = _mm256_load_pd(&Ht[idx_b]);
+                            b1 = _mm256_load_pd(&Ht[idx_b + 4]);
+                            b2 = _mm256_load_pd(&Ht[idx_b + 8]);
+                            b3 = _mm256_load_pd(&Ht[idx_b + 12]);
 
                             r0 = _mm256_fmadd_pd(a0, b0, r0);
                             r1 = _mm256_fmadd_pd(a0, b1, r1);
