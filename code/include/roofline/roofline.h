@@ -26,7 +26,12 @@
 #include <optimizations/optimizations_44.h>
 #include <optimizations/optimizations_45.h>
 #include <optimizations/optimizations_46.h>
+#include <optimizations/optimizations_37.h>
 #include <optimizations/optimizations_47.h>
+#include <optimizations/optimizations_51.h>
+#include <optimizations/optimizations_52.h>
+#include <optimizations/optimizations_53.h>
+#include <optimizations/optimizations_54.h>
 
 typedef double (*fact_function) (Matrix *, Matrix *, Matrix *, int, double);
 typedef double (*opt_fact_function)(double *, double*, double*, int, int, int, int, double);

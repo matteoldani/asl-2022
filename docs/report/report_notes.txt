@@ -151,4 +151,9 @@
 	- This optimization brings the optimized transpose and element-wise division to opt_47
 	- A bit of improvement is visible
 
+*Optimization 54:
+	- On top of opt_51
+	- Generalised implementation that works with arbitrary rank input
+	- Additionally using aligned matrices
+
 	

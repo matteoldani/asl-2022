@@ -668,9 +668,9 @@ PerfResults performance_analysis_nnm_d(
     myInt64 performance = 0;
     myInt64 cost = 0;
 
-    V = malloc(sizeof(double *) * mr);
-    W = malloc(sizeof(double *) * rn);
-    H = malloc(sizeof(double *) * mn);
+    V = malloc(sizeof(double *) * mn);
+    W = malloc(sizeof(double *) * mr);
+    H = malloc(sizeof(double *) * rn);
 
     for (int i = 0; i < NUM_RUNS; i++) {
 
@@ -701,11 +701,11 @@ PerfResults performance_analysis_nnm_d(
 #endif
 
         start = start_tsc();
-        for (int i = 0; i < mr; i++)
-            V[i] = rand() * rand_max_r;
-        for (int i = 0; i < rn; i++)
-            W[i] = rand() * rand_max_r;
         for (int i = 0; i < mn; i++)
+            V[i] = rand() * rand_max_r;
+        for (int i = 0; i < mr; i++)
+            W[i] = rand() * rand_max_r;
+        for (int i = 0; i < rn; i++)
             H[i] = rand() * rand_max_r;
 
         nnmd(V, W, H, M_PERF, N_PERF, R_PERF, MAX_ITERATIONS, EPSILON);
@@ -980,13 +980,15 @@ int main(int argc, char const *argv[]) {
     nnmd[22] = nnm_factorization_opt47;
     nnmd[23] = nnm_factorization_opt37;
     nnmd[24] = nnm_factorization_opt51;
-    nnmd[25] = nnm_factorization_opt52;*/
+    nnmd[25] = nnm_factorization_opt52;
+    nnmd[26] = nnm_factorization_opt53;
+    nnmd[27] = nnm_factorization_opt54;*/
 
     //nnmd[0] = nnm_factorization_opt35;
     nnmd[0] = nnm_factorization_opt47;
     nnmd[1] = nnm_factorization_opt51;
     nnmd[2] = nnm_factorization_opt52;
-    nnmd[3] = nnm_factorization_opt53;
+    nnmd[3] = nnm_factorization_opt54;
 
     // END TODO
 
