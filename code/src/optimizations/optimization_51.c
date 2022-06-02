@@ -431,10 +431,9 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     d_mn = double_size * mn;
 
     //Operands needed to compute Hn+1
-    double *numerator, *denominator_l, *denominator;    //r x n, r x r, r x n
+    double *numerator, *denominator_l;    //r x n, r x r
     numerator = aligned_alloc(32, d_rn);
     denominator_l = aligned_alloc(32, d_rr);
-    denominator = aligned_alloc(32, d_rn);
 
     //Operands needed to compute Wn+1
     double *numerator_W, *denominator_W, *denominator_r;      // m x r, m x r, r x r
@@ -812,7 +811,6 @@ double nnm_factorization_opt51(double *V_final, double *W_final, double*H_final,
     }
 
     free(numerator);
-    free(denominator);
     free(denominator_l);
     free(numerator_W);
     free(denominator_W);
