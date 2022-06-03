@@ -3,7 +3,6 @@ from matplotlib import colors
 from matplotlib import pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 import pandas as pd
-import pygraphviz
 
 fig, ax = plt.subplots(figsize=(15, 8))
 
@@ -22,29 +21,32 @@ carac = pd.DataFrame({'ID': ['bs1', 'bs2', 'alg opt1', 'alg opt2', 'opt0', 'opt1
                              'opt31', 'opt32', 'opt33', 'opt34', 'opt35', 'opt36', 'opt42', 'opt24', 'opt12', 'opt41',
                              'opt23', 'opt22', 'opt43', 'opt44', 'opt45', 'opt46', 'opt47', 'opt37', 'opt48', 'opt53',
                              'opt51', 'opt54'],
-                      'type': ['nor', 'bla', 'nor', 'nor', 'nor', 'nor', 'nor', 'nor', 'nor', 'nor', 'nor', 'nor',
-                               'nor', 'nor', 'nor', 'nor', 'nor', 'bla', 'bla', 'bla', 'bla', 'bla', 'intri', 'intri',
-                               'intri', 'intri', 'intri', 'intri', 'intri', 'intri', 'intri', 'intri']})
-
+                      'type': ['lightslategrey', 'mediumblue', 'lightslategrey', 'lightslategrey', 'lightslategrey',
+                               'lightslategrey',
+                               'lightslategrey', 'lightslategrey', 'lightslategrey', 'lightslategrey', 'lightslategrey',
+                               'lightslategrey',
+                               'lightslategrey', 'lightslategrey', 'lightslategrey', 'lightslategrey', 'lightslategrey',
+                               'mediumblue',
+                               'mediumblue', 'mediumblue', 'mediumblue', 'mediumblue', 'firebrick', 'firebrick',
+                               'firebrick', 'firebrick', 'firebrick', 'firebrick', 'firebrick',
+                               'firebrick', 'firebrick', 'firebrick']})
+# mediumblue,
 # Create graph object
 G = nx.from_pandas_edgelist(relationships, 'from', 'to', create_using=nx.DiGraph())
 
 # Make types into categories
-carac = carac.set_index('ID')
-carac = carac.reindex(G.nodes())
+# carac = carac.set_index('ID')
+# carac = carac.reindex(G.nodes())
 
 carac['type'] = pd.Categorical(carac['type'])
-carac['type'].cat.codes
 
-# Specify colors
-cmap = colors.ListedColormap(['red', 'cyan', 'lightgrey'])
+A = nx.nx_agraph.to_agraph(G)
 
-# Draw graph
-nx.draw(
-    G,
-    with_labels=True,
-    node_color=carac['type'].cat.codes,
-    cmap=cmap, node_size=500,
-    pos=graphviz_layout(G, prog="dot")
-)
-plt.savefig("dag.pdf", format="PDF")
+A.layout(prog='dot')
+A.node_attr['style'] = 'filled'
+for index, row in carac.iterrows():
+    n = A.get_node(row['ID'])
+    n.attr['fontcolor'] = 'whitesmoke'
+    n.attr["color"] = row['type']
+
+A.draw('dag.pdf', args='-Gnodesep=0.01 -Gfont_size=1', prog='dot')
