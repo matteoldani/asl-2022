@@ -5,8 +5,3 @@
 ./build/performance 17 200 1500 52 ../docs/outputs/perf_3_17.out
 ./build/performance 18 200 1500 52 ../docs/outputs/perf_3_18.out
 ./build/performance 19 200 1500 52 ../docs/outputs/perf_3_19.out
-	
-	
-	
-	
-	

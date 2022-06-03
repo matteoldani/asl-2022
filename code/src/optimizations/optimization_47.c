@@ -14,8 +14,8 @@
 static unsigned int double_size = sizeof(double);
 
 
-inline void transpose4x4(double* dst, double* src, const int n, const int m) {
-    
+inline void transpose4x4(double *dst, double *src, const int n, const int m) {
+
     __m256d tmp0, tmp1, tmp2, tmp3;
     __m256d row0, row1, row2, row3;
 
@@ -41,8 +41,8 @@ inline void transpose4x4(double* dst, double* src, const int n, const int m) {
 }
 
 //NEW - the transpose function is now vectorized and generalized
-static void transpose(double *src, double *dst,  const int n, const int m) {
-    
+static void transpose(double *src, double *dst, const int n, const int m) {
+
     int nB = BLOCK_SIZE_TRANS;
 
     int i, j, i2, j2;
@@ -92,26 +92,26 @@ static void transpose(double *src, double *dst,  const int n, const int m) {
 }
 
 // NEW: this is the function that pads the matrix to a multiple of the block size
-static void pad_matrix(double ** M, int *r, int *c){
+static void pad_matrix(double **M, int *r, int *c) {
     int temp_r;
     int temp_c;
-    if((*r % BLOCK_SIZE_MMUL == 0 ) && (*c % BLOCK_SIZE_MMUL == 0 )) {
+    if ((*r % BLOCK_SIZE_MMUL == 0) && (*c % BLOCK_SIZE_MMUL == 0)) {
         return;
     }
 
-    if( ((*r) %BLOCK_SIZE_MMUL == 0 ) && ((*c)%BLOCK_SIZE_MMUL == 0)){
+    if (((*r) % BLOCK_SIZE_MMUL == 0) && ((*c) % BLOCK_SIZE_MMUL == 0)) {
         return;
     }
 
-    if( (*r) %BLOCK_SIZE_MMUL != 0){
-        temp_r = (((*r) / BLOCK_SIZE_MMUL ) + 1)*BLOCK_SIZE_MMUL;   
-    }else{
+    if ((*r) % BLOCK_SIZE_MMUL != 0) {
+        temp_r = (((*r) / BLOCK_SIZE_MMUL) + 1) * BLOCK_SIZE_MMUL;
+    } else {
         temp_r = *r;
     }
 
-    if((*c)%BLOCK_SIZE_MMUL != 0){
-        temp_c = (((*c )/ BLOCK_SIZE_MMUL) + 1) * BLOCK_SIZE_MMUL;
-    }else{
+    if ((*c) % BLOCK_SIZE_MMUL != 0) {
+        temp_c = (((*c) / BLOCK_SIZE_MMUL) + 1) * BLOCK_SIZE_MMUL;
+    } else {
         temp_c = *c;
     }
 
@@ -119,7 +119,7 @@ static void pad_matrix(double ** M, int *r, int *c){
 
     *M = realloc(*M, double_size * (*c) * temp_r);
     // i need to pad the rows before and the cols after transposing
-    memset(&(*M)[(*c)*(*r)], 0, double_size * (temp_r-(*r)) * (*c));
+    memset(&(*M)[(*c) * (*r)], 0, double_size * (temp_r - (*r)) * (*c));
 
     new_Mt = aligned_alloc(32, double_size * temp_c * temp_r);
     transpose(*M, new_Mt, temp_r, *c);
@@ -129,7 +129,7 @@ static void pad_matrix(double ** M, int *r, int *c){
     *M = aligned_alloc(32, double_size * temp_c * temp_r);
     *c = temp_c;
     *r = temp_r;
-    transpose(new_Mt, *M, temp_c, temp_r); 
+    transpose(new_Mt, *M, temp_c, temp_r);
 
     free(new_Mt);
 
@@ -137,7 +137,7 @@ static void pad_matrix(double ** M, int *r, int *c){
 }
 
 // NEW: this is the function that unpard the matrix to the oringinal size
-static void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
+static void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c) {
 
     // lets suppose that are always row majour
 
@@ -145,7 +145,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
     *M = realloc(*M, (*c) * original_r * double_size);
 
     // i need to transpose and remove the rest
-    double *new_Mt = aligned_alloc(32, (*c) * original_r * double_size );
+    double *new_Mt = aligned_alloc(32, (*c) * original_r * double_size);
     transpose(*M, new_Mt, original_r, *c);
 
     // i need to resize the transoposed
@@ -160,7 +160,7 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
     *c = original_c;
 
     free(new_Mt);
-    
+
 }
 
 /**
@@ -175,8 +175,9 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt47_padding(double *A_final, int A_n_row, int A_n_col, double *B_final, int B_n_row, int B_n_col, double *R_final, int R_n_row, int R_n_col)
-{   int m = A_n_row;
+void matrix_mul_opt47_padding(double *A_final, int A_n_row, int A_n_col, double *B_final, int B_n_row, int B_n_col,
+                              double *R_final, int R_n_row, int R_n_col) {
+    int m = A_n_row;
     int n = B_n_col;
     int r = B_n_row;
     double *V, *H, *W;
@@ -184,11 +185,11 @@ void matrix_mul_opt47_padding(double *A_final, int A_n_row, int A_n_col, double 
     H = aligned_alloc(32, double_size * r * n);
     W = aligned_alloc(32, double_size * m * r);
 
-    memcpy(V, R_final, m * n * double_size );
+    memcpy(V, R_final, m * n * double_size);
     memcpy(W, A_final, m * r * double_size);
     memcpy(H, B_final, r * n * double_size);
 
-   // padding all the values to multiple of BLOCKSIZE
+    // padding all the values to multiple of BLOCKSIZE
     int temp_r = r;
     int temp_m = m;
     int temp_n = n;
@@ -203,7 +204,7 @@ void matrix_mul_opt47_padding(double *A_final, int A_n_row, int A_n_col, double 
     pad_matrix(&W, &m, &temp_r);
     // i can modify both r and n
     pad_matrix(&H, &r, &n);
-    
+
     matrix_mul_opt47(W, m, r, H, r, m, V, m, n);
 
 
@@ -234,8 +235,8 @@ void matrix_mul_opt47_padding(double *A_final, int A_n_row, int A_n_col, double 
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
-{  
+void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                      int R_n_col) {
 
     //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
@@ -244,7 +245,7 @@ void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     int nBA_n_col = nB * A_n_col;
     int unroll_i = 2, unroll_j = 16;
     int kk, i, j, k;
-    
+
 
     __m256d a0, a1;
     __m256d b0, b1, b2, b3;
@@ -252,49 +253,42 @@ void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     __m256d r4, r5, r6, r7;
 
 
-
     memset(R, 0, double_size * R_n_row * R_n_col);
     //MAIN LOOP BLOCKED 16x16
-    for (i = 0; i < A_n_row - nB + 1; i += nB)
-    {   
-        for (j = 0; j < B_n_col - nB + 1; j += nB)
-        {
-            for (k = 0; k < A_n_col - nB + 1; k += nB)
-            {   
+    for (i = 0; i < A_n_row - nB + 1; i += nB) {
+        for (j = 0; j < B_n_col - nB + 1; j += nB) {
+            for (k = 0; k < A_n_col - nB + 1; k += nB) {
 
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i)
-                {
+                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i) {
 
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j)
-                    {
-                        
+                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j) {
+
                         Rij = Rii + jj;
                         int idx_r = Rij + R_n_col;
-                        
-                        r0 = _mm256_load_pd((double *)&R[Rij]);
-                        r1 = _mm256_load_pd((double *)&R[Rij + 4]);
-                        r2 = _mm256_load_pd((double *)&R[Rij + 8]);
-                        r3 = _mm256_load_pd((double *)&R[Rij + 12]);
 
-                        r4 = _mm256_load_pd((double *)&R[idx_r]);
-                        r5 = _mm256_load_pd((double *)&R[idx_r + 4]);
-                        r6 = _mm256_load_pd((double *)&R[idx_r + 8]);
-                        r7 = _mm256_load_pd((double *)&R[idx_r + 12]);
+                        r0 = _mm256_load_pd((double *) &R[Rij]);
+                        r1 = _mm256_load_pd((double *) &R[Rij + 4]);
+                        r2 = _mm256_load_pd((double *) &R[Rij + 8]);
+                        r3 = _mm256_load_pd((double *) &R[Rij + 12]);
+
+                        r4 = _mm256_load_pd((double *) &R[idx_r]);
+                        r5 = _mm256_load_pd((double *) &R[idx_r + 4]);
+                        r6 = _mm256_load_pd((double *) &R[idx_r + 8]);
+                        r7 = _mm256_load_pd((double *) &R[idx_r + 12]);
 
 
-                        int idx_b = k*B_n_col + jj;
-                        for (kk = k; kk < k + nB; kk++)
-                        {
+                        int idx_b = k * B_n_col + jj;
+                        for (kk = k; kk < k + nB; kk++) {
                             a0 = _mm256_set1_pd(A[Aii + kk]);                //Aik0 = A[Aii + kk];
                             a1 = _mm256_set1_pd(A[Aii + A_n_col + kk]);      //Aik1 = A[Aii + A_n_col + kk]; 
-                            
-                            b0 = _mm256_load_pd((double *)&B[idx_b]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b1 = _mm256_load_pd((double *)&B[idx_b + 4]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b2 = _mm256_load_pd((double *)&B[idx_b + 8]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b3 = _mm256_load_pd((double *)&B[idx_b + 12]);    // Bi0j0 = B[kk * B_n_col + jj];
-  
+
+                            b0 = _mm256_load_pd((double *) &B[idx_b]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b1 = _mm256_load_pd((double *) &B[idx_b + 4]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b2 = _mm256_load_pd((double *) &B[idx_b + 8]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b3 = _mm256_load_pd((double *) &B[idx_b + 12]);    // Bi0j0 = B[kk * B_n_col + jj];
+
                             r0 = _mm256_fmadd_pd(a0, b0, r0);
                             r1 = _mm256_fmadd_pd(a0, b1, r1);
                             r2 = _mm256_fmadd_pd(a0, b2, r2);
@@ -308,15 +302,15 @@ void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                             idx_b += B_n_col;
                         }
 
-                        _mm256_store_pd((double *)&R[Rij], r0);
-                        _mm256_store_pd((double *)&R[Rij + 4], r1);
-                        _mm256_store_pd((double *)&R[Rij + 8], r2);
-                        _mm256_store_pd((double *)&R[Rij + 12], r3);
+                        _mm256_store_pd((double *) &R[Rij], r0);
+                        _mm256_store_pd((double *) &R[Rij + 4], r1);
+                        _mm256_store_pd((double *) &R[Rij + 8], r2);
+                        _mm256_store_pd((double *) &R[Rij + 12], r3);
 
-                        _mm256_store_pd((double *)&R[idx_r], r4);
-                        _mm256_store_pd((double *)&R[idx_r + 4], r5);
-                        _mm256_store_pd((double *)&R[idx_r + 8], r6);
-                        _mm256_store_pd((double *)&R[idx_r + 12], r7);
+                        _mm256_store_pd((double *) &R[idx_r], r4);
+                        _mm256_store_pd((double *) &R[idx_r + 4], r5);
+                        _mm256_store_pd((double *) &R[idx_r + 8], r6);
+                        _mm256_store_pd((double *) &R[idx_r + 12], r7);
 
                     }
                     Rii += R_n_col * unroll_i;
@@ -328,8 +322,8 @@ void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
         Ri += nBR_n_col;
         Ai += nBA_n_col;
     }
-    
-    
+
+
 }
 
 
@@ -348,11 +342,12 @@ void matrix_mul_opt47(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
-static inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
+static inline double
+error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul_opt47(W, m, r, H, r, n, approx, m, n);
 
-    double* norm;
+    double *norm;
     double res;
 
     norm = aligned_alloc(32, double_size * 4);
@@ -374,17 +369,17 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     norm_approx3 = _mm256_setzero_pd();
 
     int i;
-    for (i=0; i<mn; i+=16){
-        
-        r0 = _mm256_load_pd((double *)&V[i]);
-        r1 = _mm256_load_pd((double *)&V[i + 4]);
-        r2 = _mm256_load_pd((double *)&V[i + 8]);
-        r3 = _mm256_load_pd((double *)&V[i + 12]);
+    for (i = 0; i < mn; i += 16) {
 
-        r4 = _mm256_load_pd((double *)&approx[i]);
-        r5 = _mm256_load_pd((double *)&approx[i + 4]);
-        r6 = _mm256_load_pd((double *)&approx[i + 8]);
-        r7 = _mm256_load_pd((double *)&approx[i + 12]);
+        r0 = _mm256_load_pd((double *) &V[i]);
+        r1 = _mm256_load_pd((double *) &V[i + 4]);
+        r2 = _mm256_load_pd((double *) &V[i + 8]);
+        r3 = _mm256_load_pd((double *) &V[i + 12]);
+
+        r4 = _mm256_load_pd((double *) &approx[i]);
+        r5 = _mm256_load_pd((double *) &approx[i + 4]);
+        r6 = _mm256_load_pd((double *) &approx[i + 8]);
+        r7 = _mm256_load_pd((double *) &approx[i + 12]);
 
         t0 = _mm256_sub_pd(r0, r4);
         t1 = _mm256_sub_pd(r1, r5);
@@ -396,7 +391,7 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
         norm_approx2 = _mm256_fmadd_pd(t2, t2, norm_approx2);
         norm_approx3 = _mm256_fmadd_pd(t3, t3, norm_approx3);
     }
-     
+
     norm_approx0 = _mm256_add_pd(norm_approx0, norm_approx1);
     norm_approx2 = _mm256_add_pd(norm_approx2, norm_approx3);
     norm_approx0 = _mm256_add_pd(norm_approx0, norm_approx2);
@@ -405,6 +400,7 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
     res = sqrt(norm[0] + norm[2]);
     return res * norm_V;
 }
+
 /**
  * @brief computes the non-negative matrix factorisation updating the values stored by the 
  *        factorization functions
@@ -418,7 +414,8 @@ static inline double error(double* approx, double* V, double* W, double* H, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt47(double *V_final, double *W_final, double *H_final, int m, int n, int r, int maxIteration,
+                               double epsilon) {
 
     double *V, *W, *H;
 
@@ -426,7 +423,7 @@ double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final,
     H = aligned_alloc(32, double_size * r * n);
     W = aligned_alloc(32, double_size * m * r);
 
-    memcpy(V, V_final, m * n * double_size );
+    memcpy(V, V_final, m * n * double_size);
     memcpy(W, W_final, m * r * double_size);
     memcpy(H, H_final, r * n * double_size);
 
@@ -447,7 +444,6 @@ double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final,
     pad_matrix(&H, &r, &n);
 
 
-
     int rn, rr, mr, mn;
     rn = r * n;
     rr = r * r;
@@ -465,11 +461,11 @@ double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final,
     numerator_W = aligned_alloc(32, double_size * mr);
     denominator_W = aligned_alloc(32, double_size * mr);
 
-    double* approximation; //m x n
+    double *approximation; //m x n
     approximation = aligned_alloc(32, double_size * mn);
 
-    double norm_V  = 0;
-    double * norm_tmp = aligned_alloc(32, double_size * 4);
+    double norm_V = 0;
+    double *norm_tmp = aligned_alloc(32, double_size * 4);
     int i;
 
     __m256d norm_approx0, norm_approx1, norm_approx2, norm_approx3;
@@ -484,12 +480,12 @@ double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final,
     norm_approx2 = _mm256_setzero_pd();
     norm_approx3 = _mm256_setzero_pd();
 
-    for (i=0; i<mn; i+=16){
-        
-        r0 = _mm256_load_pd((double *)&V[i]);
-        r1 = _mm256_load_pd((double *)&V[i + 4]);
-        r2 = _mm256_load_pd((double *)&V[i + 8]);
-        r3 = _mm256_load_pd((double *)&V[i + 12]);
+    for (i = 0; i < mn; i += 16) {
+
+        r0 = _mm256_load_pd((double *) &V[i]);
+        r1 = _mm256_load_pd((double *) &V[i + 4]);
+        r2 = _mm256_load_pd((double *) &V[i + 8]);
+        r3 = _mm256_load_pd((double *) &V[i + 12]);
 
         norm_approx0 = _mm256_fmadd_pd(r0, r0, norm_approx0);
         norm_approx1 = _mm256_fmadd_pd(r1, r1, norm_approx1);
@@ -507,31 +503,31 @@ double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final,
     norm_V = 1 / sqrt(norm_tmp[0] + norm_tmp[2]);
 
     //real convergence computation
-    double err = -1;	
+    double err = -1;
 
     double *Wt = aligned_alloc(32, double_size * mr);
-    double *Ht = aligned_alloc(32, double_size * rn);		
+    double *Ht = aligned_alloc(32, double_size * rn);
 
     for (int count = 0; count < maxIteration; count++) {
-        
+
         err = error(approximation, V, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
         }
 
-           
+
 
         //computation for Hn+1
-        
+
         transpose(W, Wt, m, r);
         matrix_mul_opt47(Wt, r, m, V, m, n, numerator, r, n);
         matrix_mul_opt47(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt47(denominator_l, r, r, H, r, n, denominator, r, n);
-        
 
-        for(i = 0; i < original_r; i ++){
-            for(int j = 0; j < original_n; j++){
-                H[i * n + j] =   H[i * n + j]   * numerator[i * n + j]   / denominator[i * n + j];
+
+        for (i = 0; i < original_r; i++) {
+            for (int j = 0; j < original_n; j++) {
+                H[i * n + j] = H[i * n + j] * numerator[i * n + j] / denominator[i * n + j];
             }
         }
 
@@ -540,10 +536,10 @@ double nnm_factorization_opt47(double *V_final, double *W_final, double*H_final,
         matrix_mul_opt47(V, m, n, Ht, n, r, numerator_W, m, r);
         matrix_mul_opt47(H, r, n, Ht, n, r, denominator_l, r, r);
         matrix_mul_opt47(W, m, r, denominator_l, r, r, denominator_W, m, r);
-      
-        for(i = 0; i < original_m; i ++){
-            for(int j = 0; j < original_r; j++){
-                W[i * r + j] =   W[i * r + j]   * numerator_W[i * r + j]   / denominator_W[i * r + j];
+
+        for (i = 0; i < original_m; i++) {
+            for (int j = 0; j < original_r; j++) {
+                W[i * r + j] = W[i * r + j] * numerator_W[i * r + j] / denominator_W[i * r + j];
             }
         }
     }

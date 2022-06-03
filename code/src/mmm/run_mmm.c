@@ -14,8 +14,10 @@
 #include <math.h>
 
 #define CPU_FREQ 3.5e9
-typedef void (*mmm_m) (Matrix *, Matrix *, Matrix *);
-typedef void (*mmm_v) (double *, int , int , double *, int , int , double *, int , int);
+
+typedef void (*mmm_m)(Matrix *, Matrix *, Matrix *);
+
+typedef void (*mmm_v)(double *, int, int, double *, int, int, double *, int, int);
 
 mmm_m run_mmm_m;
 mmm_v run_mmm_v;
@@ -23,26 +25,26 @@ mmm_v run_mmm_v;
 static int double_size = sizeof(double);
 
 // NOTE THAT IS WORKING BECAUSE BLOCK SIZE HARDOCDED TO 1
-void transpose(double *src, double *dst,  const int N, const int M) {
+void transpose(double *src, double *dst, const int N, const int M) {
 
     int nB = 1;
     int nBM = nB * M;
     int src_i = 0, src_ii;
 
-    for(int i = 0; i < N; i += nB) {
-        for(int j = 0; j < M; j += nB) {
+    for (int i = 0; i < N; i += nB) {
+        for (int j = 0; j < M; j += nB) {
             src_ii = src_i;
-            for(int ii = i; ii < i + nB; ii++) {
-                for(int jj = j; jj < j + nB; jj++)
-                    dst[N*jj + ii] = src[src_ii + jj];
+            for (int ii = i; ii < i + nB; ii++) {
+                for (int jj = j; jj < j + nB; jj++)
+                    dst[N * jj + ii] = src[src_ii + jj];
                 src_ii += M;
             }
         }
         src_i += nBM;
-    }   
+    }
 }
 
-void pad_matrix(double ** M, int *r, int *c){
+void pad_matrix(double **M, int *r, int *c) {
     int temp_r;
     int temp_c;
 
@@ -52,15 +54,15 @@ void pad_matrix(double ** M, int *r, int *c){
     //     return;
     // }
 
-    if( (*r) %BLOCK_SIZE_MMUL != 0){
-        temp_r = (((*r) / BLOCK_SIZE_MMUL ) + 1)*BLOCK_SIZE_MMUL;   
-    }else{
+    if ((*r) % BLOCK_SIZE_MMUL != 0) {
+        temp_r = (((*r) / BLOCK_SIZE_MMUL) + 1) * BLOCK_SIZE_MMUL;
+    } else {
         temp_r = *r;
     }
 
-    if((*c)%BLOCK_SIZE_MMUL != 0){
-        temp_c = (((*c )/ BLOCK_SIZE_MMUL) + 1) * BLOCK_SIZE_MMUL;
-    }else{
+    if ((*c) % BLOCK_SIZE_MMUL != 0) {
+        temp_c = (((*c) / BLOCK_SIZE_MMUL) + 1) * BLOCK_SIZE_MMUL;
+    } else {
         temp_c = *c;
     }
 
@@ -68,24 +70,24 @@ void pad_matrix(double ** M, int *r, int *c){
 
     *M = realloc(*M, double_size * (*c) * temp_r);
     // i need to pad the rows before and the cols after transposing
-    memset(&(*M)[(*c)*(*r)], 0, double_size * (temp_r-(*r)) * (*c));
+    memset(&(*M)[(*c) * (*r)], 0, double_size * (temp_r - (*r)) * (*c));
 
     new_Mt = malloc(double_size * temp_c * temp_r);
     transpose(*M, new_Mt, temp_r, *c);
-    memset(&new_Mt[temp_r * (*c)], 0, double_size * (temp_c - (*c)) * temp_r); 
+    memset(&new_Mt[temp_r * (*c)], 0, double_size * (temp_c - (*c)) * temp_r);
 
     free(*M);
     *M = malloc(double_size * temp_c * temp_r);
     *c = temp_c;
     *r = temp_r;
-    transpose(new_Mt, *M, temp_c, temp_r); 
+    transpose(new_Mt, *M, temp_c, temp_r);
 
     free(new_Mt);
 
 
 }
 
-void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
+void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c) {
 
     // lets suppose that are always row majour
 
@@ -93,7 +95,7 @@ void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
     *M = realloc(*M, (*c) * original_r * double_size);
 
     // i need to transpose and remove the rest
-    double *new_Mt = malloc((*c) * original_r * double_size );
+    double *new_Mt = malloc((*c) * original_r * double_size);
     transpose(*M, new_Mt, original_r, *c);
 
     // i need to resize the transoposed
@@ -108,10 +110,10 @@ void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
     *c = original_c;
 
     free(new_Mt);
-    
+
 }
 
-void perf_m(Matrix A, Matrix B, Matrix C, int iterations){
+void perf_m(Matrix A, Matrix B, Matrix C, int iterations) {
 
     myInt64 cost;
     double performance;
@@ -119,7 +121,7 @@ void perf_m(Matrix A, Matrix B, Matrix C, int iterations){
     myInt64 cycles;
     myInt64 start;
 
-    #ifdef CALIBRATE
+#ifdef CALIBRATE
     int num_runs = 1;
     while(num_runs < (1 << 7)) {
         start = start_tsc();
@@ -132,25 +134,25 @@ void perf_m(Matrix A, Matrix B, Matrix C, int iterations){
 
         num_runs *= 2;
     }
-    #endif
+#endif
 
     start = start_tsc();
-    for(int i=0; i<iterations; i++){
+    for (int i = 0; i < iterations; i++) {
         run_mmm_m(&A, &B, &C);
-    }   
+    }
 
     cycles = stop_tsc(start);
     cost = ((myInt64)(2 * A.n_row * B.n_col * A.n_col)) * iterations;
-    performance =  (double )cost / (double) cycles;
+    performance = (double) cost / (double) cycles;
 
-    double seconds = ((double)(cycles)) / CPU_FREQ;
+    double seconds = ((double) (cycles)) / CPU_FREQ;
 
     printf("Cycles: %llu\tPerformance(f/c): %lf\tCost: %llu\tRuntime: %.4lfs\n", cycles, performance, cost, seconds);
 
 }
 
 
-void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations){
+void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations) {
     myInt64 cost;
     double performance;
 
@@ -161,8 +163,8 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     int original_n = n;
     int original_r = r;
 
-    
-    #ifdef CALIBRATE
+
+#ifdef CALIBRATE
     int num_runs = 1;
     while(num_runs < (1 << 7)) {
         start = start_tsc();
@@ -175,7 +177,7 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
 
         num_runs *= 2;
     }
-    #endif
+#endif
 
 
     int temp_m = m;
@@ -183,7 +185,7 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     int temp_r = r;
 
     // PADDING DONE BEFORE TO NOT AFFECT THE COMPUTATION
-    if(run_mmm_v == &matrix_mul_3){
+    if (run_mmm_v == &matrix_mul_3) {
         pad_matrix(&A, &temp_m, &temp_r);
         pad_matrix(&B, &r, &temp_n);
         pad_matrix(&C, &m, &n);
@@ -194,14 +196,14 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
     int save_r = r;
     start = start_tsc();
 
-    for(int i=0; i<iterations; i++){
+    for (int i = 0; i < iterations; i++) {
         run_mmm_v(A, m, r, B, r, n, C, m, n);
-    }   
-    
-    cycles = stop_tsc(start);
-    
+    }
 
-    if(run_mmm_v == &matrix_mul_3){
+    cycles = stop_tsc(start);
+
+
+    if (run_mmm_v == &matrix_mul_3) {
         temp_m = m;
         temp_n = n;
         temp_r = r;
@@ -212,18 +214,17 @@ void perf_v(double *A, double *B, double *C, int m, int n, int r, int iterations
 
 
     cost = ((myInt64)(2 * save_m * save_n * save_r)) * iterations;
-    performance =  (double )cost / (double) cycles;
+    performance = (double) cost / (double) cycles;
 
-    double seconds = ((double)(cycles)) / CPU_FREQ;
+    double seconds = ((double) (cycles)) / CPU_FREQ;
 
 
     printf("Cycles: %llu\tPerformance(f/c): %lf\tCost: %llu\tRuntime: %.4lfs\n", cycles, performance, cost, seconds);
 
 }
 
-int main(int argc, char const *argv[])
-{
-    if(argc < 6){
+int main(int argc, char const *argv[]) {
+    if (argc < 6) {
         printf("Usage:\n");
         printf("\t./build/run_mmm <id> <m> <n> <r> <num-iter>\n\n");
 
@@ -237,17 +238,16 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    
 
-    int id   = atoi(argv[1]);
-    int m    = atoi(argv[2]);
-    int n    = atoi(argv[3]);
-    int r    = atoi(argv[4]);
+    int id = atoi(argv[1]);
+    int m = atoi(argv[2]);
+    int n = atoi(argv[3]);
+    int r = atoi(argv[4]);
     int iter = atoi(argv[5]);
 
     fflush(stdout);
     Matrix A_m, B_m, C_m;
-    double * A_v, * B_v, * C_v;
+    double *A_v, *B_v, *C_v;
 
     matrix_allocation(&A_m, m, r);
     matrix_allocation(&B_m, r, n);
@@ -261,37 +261,36 @@ int main(int argc, char const *argv[])
     random_matrix_init(&B_m, 0, 1);
 
 
-    for(int i = 0; i<m*r; i++){
-        A_v[i]= rand_from(0, 1);
+    for (int i = 0; i < m * r; i++) {
+        A_v[i] = rand_from(0, 1);
     }
 
-    for(int i = 0; i<n*r; i++){
-        B_v[i]= rand_from(0, 1);
+    for (int i = 0; i < n * r; i++) {
+        B_v[i] = rand_from(0, 1);
     }
 
-    fflush(stdout); 
-    switch (id)
-    {
-    case 0:
-        run_mmm_m = &matrix_mul_0;
-        perf_m(A_m, B_m, C_m, iter);
-        break;
-    case 1:
-        run_mmm_m = &matrix_mul_1;
-        perf_m(A_m, B_m, C_m, iter);
-        break;
-    case 2:
-        run_mmm_v = &matrix_mul_2;
-        perf_v(A_v, B_v, C_v, m, n, r, iter);
-        break;
-    case 3:
-        run_mmm_v = &matrix_mul_3;
-        perf_v(A_v, B_v, C_v, m, n, r, iter);
-        break;
-    
-    default:
-        printf("Wrong id\n");
-        break;
+    fflush(stdout);
+    switch (id) {
+        case 0:
+            run_mmm_m = &matrix_mul_0;
+            perf_m(A_m, B_m, C_m, iter);
+            break;
+        case 1:
+            run_mmm_m = &matrix_mul_1;
+            perf_m(A_m, B_m, C_m, iter);
+            break;
+        case 2:
+            run_mmm_v = &matrix_mul_2;
+            perf_v(A_v, B_v, C_v, m, n, r, iter);
+            break;
+        case 3:
+            run_mmm_v = &matrix_mul_3;
+            perf_v(A_v, B_v, C_v, m, n, r, iter);
+            break;
+
+        default:
+            printf("Wrong id\n");
+            break;
     }
 
     return 0;

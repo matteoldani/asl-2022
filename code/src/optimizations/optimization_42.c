@@ -13,20 +13,16 @@ typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
 
-static void transpose(double *src, double *dst, const int N, const int M)
-{
+static void transpose(double *src, double *dst, const int N, const int M) {
 
     int nB = BLOCK_SIZE_TRANS;
     int nBM = nB * M;
     int src_i = 0, src_ii;
 
-    for (int i = 0; i < N; i += nB)
-    {
-        for (int j = 0; j < M; j += nB)
-        {
+    for (int i = 0; i < N; i += nB) {
+        for (int j = 0; j < M; j += nB) {
             src_ii = src_i;
-            for (int ii = i; ii < i + nB; ii++)
-            {
+            for (int ii = i; ii < i + nB; ii++) {
                 for (int jj = j; jj < j + nB; jj++)
                     dst[N * jj + ii] = src[src_ii + jj];
                 src_ii += M;
@@ -49,8 +45,8 @@ static void transpose(double *src, double *dst, const int N, const int M)
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
-{
+void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                      int R_n_col) {
 
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
@@ -71,16 +67,13 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
-    for (i = 0; i < A_n_row - nB + 1; i += nB)
-    {
-        for (j = 0; j < B_n_col - nB + 1; j += nB)
-        {
-            for (k = 0; k < A_n_col - nB + 1; k += nB)
-            {
+    for (i = 0; i < A_n_row - nB + 1; i += nB) {
+        for (j = 0; j < B_n_col - nB + 1; j += nB) {
+            for (k = 0; k < A_n_col - nB + 1; k += nB) {
                 Rii = Ri;
                 Aii = Ai;
-                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i){
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j){
+                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i) {
+                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j) {
                         Rij = Rii + jj;
                         R_Ri0j0 = 0;
                         R_Ri0j1 = 0;
@@ -91,7 +84,7 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                         R_Ri1j2 = 0;
                         R_Ri1j3 = 0;
 
-                        for (kk = k; kk < k + nB; kk++){
+                        for (kk = k; kk < k + nB; kk++) {
                             // printf("ii:%d, jj:%d k:%d kk: %d\n",ii, jj, k, kk);
                             Aik0 = A[Aii + kk];
                             Aik1 = A[Aii + A_n_col + kk];
@@ -110,7 +103,7 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                             R_Ri1j3 += Aik1 * Bi0j3;
                         }
 
-                        R[Rij]     += R_Ri0j0;
+                        R[Rij] += R_Ri0j0;
                         R[Rij + 1] += R_Ri0j1;
                         R[Rij + 2] += R_Ri0j2;
                         R[Rij + 3] += R_Ri0j3;
@@ -124,15 +117,12 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
                 }
             }
             //// clean up
-            for (int ii = i; ii < i + nB; ii++)
-            {
+            for (int ii = i; ii < i + nB; ii++) {
                 // printf("Clean up on blocks\n");
-                for (int jj = j; jj < j + nB; jj++)
-                {
+                for (int jj = j; jj < j + nB; jj++) {
                     Rij = Rii + jj;
                     //R_Rij0 = 0;
-                    for (kk = k; kk < A_n_col; kk++)
-                    {
+                    for (kk = k; kk < A_n_col; kk++) {
                         // printf("ii:%d jj:%d kk%d\n", ii, jj, kk);
                         R[ii * B_n_col + jj] += A[ii * A_n_col + kk] * B[kk * B_n_col + jj];
                     }
@@ -142,15 +132,12 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
             //// end clean up
         }
         //// clean up
-   
 
-        for (int ii = i; ii < i + nB; ii++)
-        {
 
-            for (int jj = j; jj < B_n_col; jj++)
-            {
-                for (kk = 0; kk < A_n_col; kk++)
-                {
+        for (int ii = i; ii < i + nB; ii++) {
+
+            for (int jj = j; jj < B_n_col; jj++) {
+                for (kk = 0; kk < A_n_col; kk++) {
                     // printf("ii:%d jj:%d kk%d\n", ii, jj, kk);
                     R[ii * B_n_col + jj] += A[ii * A_n_col + kk] * B[kk * B_n_col + jj];
                 }
@@ -162,12 +149,9 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
         Ai += nBA_n_col;
     }
     //// clean up
-    for (; i < A_n_row; i++)
-    {
-        for (int j = 0; j < B_n_col; j++)
-        {
-            for (k = 0; k < A_n_col; k++)
-            {
+    for (; i < A_n_row; i++) {
+        for (int j = 0; j < B_n_col; j++) {
+            for (k = 0; k < A_n_col; k++) {
                 R[i * B_n_col + j] += A[i * A_n_col + k] * B[k * B_n_col + j];
             }
         }
@@ -187,8 +171,8 @@ void matrix_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row, int R_n_col)
-{
+void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R,
+                             int R_n_row, int R_n_col) {
 
     int Rij = 0, Ri = 0, Ai = 0, Rii, Aii;
     int nB = BLOCK_SIZE_RTRANSMUL;
@@ -209,14 +193,14 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
-    for ( i = 0; i < A_n_row - nB + 1; i+=nB) {
-        for ( j = 0; j < B_n_row - nB + 1; j+=nB) {
-            for ( k = 0; k < A_n_col - nB + 1; k+=nB){
+    for (i = 0; i < A_n_row - nB + 1; i += nB) {
+        for (j = 0; j < B_n_row - nB + 1; j += nB) {
+            for (k = 0; k < A_n_col - nB + 1; k += nB) {
 
                 Aii = Ai;
                 Rii = Ri;
-                for (int ii = i; ii < i + nB - unroll_i + 1; ii+=unroll_i) {
-                    for (int jj = j; jj < j + nB - unroll_j + 1; jj+=unroll_j) {
+                for (int ii = i; ii < i + nB - unroll_i + 1; ii += unroll_i) {
+                    for (int jj = j; jj < j + nB - unroll_j + 1; jj += unroll_j) {
                         Rij = Rii + jj;
                         R_Ri0j0 = 0;
                         R_Ri0j1 = 0;
@@ -226,14 +210,14 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
                         R_Ri1j1 = 0;
                         R_Ri1j2 = 0;
                         R_Ri1j3 = 0;
-                        for (kk = k; kk < k + nB; kk++){
-                            Aik0  = A[Aii + kk];
-                            Aik1  = A[Aii + A_n_col + kk];
+                        for (kk = k; kk < k + nB; kk++) {
+                            Aik0 = A[Aii + kk];
+                            Aik1 = A[Aii + A_n_col + kk];
 
                             Bi0j0 = B[jj * B_n_col + kk];
-                            Bi0j1 = B[(jj + 1) * B_n_col + kk ];
-                            Bi0j2 = B[(jj + 2) * B_n_col + kk ];
-                            Bi0j3 = B[(jj + 3) * B_n_col + kk ];
+                            Bi0j1 = B[(jj + 1) * B_n_col + kk];
+                            Bi0j2 = B[(jj + 2) * B_n_col + kk];
+                            Bi0j3 = B[(jj + 3) * B_n_col + kk];
 
                             R_Ri0j0 += Aik0 * Bi0j0;
                             R_Ri0j1 += Aik0 * Bi0j1;
@@ -263,8 +247,8 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
             //clean up
             for (int ii = i; ii < i + nB; ii++) {
                 for (int jj = j; jj < j + nB; jj++) {
-                    for (kk = k; kk < A_n_col; kk++){
-                        R[ii * B_n_row + jj] +=  A[ii * A_n_col + kk] * B[jj * B_n_col + kk];
+                    for (kk = k; kk < A_n_col; kk++) {
+                        R[ii * B_n_row + jj] += A[ii * A_n_col + kk] * B[jj * B_n_col + kk];
                     }
                 }
             }
@@ -272,10 +256,10 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
 
         //clean up
         for (int ii = i; ii < i + nB; ii++) {
-          
+
             for (int jj = j; jj < B_n_row; jj++) {
-                for (kk = 0; kk < A_n_col; kk++){
-                    R[ii*B_n_row + jj] +=  A[ii*A_n_col + kk] * B[jj * B_n_col + kk];
+                for (kk = 0; kk < A_n_col; kk++) {
+                    R[ii * B_n_row + jj] += A[ii * A_n_col + kk] * B[jj * B_n_col + kk];
                 }
             }
         }
@@ -286,8 +270,8 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
 
     for (; i < A_n_row; i++) {
         for (j = 0; j < B_n_row; j++) {
-            for (k = 0; k < A_n_col; k++){
-                R[i*B_n_row + j] +=  A[i*A_n_col + k] * B[j * B_n_col + k];
+            for (k = 0; k < A_n_col; k++) {
+                R[i * B_n_row + j] += A[i * A_n_col + k] * B[j * B_n_col + k];
             }
         }
     }
@@ -308,7 +292,7 @@ void matrix_rtrans_mul_opt42(double *A, int A_n_row, int A_n_col, double *B, int
  * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
-inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
+inline double error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul_opt42(W, m, r, H, r, n, approx, m, n);
 
@@ -317,25 +301,25 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
     double norm_approx1 = 0;
     double norm_approx2 = 0;
     double norm_approx3 = 0;
-    double norm_approx4 = 0; 
-    double norm_approx5 = 0; 
+    double norm_approx4 = 0;
+    double norm_approx5 = 0;
     double norm_approx6 = 0;
     double norm_approx7 = 0;
     double norm_approx8 = 0;
 
     norm_approx = 0;
 
-    int idx_unroll = mn/8;
+    int idx_unroll = mn / 8;
     int i;
-    for (i=0; i<idx_unroll; i+=8){
+    for (i = 0; i < idx_unroll; i += 8) {
         temp1 = V[i] - approx[i];
-        temp2 = V[i+1] - approx[i+1];
-        temp3 = V[i+2] - approx[i+2];
-        temp4 = V[i+3] - approx[i+3];
-        temp5 = V[i+4] - approx[i+4];
-        temp6 = V[i+5] - approx[i+5];
-        temp7 = V[i+6] - approx[i+6];
-        temp8 = V[i+7] - approx[i+7];
+        temp2 = V[i + 1] - approx[i + 1];
+        temp3 = V[i + 2] - approx[i + 2];
+        temp4 = V[i + 3] - approx[i + 3];
+        temp5 = V[i + 4] - approx[i + 4];
+        temp6 = V[i + 5] - approx[i + 5];
+        temp7 = V[i + 6] - approx[i + 6];
+        temp8 = V[i + 7] - approx[i + 7];
 
         norm_approx1 += temp1 * temp1;
         norm_approx2 += temp2 * temp2;
@@ -348,10 +332,11 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
 
     }
 
-    norm_approx = norm_approx1 + norm_approx2 + norm_approx3 + norm_approx4 + norm_approx5 + norm_approx6 + norm_approx7 + norm_approx8;
+    norm_approx =
+            norm_approx1 + norm_approx2 + norm_approx3 + norm_approx4 + norm_approx5 + norm_approx6 + norm_approx7 +
+            norm_approx8;
 
-    for (; i < mn; i++)
-    {
+    for (; i < mn; i++) {
         temp = V[i] - approx[i];
         norm_approx += temp * temp;
     }
@@ -373,7 +358,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt42(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt42(double *V, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int rn, rr, mr, mn;
     rn = r * n;
@@ -391,80 +376,79 @@ double nnm_factorization_opt42(double *V, double*W, double*H, int m, int n, int 
     double *numerator_W, *denominator_W;      // m x r, m x r, m x n
     numerator_W = malloc(double_size * mr);
     denominator_W = malloc(double_size * mr);
-  
 
-    double* approximation; //m x n
+
+    double *approximation; //m x n
     approximation = malloc(double_size * mn);
 
-    double norm_V  = 0;
+    double norm_V = 0;
     double norm_V1 = 0;
     double norm_V2 = 0;
     double norm_V3 = 0;
-    double norm_V4 = 0; 
-    double norm_V5 = 0; 
+    double norm_V4 = 0;
+    double norm_V5 = 0;
     double norm_V6 = 0;
     double norm_V7 = 0;
     double norm_V8 = 0;
 
 
-    int idx_unroll = mn/8;
+    int idx_unroll = mn / 8;
     int i;
 
     ///// NORM
 
-    for (i=0; i<idx_unroll; i+=8){
-        norm_V1 += V[i]   * V[i];
-        norm_V2 += V[i+1] * V[i+1];
-        norm_V3 += V[i+2] * V[i+2];
-        norm_V4 += V[i+3] * V[i+3];
-        norm_V5 += V[i+4] * V[i+4];
-        norm_V6 += V[i+5] * V[i+5];
-        norm_V7 += V[i+6] * V[i+6];
-        norm_V8 += V[i+7] * V[i+7];
+    for (i = 0; i < idx_unroll; i += 8) {
+        norm_V1 += V[i] * V[i];
+        norm_V2 += V[i + 1] * V[i + 1];
+        norm_V3 += V[i + 2] * V[i + 2];
+        norm_V4 += V[i + 3] * V[i + 3];
+        norm_V5 += V[i + 4] * V[i + 4];
+        norm_V6 += V[i + 5] * V[i + 5];
+        norm_V7 += V[i + 6] * V[i + 6];
+        norm_V8 += V[i + 7] * V[i + 7];
     }
 
     norm_V = norm_V1 + norm_V2 + norm_V3 + norm_V4 + norm_V5 + norm_V6 + norm_V7 + norm_V8;
 
-    for (; i < mn; i++)
-    {
+    for (; i < mn; i++) {
         norm_V += V[i] * V[i];
     }
 
     norm_V = 1 / sqrt(norm_V);
 
     //real convergence computation
-    double err = -1;	
+    double err = -1;
 
     double *Wt = malloc(double_size * mr);
-    double *Ht = malloc(double_size * rn);		
+    double *Ht = malloc(double_size * rn);
 
     for (int count = 0; count < maxIteration; count++) {
-     
+
         err = error(approximation, V, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
         }
 
         //computation for Hn+1
-        
+
         transpose(W, Wt, m, r);
         matrix_mul_opt42(Wt, r, m, V, m, n, numerator, r, n);
         matrix_mul_opt42(Wt, r, m, W, m, r, denominator_l, r, r);
         matrix_mul_opt42(denominator_l, r, r, H, r, n, denominator, r, n);
- 
 
-        idx_unroll = rn/8;
-        for (i = 0; i < idx_unroll; i+=8){
+
+        idx_unroll = rn / 8;
+        for (i = 0; i < idx_unroll; i += 8) {
             H[i] = H[i] * numerator[i] / denominator[i];
-            H[i+1] = H[i+1] * numerator[i+1] / denominator[i+1];
-            H[i+2] = H[i+2] * numerator[i+2] / denominator[i+2];
-            H[i+3] = H[i+3] * numerator[i+3] / denominator[i+3];
-            H[i+4] = H[i+4] * numerator[i+4] / denominator[i+4];
-            H[i+5] = H[i+5] * numerator[i+5] / denominator[i+5];
-            H[i+6] = H[i+6] * numerator[i+6] / denominator[i+6];
-            H[i+7] = H[i+7] * numerator[i+7] / denominator[i+7];
+            H[i + 1] = H[i + 1] * numerator[i + 1] / denominator[i + 1];
+            H[i + 2] = H[i + 2] * numerator[i + 2] / denominator[i + 2];
+            H[i + 3] = H[i + 3] * numerator[i + 3] / denominator[i + 3];
+            H[i + 4] = H[i + 4] * numerator[i + 4] / denominator[i + 4];
+            H[i + 5] = H[i + 5] * numerator[i + 5] / denominator[i + 5];
+            H[i + 6] = H[i + 6] * numerator[i + 6] / denominator[i + 6];
+            H[i + 7] = H[i + 7] * numerator[i + 7] / denominator[i + 7];
         }
-        for(;i<rn;i++){
+        for (; i < rn; i++) {
             H[i] = H[i] * numerator[i] / denominator[i];
         }
 
@@ -475,19 +459,19 @@ double nnm_factorization_opt42(double *V, double*W, double*H, int m, int n, int 
         //matrix_mul_opt42(V, m, n, H, n, r, numerator_W, m, r);
         matrix_rtrans_mul_opt42(H, r, n, H, r, n, denominator_l, r, r);
         matrix_mul_opt42(W, m, r, denominator_l, r, r, denominator_W, m, r);
-      
+
         idx_unroll = mr / 8;
-        for (i = 0; i < idx_unroll; i+=8){
+        for (i = 0; i < idx_unroll; i += 8) {
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
-            W[i+1] = W[i+1] * numerator_W[i+1] / denominator_W[i+1];
-            W[i+2] = W[i+2] * numerator_W[i+2] / denominator_W[i+2];
-            W[i+3] = W[i+3] * numerator_W[i+3] / denominator_W[i+3];
-            W[i+4] = W[i+4] * numerator_W[i+4] / denominator_W[i+4];
-            W[i+5] = W[i+5] * numerator_W[i+5] / denominator_W[i+5];
-            W[i+6] = W[i+6] * numerator_W[i+6] / denominator_W[i+6];
-            W[i+7] = W[i+7] * numerator_W[i+7] / denominator_W[i+7];
+            W[i + 1] = W[i + 1] * numerator_W[i + 1] / denominator_W[i + 1];
+            W[i + 2] = W[i + 2] * numerator_W[i + 2] / denominator_W[i + 2];
+            W[i + 3] = W[i + 3] * numerator_W[i + 3] / denominator_W[i + 3];
+            W[i + 4] = W[i + 4] * numerator_W[i + 4] / denominator_W[i + 4];
+            W[i + 5] = W[i + 5] * numerator_W[i + 5] / denominator_W[i + 5];
+            W[i + 6] = W[i + 6] * numerator_W[i + 6] / denominator_W[i + 6];
+            W[i + 7] = W[i + 7] * numerator_W[i + 7] / denominator_W[i + 7];
         }
-        for(;i<mr;i++){
+        for (; i < mr; i++) {
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
         }
     }
