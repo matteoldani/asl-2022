@@ -12,23 +12,23 @@ typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
 
-static void transpose(double *src, double *dst,  const int N, const int M) {
+static void transpose(double *src, double *dst, const int N, const int M) {
 
     int nB = BLOCK_SIZE_TRANS;
     int nBM = nB * M;
     int src_i = 0, src_ii;
 
-    for(int i = 0; i < N; i += nB) {
-        for(int j = 0; j < M; j += nB) {
+    for (int i = 0; i < N; i += nB) {
+        for (int j = 0; j < M; j += nB) {
             src_ii = src_i;
-            for(int ii = i; ii < i + nB; ii++) {
-                for(int jj = j; jj < j + nB; jj++)
-                    dst[N*jj + ii] = src[src_ii + jj];
+            for (int ii = i; ii < i + nB; ii++) {
+                for (int jj = j; jj < j + nB; jj++)
+                    dst[N * jj + ii] = src[src_ii + jj];
                 src_ii += M;
             }
         }
         src_i += nBM;
-    }   
+    }
 }
 
 /**
@@ -43,11 +43,12 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt33(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt33(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                      int R_n_col) {
 
     //NOTE - we need a row of A, whole block of B and 1 element of R in the cache (normalized for the cache line)
     //NOTE - when taking LRU into account, that is 2 rows of A, the whole block of B and 1 row + 1 element of R
-    
+
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
@@ -57,9 +58,9 @@ void matrix_mul_opt33(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
-    for (int i = 0; i < A_n_row; i+=nB) {
-        for (int j = 0; j < B_n_col; j+=nB) {
-            for (int k = 0; k < A_n_col; k+=nB) {
+    for (int i = 0; i < A_n_row; i += nB) {
+        for (int j = 0; j < B_n_col; j += nB) {
+            for (int k = 0; k < A_n_col; k += nB) {
                 Rii = Ri;
                 Aii = Ai;
                 for (int ii = i; ii < i + nB; ii++) {
@@ -92,8 +93,9 @@ void matrix_mul_opt33(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt33(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
-    
+void matrix_rtrans_mul_opt33(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R,
+                             int R_n_row, int R_n_col) {
+
     int Rij = 0, Ri = 0, Ai = 0, Bj, Rii, Aii, Bjj;
     int nB = BLOCK_SIZE_RTRANSMUL;
     int nBR_n_col = nB * R_n_col;
@@ -104,10 +106,10 @@ void matrix_rtrans_mul_opt33(double* A, int A_n_row, int A_n_col, double* B, int
 
     memset(R, 0, double_size * R_n_row * R_n_col);
 
-    for (int i = 0; i < A_n_row; i+=nB) {
+    for (int i = 0; i < A_n_row; i += nB) {
         Bj = 0;
-        for (int j = 0; j < B_n_row; j+=nB) {
-            for (int k = 0; k < A_n_col; k+=nB){
+        for (int j = 0; j < B_n_row; j += nB) {
+            for (int k = 0; k < A_n_col; k += nB) {
                 Aii = Ai;
                 Rii = Ri;
                 for (int ii = i; ii < i + nB; ii++) {
@@ -146,15 +148,14 @@ void matrix_rtrans_mul_opt33(double* A, int A_n_row, int A_n_col, double* B, int
  * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
-inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
+inline double error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul_opt33(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
     norm_approx = 0;
-    for (int i = 0; i < mn; i++)
-    {
+    for (int i = 0; i < mn; i++) {
         temp = V[i] - approx[i];
         norm_approx += temp * temp;
     }
@@ -176,7 +177,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt33(double *V, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Wt, *H_new;
     int rn, rr, mr, mn;
     rn = r * n;
@@ -189,7 +190,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     d_rr = double_size * rr;
     d_mr = double_size * mr;
     d_mn = double_size * mn;
-    
+
     Wt = malloc(d_mr);
     H_new = malloc(d_rn);
 
@@ -204,18 +205,18 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
 
     //Operands needed to compute Wn+1
     double *numerator_W;    //m x r
-    double* denominator_r;  //r x r
+    double *denominator_r;  //r x r
     double *denominator_W;  //m x r
 
     numerator_W = malloc(d_mr);
     denominator_r = malloc(d_rr);
     denominator_W = malloc(d_mr);
 
-    double* approximation; //m x n
+    double *approximation; //m x n
     approximation = malloc(d_mn);
 
     double norm_V = 0;
-    for (int i = 0; i < mn; i++){
+    for (int i = 0; i < mn; i++) {
         norm_V += V[i] * V[i];
     }
     norm_V = 1 / sqrt(norm_V);
@@ -233,14 +234,14 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
     double accumulator;
 
     //real convergence computation
-    double err = -1;											
+    double err = -1;
     for (int count = 0; count < maxIteration; count++) {
-     
+
         err = error(approximation, V, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
-        }    
-        
+        }
+
         memset(denominator_l, 0, d_rr);
         memset(numerator, 0, d_rn);
         memset(denominator, 0, d_rn);
@@ -255,7 +256,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
             inB = i + nB_i;
 
             //computation for Hn+1
-            
+
             //We need the whole row of WtW for calculating a single block of H, so we calculate the row only once and use it for all blocks of H with the same i
             //Wt*Wt rmul
             ri1 = ri, mi1 = mi;
@@ -281,9 +282,9 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
 
             for (int j = 0; j < n; j += nB_j) {
                 jnB = j + nB_j;
-                
+
                 //computation for Hn+1
-                
+
                 //Wt*V mul
                 mi1 = mi;
                 ni1 = ni;
@@ -313,7 +314,7 @@ double nnm_factorization_opt33(double *V, double*W, double*H, int m, int n, int 
                     ni1 += n;
                     ri1 += r;
                 }
-                
+
                 //element-wise multiplication and division
                 ni1 = ni;
                 for (int i1 = i; i1 < inB; i1++) {

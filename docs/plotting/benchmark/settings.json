@@ -1,39 +1,40 @@
 {
-    "title" : "Benchmarks - runtime comparison",
-    "type"  : "performance",
-    "action": "save",
-    "output_file":"C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/benchmarking_plot.pdf",
-    "xlabel": "Input matrix size",
-    "ylabel": "Seconds",
-    
-    "lines" : [
-
-		{"label" : "C implementation",
-         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/c.csv",
-         "color" : "limegreen",
-         "marker": "o"
-        },
-		{"label" : "baseline2",
-            "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/bs2.csv",
-            "color" : "black",
-            "marker": "s"
-        },
-		{"label" : "baseline1",
-         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/bs1.csv",
-         "color" : "firebrick",
-         "marker": "D"
-        },
-		{"label" : "R implementation",
-         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/r.csv",
-         "color" : "mediumorchid",
-         "marker": "^"
-        },
-		{"label" : "MATLAB implementation",
-         "input_file" : "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/matlab.csv",
-         "color" : "mediumblue",
-         "marker": "P"
-        }
-
-
-    ]
+  "title": "Benchmarks - runtime comparison",
+  "type": "performance",
+  "action": "save",
+  "output_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/benchmarking_plot.pdf",
+  "xlabel": "Input matrix size",
+  "ylabel": "Seconds",
+  "lines": [
+    {
+      "label": "C implementation",
+      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/c.csv",
+      "color": "limegreen",
+      "marker": "o"
+    },
+    {
+      "label": "baseline2",
+      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/bs2.csv",
+      "color": "black",
+      "marker": "s"
+    },
+    {
+      "label": "baseline1",
+      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/bs1.csv",
+      "color": "firebrick",
+      "marker": "D"
+    },
+    {
+      "label": "R implementation",
+      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/r.csv",
+      "color": "mediumorchid",
+      "marker": "^"
+    },
+    {
+      "label": "MATLAB implementation",
+      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/matlab.csv",
+      "color": "mediumblue",
+      "marker": "P"
+    }
+  ]
 }

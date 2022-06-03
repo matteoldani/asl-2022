@@ -22,7 +22,8 @@ static unsigned int double_size = sizeof(double); //NEW - call sizeof only once 
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt0(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt0(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                     int R_n_col) {
     int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
@@ -48,7 +49,9 @@ void matrix_mul_opt0(double *A, int A_n_row, int A_n_col, double*B, int B_n_row,
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_ltrans_mul_opt0(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void
+matrix_ltrans_mul_opt0(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                       int R_n_col) {
 
     int Rij;
 
@@ -74,8 +77,10 @@ void matrix_ltrans_mul_opt0(double* A, int A_n_row, int A_n_col, double* B, int 
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt0(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
-    
+void
+matrix_rtrans_mul_opt0(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                       int R_n_col) {
+
     int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
@@ -103,7 +108,7 @@ void matrix_rtrans_mul_opt0(double* A, int A_n_row, int A_n_col, double* B, int 
  * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
-inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
+inline double error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul_opt0(W, m, r, H, r, n, approx, m, n);
 
@@ -112,8 +117,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
     //NEW - removed calls to the norm function, norm now calculated in place
     //NEW - two loops over the approx matrix were replaced with one + scalar replacement added and number of accesses to memory reduced by 1/3 per function call
     norm_approx = 0;
-    for (int i = 0; i < mn; i++)
-    {
+    for (int i = 0; i < mn; i++) {
         temp = V[i] - approx[i];
         norm_approx += temp * temp;
     }
@@ -136,7 +140,7 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
 //NEW - removed the usage of structs, a matrix is now just a double*, also m,n,r are just sent once (no more row and col information for each matrix separately)
-double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double nnm_factorization_opt0(double *V, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
 
     int rn, rr, mr, mn;
     rn = r * n;  //NEW - reduced the number of mul ops by precomputing these values
@@ -146,7 +150,8 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
 
     //Operands needed to compute Hn+1
     double *numerator, *denominator_l, *denominator;    //r x n, r x r, r x n
-    numerator = malloc(double_size * rn);  //NEW - removed calls to allocate functions, allocation is now done directly in place
+    numerator = malloc(
+            double_size * rn);  //NEW - removed calls to allocate functions, allocation is now done directly in place
     denominator_l = malloc(double_size * rr);
     denominator = malloc(double_size * rn);
 
@@ -156,18 +161,20 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
     denominator_W = malloc(double_size * mr);
     denominator_l_W = malloc(double_size * mn);
 
-    double* approximation; //m x n
-    approximation = malloc(double_size * mn); //NEW - allocate the approximation matrix only once and send it into the error function
+    double *approximation; //m x n
+    approximation = malloc(
+            double_size * mn); //NEW - allocate the approximation matrix only once and send it into the error function
 
     double norm_V = 0; //NEW - norm for V calculated only once and sent into the error function
     for (int i = 0; i < mn; i++)
         norm_V += V[i] * V[i];
-    norm_V = 1 / sqrt(norm_V); //NEW - calculate 1/norm here and avoid having a div instruction inside the error function
+    norm_V =
+            1 / sqrt(norm_V); //NEW - calculate 1/norm here and avoid having a div instruction inside the error function
 
     //real convergence computation
-    double err = -1;											
+    double err = -1;
     for (int count = 0; count < maxIteration; count++) {
-     
+
         err = error(approximation, V, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
@@ -188,7 +195,7 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
         matrix_rtrans_mul_opt0(V, m, n, H, r, n, numerator_W, m, r);
         matrix_rtrans_mul_opt0(H, r, n, H, r, n, denominator_l, r, r);
         matrix_mul_opt0(W, m, r, denominator_l, r, r, denominator_W, m, r);
-        
+
 
         for (int i = 0; i < mr; i++)
             W[i] = W[i] * numerator_W[i] / denominator_W[i];
@@ -200,7 +207,7 @@ double nnm_factorization_opt0(double *V, double*W, double*H, int m, int n, int r
     free(numerator_W);
     free(denominator_W);
     free(denominator_l_W);
-    
+
     return err;
 }
 

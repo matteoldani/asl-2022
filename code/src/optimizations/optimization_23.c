@@ -15,25 +15,22 @@ typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
 
-static void transpose(double *src, double *dst,  const int N, const int M) {
+static void transpose(double *src, double *dst, const int N, const int M) {
 
     int nB = BLOCK_SIZE_TRANS;
     int src_i = 0, src_ii;
 
-    for(int i = 0; i < N; i += nB)
-    {
-        for(int j = 0; j < M; j += nB)
-        {
+    for (int i = 0; i < N; i += nB) {
+        for (int j = 0; j < M; j += nB) {
             src_ii = src_i;
-            for(int ii = i; ii < i + nB; ii++)
-            {
-                for(int jj = j; jj < j + nB; jj++)
-                    dst[N*jj + ii] = src[src_ii + jj];
+            for (int ii = i; ii < i + nB; ii++) {
+                for (int jj = j; jj < j + nB; jj++)
+                    dst[N * jj + ii] = src[src_ii + jj];
                 src_ii += M;
             }
         }
         src_i += nB * M;
-    }   
+    }
 }
 
 /**
@@ -48,7 +45,8 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_opt23(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_opt23(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                      int R_n_col) {
     //NEW cblas used 
 
     // cost: B_col*A_col + 2*A_row*A_col*B_col
@@ -70,14 +68,15 @@ void matrix_mul_opt23(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_opt23(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
+void matrix_rtrans_mul_opt23(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R,
+                             int R_n_row, int R_n_col) {
     //NEW cblas used 
 
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                 A_n_row, B_n_row, A_n_col, 1,
                 A, A_n_col, B, B_n_col,
                 0, R, B_n_row);
- 
+
 }
 
 /**
@@ -95,7 +94,7 @@ void matrix_rtrans_mul_opt23(double* A, int A_n_row, int A_n_col, double* B, int
  * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
-inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
+inline double error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul_opt23(W, m, r, H, r, n, approx, m, n);
 
@@ -104,25 +103,25 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
     double norm_approx1 = 0;
     double norm_approx2 = 0;
     double norm_approx3 = 0;
-    double norm_approx4 = 0; 
-    double norm_approx5 = 0; 
+    double norm_approx4 = 0;
+    double norm_approx5 = 0;
     double norm_approx6 = 0;
     double norm_approx7 = 0;
     double norm_approx8 = 0;
 
     norm_approx = 0;
 
-    int idx_unroll = mn/8;
+    int idx_unroll = mn / 8;
     int i;
-    for (i=0; i<idx_unroll; i+=8){
+    for (i = 0; i < idx_unroll; i += 8) {
         temp1 = V[i] - approx[i];
-        temp2 = V[i+1] - approx[i+1];
-        temp3 = V[i+2] - approx[i+2];
-        temp4 = V[i+3] - approx[i+3];
-        temp5 = V[i+4] - approx[i+4];
-        temp6 = V[i+5] - approx[i+5];
-        temp7 = V[i+6] - approx[i+6];
-        temp8 = V[i+7] - approx[i+7];
+        temp2 = V[i + 1] - approx[i + 1];
+        temp3 = V[i + 2] - approx[i + 2];
+        temp4 = V[i + 3] - approx[i + 3];
+        temp5 = V[i + 4] - approx[i + 4];
+        temp6 = V[i + 5] - approx[i + 5];
+        temp7 = V[i + 6] - approx[i + 6];
+        temp8 = V[i + 7] - approx[i + 7];
 
         norm_approx1 += temp1 * temp1;
         norm_approx2 += temp2 * temp2;
@@ -135,10 +134,11 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
 
     }
 
-    norm_approx = norm_approx1 + norm_approx2 + norm_approx3 + norm_approx4 + norm_approx5 + norm_approx6 + norm_approx7 + norm_approx8;
+    norm_approx =
+            norm_approx1 + norm_approx2 + norm_approx3 + norm_approx4 + norm_approx5 + norm_approx6 + norm_approx7 +
+            norm_approx8;
 
-    for (; i < mn; i++)
-    {
+    for (; i < mn; i++) {
         temp = V[i] - approx[i];
         norm_approx += temp * temp;
     }
@@ -160,7 +160,8 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double
+nnm_factorization_opt23(double *V_rowM, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Htmp;
     double *Wtmp;
     double *V_colM;
@@ -171,10 +172,10 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
     rr = r * r;
     mr = m * r;
     mn = m * n;
-    Wtmp   = malloc(double_size * mr);
-    Htmp   = malloc(double_size * rn);
-    Wt   = malloc(double_size * mr);
-    Ht   = malloc(double_size * rn);
+    Wtmp = malloc(double_size * mr);
+    Htmp = malloc(double_size * rn);
+    Wt = malloc(double_size * mr);
+    Ht = malloc(double_size * rn);
     V_colM = malloc(double_size * mn);
 
     int nB = BLOCK_SIZE_MMUL;
@@ -182,7 +183,7 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
     // this is required to be done here to reuse the same run_opt.
     // does not change the number of flops
     transpose(V_rowM, V_colM, m, n);
-  
+
 
 
     //Operands needed to compute Hn+1
@@ -190,9 +191,9 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
     double *denominator_l;
     double *denominator;    //r x n, r x r, r x n
 
-    numerator       = malloc(double_size * rn);
-    denominator_l   = malloc(double_size * rr);
-    denominator     = malloc(double_size * rn);
+    numerator = malloc(double_size * rn);
+    denominator_l = malloc(double_size * rr);
+    denominator = malloc(double_size * rn);
 
     //Operands needed to compute Wn+1
     double *numerator_W;
@@ -200,45 +201,44 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
     double *denominator_l_W;      // m x r, m x r, m x n
 
 
-    numerator_W     = malloc(double_size * mr);
-    denominator_W   = malloc(double_size * mr);
+    numerator_W = malloc(double_size * mr);
+    denominator_W = malloc(double_size * mr);
     denominator_l_W = malloc(double_size * mn);
 
-    double* approximation; //m x n
+    double *approximation; //m x n
     approximation = malloc(double_size * mn);
-    
 
-    double norm_V  = 0;
+
+    double norm_V = 0;
     double norm_V1 = 0;
     double norm_V2 = 0;
     double norm_V3 = 0;
-    double norm_V4 = 0; 
-    double norm_V5 = 0; 
+    double norm_V4 = 0;
+    double norm_V5 = 0;
     double norm_V6 = 0;
     double norm_V7 = 0;
     double norm_V8 = 0;
 
 
-    int idx_unroll = mn/8;
+    int idx_unroll = mn / 8;
     int i;
 
     ///// NORM
 
-    for (i=0; i<idx_unroll; i+=8){
-        norm_V1 += V_rowM[i]   * V_rowM[i];
-        norm_V2 += V_rowM[i+1] * V_rowM[i+1];
-        norm_V3 += V_rowM[i+2] * V_rowM[i+2];
-        norm_V4 += V_rowM[i+3] * V_rowM[i+3];
-        norm_V5 += V_rowM[i+4] * V_rowM[i+4];
-        norm_V6 += V_rowM[i+5] * V_rowM[i+5];
-        norm_V7 += V_rowM[i+6] * V_rowM[i+6];
-        norm_V8 += V_rowM[i+7] * V_rowM[i+7];
+    for (i = 0; i < idx_unroll; i += 8) {
+        norm_V1 += V_rowM[i] * V_rowM[i];
+        norm_V2 += V_rowM[i + 1] * V_rowM[i + 1];
+        norm_V3 += V_rowM[i + 2] * V_rowM[i + 2];
+        norm_V4 += V_rowM[i + 3] * V_rowM[i + 3];
+        norm_V5 += V_rowM[i + 4] * V_rowM[i + 4];
+        norm_V6 += V_rowM[i + 5] * V_rowM[i + 5];
+        norm_V7 += V_rowM[i + 6] * V_rowM[i + 6];
+        norm_V8 += V_rowM[i + 7] * V_rowM[i + 7];
     }
 
     norm_V = norm_V1 + norm_V2 + norm_V3 + norm_V4 + norm_V5 + norm_V6 + norm_V7 + norm_V8;
 
-    for (; i < mn; i++)
-    {
+    for (; i < mn; i++) {
         norm_V += V_rowM[i] * V_rowM[i];
     }
 
@@ -247,41 +247,41 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
     ///// END NORM
 
 
-    double err = -1;											
+    double err = -1;
     for (int count = 0; count < maxIteration; count++) {
-     
+
         err = error(approximation, V_rowM, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
-        }    
-        
+        }
+
         transpose(W, Wt, m, r);
 
         memset(denominator_l, 0, double_size * r * r);
         memset(numerator, 0, double_size * r * n);
 
         //NEW blocking using blas for inner multiplication
-        for (int j = 0; j < n; j+= nB) {
-            
-            for (int i = 0; i < r; i+= nB) {
-                
-                for (int k = 0; k < m; k+= nB){  
+        for (int j = 0; j < n; j += nB) {
+
+            for (int i = 0; i < r; i += nB) {
+
+                for (int k = 0; k < m; k += nB) {
                     //NOTE using V_col is still outperforming V_row despite blocking
                     //2.66 vs 2.57 with &(V_rowM[j*k + n]), n, NoTrans 
                     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-                            nB, nB, nB, 1,
-                            (&(Wt[i*m + k])), m, &(V_colM[j*m + k]), m,
-                            1, &(numerator[i*n + j]), n);
+                                nB, nB, nB, 1,
+                                (&(Wt[i * m + k])), m, &(V_colM[j * m + k]), m,
+                                1, &(numerator[i * n + j]), n);
 
 
-                    if(j<r){
-                          
+                    if (j < r) {
+
                         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                            nB, nB, nB, 1,
-                            (&(Wt[i*m + k])), m, &(W[k*r + j]), r,
-                            1, &(denominator_l[i*r + j]), r);                    
+                                    nB, nB, nB, 1,
+                                    (&(Wt[i * m + k])), m, &(W[k * r + j]), r,
+                                    1, &(denominator_l[i * r + j]), r);
                     }
-                    
+
                 }
             }
         }
@@ -290,17 +290,17 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
         int Rij, Rii;
 
         memset(denominator, 0, double_size * r * n);
-       
-        for (int i = 0; i < r; i+= nB) {
-            for (int j = 0; j < n; j+= nB) {
-                for (int k = 0; k < r; k+= nB){
-                     //NEW every time a block is completed in the denominator,
-                     //the corresponding Hn+1 block is computed
+
+        for (int i = 0; i < r; i += nB) {
+            for (int j = 0; j < n; j += nB) {
+                for (int k = 0; k < r; k += nB) {
+                    //NEW every time a block is completed in the denominator,
+                    //the corresponding Hn+1 block is computed
                     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                        nB, nB, nB, 1,
-                        (&(denominator_l[i*r + k])), r,
-                         &(H[k*n + j]), n,
-                        1, &(denominator[i*n + j]), n); 
+                                nB, nB, nB, 1,
+                                (&(denominator_l[i * r + k])), r,
+                                &(H[k * n + j]), n,
+                                1, &(denominator[i * n + j]), n);
                 }
                 Rii = i * n + j;
                 for (int ii = 0; ii < nB; ii++) {
@@ -312,13 +312,11 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
                 }
             }
         }
-  
 
 
-        
         tmp = Htmp;
         Htmp = H;
-        H = tmp;  
+        H = tmp;
 
         transpose(H, Ht, r, n);
 
@@ -327,22 +325,22 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
 
         //NEW blocking using blas for inner multiplication
         for (int i = 0; i < m; i += nB) {
-            for (int j = 0; j < r; j+= nB) {
-                for (int k = 0; k < n; k+= nB){
+            for (int j = 0; j < r; j += nB) {
+                for (int k = 0; k < n; k += nB) {
 
                     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                            nB, nB, nB, 1,
-                            &(V_rowM[i*n + k]), n,
-                            &(Ht[k*r + j]), r,
-                            1, &(numerator_W[i*r + j]), r);
+                                nB, nB, nB, 1,
+                                &(V_rowM[i * n + k]), n,
+                                &(Ht[k * r + j]), r,
+                                1, &(numerator_W[i * r + j]), r);
 
-                    if(i < r){
+                    if (i < r) {
 
                         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                            nB, nB, nB, 1,
-                            &(H[i*n + k]), n,
-                            &(Ht[k*r + j]), r,
-                            1, &(denominator_l[i*r + j]), r);
+                                    nB, nB, nB, 1,
+                                    &(H[i * n + k]), n,
+                                    &(Ht[k * r + j]), r,
+                                    1, &(denominator_l[i * r + j]), r);
 
                     }
                 }
@@ -350,16 +348,16 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
         }
 
         memset(denominator_W, 0, double_size * m * r);
-        for (int i = 0; i < m; i+= nB) {
-            for (int j = 0; j < r; j+= nB) {
-                for (int k = 0; k < r; k+= nB){
+        for (int i = 0; i < m; i += nB) {
+            for (int j = 0; j < r; j += nB) {
+                for (int k = 0; k < r; k += nB) {
                     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                        nB, nB, nB, 1,
-                        (&(W[i*r + k])), r,
-                         &(denominator_l[k*r + j]), r,
-                        1, &(denominator_W[i*r + j]), r); 
+                                nB, nB, nB, 1,
+                                (&(W[i * r + k])), r,
+                                &(denominator_l[k * r + j]), r,
+                                1, &(denominator_W[i * r + j]), r);
                 }
-                Rii = i*r + j;
+                Rii = i * r + j;
                 for (int ii = 0; ii < nB; ii++) {
                     for (int jj = 0; jj < nB; jj++) {
                         Rij = Rii + jj;
@@ -367,14 +365,14 @@ double nnm_factorization_opt23(double *V_rowM, double*W, double*H, int m, int n,
                     }
                     Rii += r;
                 }
-       
+
             }
-     
+
         }
 
         tmp = Wtmp;
         Wtmp = W;
-        W = tmp; 
+        W = tmp;
 
     }
     free(Wtmp);

@@ -38,14 +38,14 @@ typedef unsigned long long myInt64;
 
 static unsigned int double_size = sizeof(double);
 
-static void transpose(double *src, double *dst,  const int N, const int M) {
+static void transpose(double *src, double *dst, const int N, const int M) {
     //#pragma omp parallel for
     //double *dst = malloc(M * N * sizeof(double));
-    for(int n = 0; n<N*M; n++) {
-        int i = n/N;
-        int j = n%N;
-        dst[n] = src[M*j + i];
-    }   
+    for (int n = 0; n < N * M; n++) {
+        int i = n / N;
+        int j = n % N;
+        dst[n] = src[M * j + i];
+    }
 }
 
 /**
@@ -60,7 +60,8 @@ static void transpose(double *src, double *dst,  const int N, const int M) {
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_mul_aopt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row, int B_n_col, double*R, int R_n_row, int R_n_col) {
+void matrix_mul_aopt1(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
+                      int R_n_col) {
     int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
@@ -88,15 +89,16 @@ void matrix_mul_aopt1(double *A, int A_n_row, int A_n_col, double*B, int B_n_row
  * @param R_n_row   is the number of rows in the result
  * @param R_n_col   is the number of columns in the result
  */
-void matrix_rtrans_mul_aopt1(double* A, int A_n_row, int A_n_col, double* B, int B_n_row, int B_n_col, double* R, int R_n_row, int R_n_col) {
-    
+void matrix_rtrans_mul_aopt1(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R,
+                             int R_n_row, int R_n_col) {
+
     int Rij;
 
     for (int i = 0; i < A_n_row; i++) {
         for (int j = 0; j < B_n_row; j++) {
             Rij = i * R_n_col + j;
             R[Rij] = 0;
-            for (int k = 0; k < A_n_col; k++){
+            for (int k = 0; k < A_n_col; k++) {
                 R[Rij] += A[i * A_n_col + k] * B[j * B_n_col + k];
             }
         }
@@ -118,15 +120,14 @@ void matrix_rtrans_mul_aopt1(double* A, int A_n_row, int A_n_col, double* B, int
  * @param norm_V    is 1 / the norm of matrix V
  * @return          is the error
  */
-inline double error(double* approx, double* V, double* W, double* H, int m, int n, int r, int mn, double norm_V) {
+inline double error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
     matrix_mul_aopt1(W, m, r, H, r, n, approx, m, n);
 
     double norm_approx, temp;
 
     norm_approx = 0;
-    for (int i = 0; i < mn; i++)
-    {
+    for (int i = 0; i < mn; i++) {
         temp = V[i] - approx[i];
         norm_approx += temp * temp;
     }
@@ -148,7 +149,8 @@ inline double error(double* approx, double* V, double* W, double* H, int m, int 
  * @param maxIteration  maximum number of iterations that can run
  * @param epsilon       difference between V and W*H that is considered acceptable
  */
-double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n, int r, int maxIteration, double epsilon) {
+double
+nnm_factorization_aopt1(double *V_rowM, double *W, double *H, int m, int n, int r, int maxIteration, double epsilon) {
     double *Wt, *Wtmp, *Ht, *Htmp, *tmp;
     double *V_colM;
     int rn, rr, mr, mn;
@@ -161,12 +163,12 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
     Ht = malloc(double_size * rn);
     Htmp = malloc(double_size * rn);
     V_colM = malloc(double_size * mn);
-  
+
     // this is required to be done here to reuse the same run_opt.
     // does not changhe the number of flops
-    for (int i = 0; i < m; i++){
-        for(int j = 0; j < n; j++){
-           V_colM[j*m + i] = V_rowM[i*n + j]; 
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            V_colM[j * m + i] = V_rowM[i * n + j];
 
         }
     }
@@ -187,7 +189,7 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
     denominator_W = malloc(double_size * mr);
     denominator_l_W = malloc(double_size * mn);
 
-    double* approximation; //m x n
+    double *approximation; //m x n
     approximation = malloc(double_size * mn);
 
     double norm_V = 0;
@@ -196,35 +198,35 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
     norm_V = 1 / sqrt(norm_V);
 
     //real convergence computation
-    double err = -1;											
+    double err = -1;
     for (int count = 0; count < maxIteration; count++) {
-     
+
         err = error(approximation, V_rowM, W, H, m, n, r, mn, norm_V);
         if (err <= epsilon) {
             break;
-        }    
-        
+        }
+
         transpose(W, Wt, m, r);
 
         int nij;
         int dij;
         double wt;
-        
+
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < r; i++) {
                 nij = i * n + j;
                 dij = i * r + j;
                 numerator[nij] = 0;
-                if(j<r){
+                if (j < r) {
                     denominator_l[dij] = 0;
                 }
-                for (int k = 0; k < m; k++){  
+                for (int k = 0; k < m; k++) {
                     wt = Wt[i * m + k];
-                    numerator[nij] += wt * V_colM[j * m + k];                
-                    if(j<r){
+                    numerator[nij] += wt * V_colM[j * m + k];
+                    if (j < r) {
                         denominator_l[dij] += wt * Wt[j * m + k];
                     }
-                    
+
                 }
             }
         }
@@ -236,29 +238,29 @@ double nnm_factorization_aopt1(double *V_rowM, double*W, double*H, int m, int n,
             for (int j = 0; j < n; j++) {
                 Rij = i * n + j;
                 denominator[Rij] = 0;
-                for (int k = 0; k < r; k++){
+                for (int k = 0; k < r; k++) {
                     denominator[Rij] += denominator_l[i * r + k] * Ht[j * r + k];
                 }
                 Htmp[Rij] = H[Rij] * numerator[Rij] / denominator[Rij];
             }
         }
-        
+
         tmp = Htmp;
         Htmp = H;
         H = tmp;
-      
+
         double h;
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < r; j++) {
                 Rij = i * r + j;
                 numerator_W[Rij] = 0;
-                if(i < r){
+                if (i < r) {
                     denominator_l[Rij] = 0;
                 }
-                for (int k = 0; k < n; k++){
+                for (int k = 0; k < n; k++) {
                     h = H[j * n + k];
                     numerator_W[Rij] += V_rowM[i * n + k] * h;
-                    if(i < r){
+                    if (i < r) {
                         denominator_l[Rij] += H[i * n + k] * h;
                     }
                 }
