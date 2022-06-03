@@ -430,7 +430,6 @@ double nnm_factorization_opt48(double *V_final, double *W_final, double *H_final
                                double epsilon) {
 
     double *V, *W, *H;
-    __m256d zeros = _mm256_setzero_pd();
     V = aligned_alloc(32, double_size * m * n);
     H = aligned_alloc(32, double_size * r * n);
     W = aligned_alloc(32, double_size * m * r);
@@ -484,10 +483,8 @@ double nnm_factorization_opt48(double *V_final, double *W_final, double *H_final
     __m256d t;
 
     __m256d r0, r1, r2, r3;
-    __m256d r4, r5, r6, r7;
-    __m256d t0, t1, t2, t3;
 
-    __m256d sum0, sum1, sum2;
+    __m256d sum0, sum1;
 
     norm_approx0 = _mm256_setzero_pd();
     norm_approx1 = _mm256_setzero_pd();
@@ -555,7 +552,6 @@ double nnm_factorization_opt48(double *V_final, double *W_final, double *H_final
         __m256d r4, r5, r6, r7;
 
         __m256d r0_w, r1_w, r2_w, r3_w;
-        __m256d r4_w, r5_w, r6_w, r7_w;
 
 
 
@@ -581,10 +577,8 @@ double nnm_factorization_opt48(double *V_final, double *W_final, double *H_final
                         for (int jj = 0; jj < nB - unroll_j + 1; jj += unroll_j) {
 
                             Rij = Rii + jj;
-                            int idx_r = Rij + BLOCK_SIZE_MMUL;
 
                             Rij_w = Rii_w + jj;
-                            int idx_r_w = Rij_w + BLOCK_SIZE_MMUL;
 
                             r0 = _mm256_load_pd((double *) &buf_numerator[Rij]);
                             r1 = _mm256_load_pd((double *) &buf_numerator[Rij + 4]);
@@ -814,10 +808,8 @@ double nnm_factorization_opt48(double *V_final, double *W_final, double *H_final
                         for (int jj = 0; jj < nB - unroll_j + 1; jj += unroll_j) {
 
                             Rij = Rii + jj;
-                            int idx_r = Rij + BLOCK_SIZE_MMUL;
 
                             Rij_w = Rii_w + jj;
-                            int idx_r_w = Rij_w + BLOCK_SIZE_MMUL;
 
                             r0 = _mm256_load_pd((double *) &buf_numerator[Rij]);
                             r1 = _mm256_load_pd((double *) &buf_numerator[Rij + 4]);
