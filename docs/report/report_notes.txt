@@ -24,6 +24,10 @@
 	  multiplication. In tests when multiplying matrices (400 x 3) (3 x 400) the performance drops from 12 f/c to 2 f/c. This is expected because the computation
 	  now basically have a constant operational intensity.
 
+- Compilers:
+	- gcc: gcc (Debian 10.2.1-6) 10.2.1 20210110
+	- clang: Debian clang version 11.0.1-2
+	- icx: Intel(R) oneAPI DPC++/C++ Compiler 2022.0.0 (2022.0.0.20211123)
 
 - Optimizations:
 *Optimization 0:

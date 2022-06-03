@@ -1,22 +1,28 @@
 {
-    "title" : "Spikes due to pow2 strides",
+    "title" : "Compiler comparisons",
     "type"  : "performance",
     "action": "save",
-    "output_file":"/home/asl/asl-2022-moldani/docs/outputs/pow2_strides.pdf",
+    "output_file":"/home/asl/asl-2022-vgsteiger/docs/outputs/compilers.pdf",
     "xlabel": "Input matrix size",
     "ylabel": "Flops/Cycle",
     
     "lines" : [
 
-        {"label" : "opt46",
-            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_3_17_spikes.out",
+        {"label" : "clang",
+            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/clang_compiler_pad.out",
             "color" : "black",
             "marker": "s"
         },
         
-        {"label" : "opt47",
-            "input_file" : "/home/asl/asl-2022-moldani/docs/outputs/perf_3_18_spikes.out",
+        {"label" : "gcc",
+            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/gcc_compiler_pad.out",
             "color" : "firebrick",
+            "marker": "s"
+        },
+        
+        {"label" : "icx",
+            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/icx_compiler_pad.out",
+            "color" : "green",
             "marker": "s"
         }
     ]

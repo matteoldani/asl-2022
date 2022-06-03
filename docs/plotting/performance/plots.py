@@ -12,7 +12,7 @@ def read_settings(input_path):
 
 def plot():
     sns.set_theme()
-    settings = read_settings("/home/asl/asl-2022-moldani/docs/plotting/performance/settings.json")
+    settings = read_settings("/home/asl/asl-2022-vgsteiger/docs/plotting/performance/settings.json")
     fig = plt.figure(figsize = (9.5,5.5), dpi = 80)
     ax = plt.subplot(111)
     for line in settings["lines"]:
@@ -41,11 +41,6 @@ def plot():
     else:
         plt.savefig(settings["output_file"])
     
-
-
-
-
-
 
 if __name__ == "__main__":
     print("Expected input files structure:")
