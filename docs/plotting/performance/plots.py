@@ -18,8 +18,6 @@ def plot():
     for line in settings["lines"]:
         df = pd.read_csv(line["input_file"])
 
-        print(line["input_file"])
-
         ax.plot(df["m"], df["performance"],
                 color=line["color"], linewidth = 1.5,
                 marker=line["marker"], markerfacecolor=line["color"],
