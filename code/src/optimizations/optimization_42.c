@@ -15,7 +15,7 @@ static unsigned int double_size = sizeof(double);
 
 static void transpose(double *src, double *dst, const int N, const int M) {
 
-    int nB = BLOCK_SIZE_TRANS;
+    int nB = 1;
     int nBM = nB * M;
     int src_i = 0, src_ii;
 

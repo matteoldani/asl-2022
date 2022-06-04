@@ -22,10 +22,10 @@ inline void transpose4x4(double *dst, double *src, const int n, const int m) {
     __m256d tmp0, tmp1, tmp2, tmp3;
     __m256d row0, row1, row2, row3;
 
-    row0 = _mm256_load_pd(&src[0 * m]);
-    row1 = _mm256_load_pd(&src[1 * m]);
-    row2 = _mm256_load_pd(&src[2 * m]);
-    row3 = _mm256_load_pd(&src[3 * m]);
+    row0 = _mm256_loadu_pd(&src[0 * m]);
+    row1 = _mm256_loadu_pd(&src[1 * m]);
+    row2 = _mm256_loadu_pd(&src[2 * m]);
+    row3 = _mm256_loadu_pd(&src[3 * m]);
 
     tmp0 = _mm256_shuffle_pd(row0, row1, 0x0);
     tmp2 = _mm256_shuffle_pd(row0, row1, 0xF);
@@ -37,10 +37,10 @@ inline void transpose4x4(double *dst, double *src, const int n, const int m) {
     row2 = _mm256_permute2f128_pd(tmp0, tmp1, 0x31);
     row3 = _mm256_permute2f128_pd(tmp2, tmp3, 0x31);
 
-    _mm256_store_pd(&dst[0 * n], row0);
-    _mm256_store_pd(&dst[1 * n], row1);
-    _mm256_store_pd(&dst[2 * n], row2);
-    _mm256_store_pd(&dst[3 * n], row3);
+    _mm256_storeu_pd(&dst[0 * n], row0);
+    _mm256_storeu_pd(&dst[1 * n], row1);
+    _mm256_storeu_pd(&dst[2 * n], row2);
+    _mm256_storeu_pd(&dst[3 * n], row3);
 }
 
 static void transpose(double *src, double *dst, const int n, const int m) {
@@ -249,8 +249,7 @@ void matrix_mul_opt48(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
     __m256d b0, b1, b2, b3;
     __m256d r0, r1, r2, r3;
     __m256d r4, r5, r6, r7;
-    alignas(32)
-    double buffer[BLOCK_SIZE_MMUL * BLOCK_SIZE_MMUL];
+    alignas(32) double buffer[BLOCK_SIZE_MMUL * BLOCK_SIZE_MMUL];
 
     //MAIN LOOP BLOCKED 16x16
     for (i = 0; i < A_n_row - nB + 1; i += nB) {
@@ -558,10 +557,8 @@ double nnm_factorization_opt48(double *V_final, double *W_final, double *H_final
         //memset(numerator, 0, double_size * rn);
         //memset(denominator_l, 0, double_size * rr);
         //MAIN LOOP BLOCKED 16x16
-        alignas(32)
-        double buf_denominator_l[16 * 16];
-        alignas(32)
-        double buf_numerator[16 * 16];
+        alignas(32) double buf_denominator_l[16 * 16];
+        alignas(32) double buf_numerator[16 * 16];
 
         for (i = 0; i < r - nB + 1; i += nB) {
             for (j = 0; j < r - nB + 1; j += nB) {
