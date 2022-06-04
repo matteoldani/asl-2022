@@ -10,10 +10,7 @@ for size in sizes:
     for label, i in zip(labels,range(len(labels))):
         if i >= 25:
             index = i + 1
-            print(index)
             print(label)
             os.system(f'advixe-cl -collect survey -project-dir /home/asl/asl-2022/code/advi_results -- /home/asl/asl-2022/code/build/roofline {index} {size} 1')
             os.system(f'advixe-cl -collect tripcounts -flop -stacks -project-dir /home/asl/asl-2022/code/advi_results -- /home/asl/asl-2022/code/build/roofline {index} {size} 1')
             os.system(f'advixe-cl -report roofline -project-dir /home/asl/asl-2022/code/advi_results -report-output /home/asl/asl-2022/docs/outputs/roofline/advisor-roofline-size-{size}-{label}.html')
-
-            time.sleep(10)
