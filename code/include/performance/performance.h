@@ -63,4 +63,4 @@ void
 baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_function, fact_cost fact_cost_function);
 
 void optimization(int numTests, int min, int max, int opt, FILE *fout, opt_fact_function fact_function,
-                  opt_fact_cost fact_cost_function);
+                  opt_fact_cost fact_cost_function, int rank);
