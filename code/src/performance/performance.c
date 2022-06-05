@@ -6,7 +6,7 @@
 #include <performance/performance.h>
 
 void
-baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_function, fact_cost fact_cost_function) {
+baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_function, fact_cost fact_cost_function, int rank) {
     Matrix V;
     Matrix W, H;
     myInt64 m, n, r;
@@ -23,7 +23,7 @@ baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_f
     for (int i = min; i < max; i += steps) {
         m = i;
         n = i; //+ steps; 
-        r = RANK;
+        r = rank;
 
         matrix_allocation(&V, m, n);
         matrix_allocation(&W, m, r);
@@ -125,7 +125,7 @@ baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_f
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
         if (fout != NULL) {
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n", m, r, n, cost, performance);
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf,%llu\n", m, r, n, cost, performance, cycles);
         }
     }
 }
@@ -264,7 +264,7 @@ void optimization(int numTests, int min, int max, int opt, FILE *fout, opt_fact_
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
         if (fout != NULL) {
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n", m, r, n, cost, performance);
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf, %llu\n", m, r, n, cost, performance, cycles);
         }
     }
 }
@@ -312,6 +312,8 @@ int main(int argc, char const *argv[]) {
         printf("\t28. Optimisation 53\n");
         printf("\t29. Optimisation 54\n");
         printf("\t30. Optimisation 48\n");
+        printf("\t31. Optimisation 60\n");
+        printf("\t32. Optimisation 61\n");
 
         return 0;
     }
@@ -331,7 +333,7 @@ int main(int argc, char const *argv[]) {
             printf("Can't open output file\n");
             exit(-1);
         }
-        fprintf(fout, "m,r,n,cycles,performance\n");
+        fprintf(fout, "m,r,n,cost,performance,cycles\n");
     }
 
     if (argc > 6) {
@@ -342,11 +344,11 @@ int main(int argc, char const *argv[]) {
 
     switch (b) {
         case 1:
-            baseline(tests, min, max, b, fout, &nnm_factorization_bs1, &nnm_factorization_bs1_cost);
+            baseline(tests, min, max, b, fout, &nnm_factorization_bs1, &nnm_factorization_bs1_cost, rank);
             break;
 
         case 2:
-            baseline(tests, min, max, b, fout, &nnm_factorization_bs2, &nnm_factorization_bs2_cost);
+            baseline(tests, min, max, b, fout, &nnm_factorization_bs2, &nnm_factorization_bs2_cost, rank);
             break;
 
         case 3:
@@ -459,6 +461,14 @@ int main(int argc, char const *argv[]) {
 
         case 30:
             optimization(tests, min, max, b, fout, &nnm_factorization_opt48, &nnm_cost_2, rank);
+            break;
+        
+        case 31:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt60, &nnm_cost_2, rank);
+            break;
+
+        case 32:
+            optimization(tests, min, max, b, fout, &nnm_factorization_opt61, &nnm_cost_2, rank);
             break;
 
         default:

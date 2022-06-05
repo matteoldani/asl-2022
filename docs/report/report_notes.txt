@@ -24,10 +24,6 @@
 	  multiplication. In tests when multiplying matrices (400 x 3) (3 x 400) the performance drops from 12 f/c to 2 f/c. This is expected because the computation
 	  now basically have a constant operational intensity.
 
-- Compilers:
-	- gcc: gcc (Debian 10.2.1-6) 10.2.1 20210110
-	- clang: Debian clang version 11.0.1-2
-	- icx: Intel(R) oneAPI DPC++/C++ Compiler 2022.0.0 (2022.0.0.20211123)
 
 - Optimizations:
 *Optimization 0:
@@ -178,4 +174,14 @@
 	- removes unnecessary memset and uses a buffer for intermediate result in blocked computation
 	- vectorized transpose and error
 
-	
+
+*Optimization 60:
+	- builds on top of 47
+	- introduces a change in the error calculation
+	- instead of computing the entire W*H and storing it in V_reconstructed and then reading it from there to compute the norm and the error, we work on a block of W*H as soon as it's computed and aggregate the error across it
+	- the computation is fully vectorized
+	- this approach reduces the number of reads of a matrix of the size m x n by half in the error function
+
+*Optimization 61:
+	- Introduces the novel way of calculating the error from 60 to the algorithmic improvement from 53
+	- The optimization that performs the best

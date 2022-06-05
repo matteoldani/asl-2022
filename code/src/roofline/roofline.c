@@ -190,9 +190,18 @@ int main(int argc, char const *argv[]) {
 
         case 29:
             optimization(tests, input_size, b, fout, &nnm_factorization_opt54);
+            break;
 
         case 30:
             optimization(tests, input_size, b, fout, &nnm_factorization_opt48);
+            break;
+
+        case 31:
+            optimization(tests, input_size, b, fout, &nnm_factorization_opt60);
+            break;
+
+        case 32:
+            optimization(tests, input_size, b, fout, &nnm_factorization_opt61);
             break;
 
         default:

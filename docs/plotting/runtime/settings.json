@@ -1,35 +1,37 @@
 {
-    "title" : "Runtime Plot Test",
-    "type"  : "performance",
+    "title" : "Runtime Plot - Scalar",
+    "type"  : "runtime",
     "action": "save",
-    "output_file":"/home/asl/asl-2022-vgsteiger/docs/outputs/runtime_test.pdf",
+    "output_file":"C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/outputs/runtime/runtime_scalar_total.pdf",
     "xlabel": "Input matrix size",
     "ylabel": "Cycles",
     
     "lines" : [
 
-        {"label" : "opt47",
-            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test.out",
+        {"label" : "Baseline 1",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/runtime/bs1.out",
             "color" : "black",
-            "marker": "s"
+            "marker": "o"
         },
-
-        {"label" : "opt37",
-            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test_2.out",
+        {"label" : "Optimization 3",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/runtime/opt3.out",
             "color" : "firebrick",
             "marker": "s"
         },
-
-        {"label" : "bs1",
-            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test_3.out",
+        {"label" : "Optimization 34",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/runtime/opt34.out",
             "color" : "green",
-            "marker": "s"
-        }, 
-
-        {"label" : "bs2",
-            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/test_4.out",
-            "color" : "blue",
-            "marker": "s"
+            "marker": "^"
+        },
+        {"label" : "Optimization 42",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/runtime/opt42.out",
+            "color" : "mediumblue",
+            "marker": "D"
+        },
+        {"label" : "Algorithmic optimization 2",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/runtime/alg-opt2.out",
+            "color" : "mediumorchid",
+            "marker": "P"
         }
     ]
 }

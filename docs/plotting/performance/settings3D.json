@@ -1,5 +1,5 @@
 {
-  "title": "Baseline 2 Performance",
+  "title": "Baseline 2 3D Performance",
   "type": "performance",
   "action": "save",
   "output_file": "/home/asl/asl-2022/docs/outputs/performance_bs2_3D.pdf",
@@ -9,7 +9,7 @@
   "maxR": 112,
   "lines": [
     {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r2.out"
+      "input_file": "/home/asl/asl-2022/docs/outputs/3D/bs2_r2.out"
     },
     {
       "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r4.out"

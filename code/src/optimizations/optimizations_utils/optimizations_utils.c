@@ -8,7 +8,7 @@ myInt64 nnm_cost_2(int V_row, int V_col, int W_row, int W_col, int H_row, int H_
                                                 2 * W_col * W_col * W_row +
                                                 2 * W_col * W_col * H_col +
                                                 2 * V_row * H_row * V_col +
-                                                1 * H_row * H_col * H_col +
+                                                1 * H_row * H_col * H_row +
                                                 1 * H_row * H_row * W_row +
                                                 2 * H_row * H_col +
                                                 2 * W_row * W_col + 3);

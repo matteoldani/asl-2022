@@ -1,0 +1,141 @@
+- Optimizations:
+*Optimization 0:
+	- everything was put into a single file
+	- functions were marked as inline
+	- removed struct, now just using double*
+	- removed function calls for allocation and deallocation
+	- calculation of the norm of V is now done only once
+	- matrix needed to calculate error (approx) is allocated only once
+	- removed call for calculating the norm - now done in place
+	- in the error function, two loops over the approx matrix were replaced with one. With the addition of scalar replacement, the number of accesses to memory reduced by 1/3 per function call
+	- error function now takes 1 / norm of V as a parameter so a div was replaced with a mul
+	- dimensions of all matrices calculated only once and reused
+	- double loops over matrices replaced with a single loop going sequentially over all elements (index calc simplified)
+	- 1 / RAND_MAX was precalculated so all divisions during initialization are now multiplications
+
+*Optimization 1:
+	- simplified index calculations by using the methods of code motion and strength reduction in MM functions
+
+*Optimization 2:
+	- introduced blocking for cache in the MM functions (with care for simplified index calculations)
+
+*Optimization 3:
+	- Optimized the transpose function by introducing blocking and simplified index calculations
+
+*Alg_opt_1:
+	- We tried reusing matrix W in the computation of Hn+1 computing WtW and WtV in the same loop.
+	  Matrix W and V are transposed to improve cache locality. The obtained performance with 
+	  (m,n,r) = (200, 200, 5) is 0.68.
+
+*Alg_opt_2:
+	- precompute WtW and HHt so that when an element (block) of the numerator is completed, a member of the denominator is completed as well, and they can be directly combined to produce an element of Hn+1 and Wn+1
+	- this would reduce the number of memory accesses because when the numerator / denominator is created it does not need to be stored and read again but it is directly reused
+    
+*Optimizations 21:
+	- Loop unrolling for norm calculation to optimize the error function
+	- No improvement (as expected since the optimization was on lower terms in the cost)
+
+*Optimization 23:
+	- blocking for cache and using BLAS for inner multiplication
+	- some transpose can be avoided but we tested, and the transpose time is negligible
+	- performance highly depends on the rank (the higher the better) to use BLAS in the best way
+	- despite blocking using V_col still gives an improvement (2.57 to 2.66 in the tests)
+
+*Optimization 24:
+	- the basic optimizations made in opt1 were transferred on baseline2 as well
+	- loop unrolling for the norm is also used.
+
+*Optimization 31:
+	- Introduced register blocking in the MM functions
+	- Degrades performance significantly
+	- We can test a bit with different block sizes
+
+*Optimization 32:
+	- Introduced inner-most loop unrolling in the blocked version of MMs and transpose
+	- Loop unrolling in the transpose function (factor 16) improves the runtime a bit
+	- Loop unrolling in the MMs (factor 4) degrades performance a bit
+
+*Optimization 33:
+	- Introduces an algorithmic change
+	- H(n+1) is computed in a block-wise manner and the computed block is used instantly in the multiplications needed to calculate W(n+1)
+	- All multiplications were done optimally with blocking and simplified index calculations and scalar replacement
+	- Blocks of H are rectangular which allows for flexibility and can lead to performance benefits when the right block sizes are chosen
+
+*Optimization 34:
+	- On top of the algorithmic change from Optimization 33
+	- Multiple block multiplications are merged into one triple-loops
+	- Performance is the same
+
+*Optimization 35:
+	- Introduces an algorithmic change
+	- W(n+1) is computed in a block-wise manner and the computed block is used instantly in the multiplications needed to calculate H(n+2)
+	- All multiplications were done optimally with blocking and simplified index calculations and scalar replacement
+	- Since this optimization plays across the iteration border, we precalculate H1 before we go into the loop, then calculate W(n+1) and H(n+2) in the loop body. But the error test is still done on top of W(n+1), H(n+1)
+	- Blocks of W are rectangular which allows for flexibility and can lead to performance benefits when the right block sizes are chosen
+
+*Optimization 36:
+	- On top of the algorithmic change from Optimization 34
+	- Multiple block multiplications are merged into one triple-loops
+	- Performance is the same
+
+*Optimization 41: 
+	- on top of opt 24
+	- uses dsyrk and dsymm to exploit the fact that WtW HHt are symmetric matrices. Surprisingly, no runtime improvement with respect to opt 24. 
+
+*Optimization 42:
+	- matrix multiplication is blocked 16x16, and has clean up loops for generalization
+	- -mfma set in the compiler flags as they were not used (we checked assembly)
+	- kernel multiplication 16x16 is unrolled 2 times on the i loop and 4 on the j to have a total of 8 
+	  independent computation
+	- better ILP.
+
+*Optimization 43:
+	- vectorized mmul, rmul not vectorized, this is an intermediate optimization
+
+*Optimization 44:
+	- vectorized mmul used in the nmf, clean up loop not optimized were adding significant overhead
+
+*Optimization 45:
+	- optimized most important clean up loops, the overhead is still significant
+
+*Optimization 46:
+	- because we noted that in terms of cycles adding a border up to 16 doubles to the matrices was not relevant
+	  we pad the matrices to be multiple of the block size (16)
+	- on top of opt 45 matrix multiplication
+	- pads all the matrices such that m, n, r are now multiple of the block size. In this way it is possible to remove the cleanup loops
+	- There's a single matrix mul and all the matrices are transposed when necessary
+
+*Optimization 37:
+	- uses a vectorized error function
+	- Introduces optimized version of transpose - vectorized and generalized for any input size
+
+*Optimization 47:
+	- Uses aligned memory
+	- When allocating memory, we ask for aligned memory to a 32B line
+	- All calls to vectorized load and store on the padded matrices can now be aligned calls
+
+*Optimization 51:
+	- Blending the improvements on MMs and transpose with the algorithmic optimization reusing H
+	- Uses the base from opt_47, the transpose from opt_37 and the algorithmic restructuring from opt_34 (opt_33 is commented, the difference is whether or not we merge multiple triple-loops into 1)
+	- The interleaving of loops makes this version non general, it works with input sizes that are multiplies of 16
+	- The knowledge from opt_47 MM is used in all multiplications on blocks
+	- Since the only optimal MM is the one where no matrix is transposed, we need to pre-transpose the current calculated block
+	- The element-wise division is also blocked
+
+*Optimization 53:
+	- Blending the improvements on MMs and transpose with the algorithmic opt reusing W
+	- Uses the base from opt_47, the transpose from opt_37 and the algorithmic restructuring from opt_35
+- The knowledge from opt_47 MM is used in all multiplications on blocks
+	- Since the only optimal MM is the one where no matrix is transposed, we need to pre-transpose the current calculated block
+	- The element-wise division inside the block is also vectorized
+	- Calculation of H was moved to reduce the number of memcopy calls
+
+*Optimization 54:
+	- On top of opt_51
+	- Generalized implementation that works with arbitrary rank input
+	- There is no interleaving of triple loops in order to achieve generality
+
+*Optimization 48:
+	- builds on top of 47
+	- interleaves computation WtW and WtV / HHt and VVt
+	- removes unnecessary memset and uses a buffer for intermediate result in blocked computation

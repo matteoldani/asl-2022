@@ -1,29 +1,28 @@
 {
-    "title" : "Compiler comparisons",
+    "title" : "Compiler flags",
     "type"  : "performance",
     "action": "save",
-    "output_file":"/home/asl/asl-2022-vgsteiger/docs/outputs/compilers.pdf",
+    "output_file":"/home/asl/asl-2022/docs/outputs/plots/compiler_flags.pdf",
     "xlabel": "Input matrix size",
     "ylabel": "Flops/Cycle",
     
     "lines" : [
 
-        {"label" : "clang",
-            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/clang_compiler_pad.out",
-            "color" : "black",
-            "marker": "s"
-        },
-        
-        {"label" : "gcc",
-            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/gcc_compiler_pad.out",
+        {"label" : "ICX no flag",
+            "input_file" : "/home/asl/asl-2022/docs/outputs/compilers/icx_noflag.out",
             "color" : "firebrick",
             "marker": "s"
         },
-        
-        {"label" : "icx",
-            "input_file" : "/home/asl/asl-2022-vgsteiger/docs/outputs/icx_compiler_pad.out",
+        {"label" : "ICX -xskylake",
+            "input_file" : "/home/asl/asl-2022/docs/outputs/compilers/icx_xskylake.out",
             "color" : "green",
-            "marker": "s"
+            "marker": "^"
+        },
+        {"label" : "ICX all flags",
+            "input_file" : "/home/asl/asl-2022/docs/outputs/compilers/icx_all.out",
+            "color" : "mediumblue",
+            "marker": "D"
         }
+        
     ]
 }

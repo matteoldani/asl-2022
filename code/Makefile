@@ -6,6 +6,7 @@ endef
 CC=gcc 
 CLANG=clang
 ICX=icx
+ICC=icc
 
 IDIR_LOCALC=./include 
 IDIR_BLAS=/opt/openblas/include
@@ -40,8 +41,8 @@ FLAG_LINK+=-lopenblas_nonthreaded
 
 MKLROOT=/opt/intel/oneapi/mkl/latest
 
-#INTEL_LINK=${MKLROOT}/lib/intel64/libmkl_scalapack_ilp64.a -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_ilp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a ${MKLROOT}/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_ilp64.a -Wl,--end-group -lpthread -lm -ldl
-#INTEL_FLAG= -DMKL_ILP64  -m64  -I"$(MKLROOT)/include"
+# INTEL_LINK=${MKLROOT}/lib/intel64/libmkl_scalapack_ilp64.a -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_ilp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a ${MKLROOT}/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_ilp64.a -Wl,--end-group -lpthread -lm -ldl
+# INTEL_FLAG= -DMKL_ILP64  -m64  -I"$(MKLROOT)/include"
 
 
 all: baseline performance optimisations tests
@@ -67,6 +68,18 @@ performance: .build_dir_creation
 	$(BS_DIR)/baselines_utils/baselines_utils.c \
 	$(PERF_DIR)/performance.c \
 	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
+
+performance_icx: .build_dir_creation
+	$(ICX) $(CINCLUDE) -march=native -o $(BIN_DIR)/performance_icx \
+	$(BS_DIR)/baseline1/baseline1.c \
+	$(BS_DIR)/baseline2/baseline2.c \
+	$(OPT_DIR)/opt*.c \
+	$(OPT_DIR)/alg*.c \
+	$(OPT_DIR)/optimizations_utils/optimizations_utils.c \
+	$(BS_DIR)/baselines_utils/baselines_utils.c \
+	$(PERF_DIR)/performance.c \
+	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
+
 
 roofline: .build_dir_creation
 	$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/roofline \
@@ -103,7 +116,7 @@ mmm: .build_dir_creation
 	$(MMM_DIR)/*.c \
 	$(FLAG_LINK) $(INTEL_LINK) $(INTEL_FLAG)
 
-mmm_performance: .build_dir_creation
+performance_mmm: .build_dir_creation
 				$(CC) $(CINCLUDE) $(CFLAGS) -o $(BIN_DIR)/performance_mmm \
 				$(BS_DIR)/baselines_utils/baselines_utils.c \
 				$(MMM_DIR)/mmm_*.c \
