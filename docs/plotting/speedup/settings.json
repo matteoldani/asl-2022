@@ -1,0 +1,42 @@
+{
+    "title" : "Speedup Plot",
+    "type"  : "speedup",
+    "action": "save",
+    "output_file":"C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/outputs/speedup/speedup.pdf",
+    "xlabel": "Input matrix size",
+    "ylabel": "",
+    
+    "lines" : [
+
+        {"label" : "Optimization 42",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/speedup/opt42.out",
+            "color" : "black",
+            "marker": "o"
+        },
+        {"label" : "Optimization 47",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/speedup/opt47.out",
+            "color" : "firebrick",
+            "marker": "s"
+        },
+        {"label" : "Optimization 48",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/speedup/opt48.out",
+            "color" : "green",
+            "marker": "^"
+        },
+        {"label" : "Optimization 51",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/speedup/opt51.out",
+            "color" : "mediumblue",
+            "marker": "D"
+        },
+        {"label" : "Optimization 53",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/speedup/opt53.out",
+            "color" : "mediumorchid",
+            "marker": "P"
+        },
+        {"label" : "Optimization 54",
+            "input_file" : "C:/File system/ETH/2nd Semester/ASL/Project/asl-2022/docs/plotting/speedup/opt54.out",
+            "color" : "coral",
+            "marker": "x"
+        }
+    ]
+}

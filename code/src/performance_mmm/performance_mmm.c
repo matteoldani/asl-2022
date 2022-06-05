@@ -1,5 +1,5 @@
 #include <mmm/mmm_0.h>
-//#include <mmm/mmm_1.h>
+#include <mmm/mmm_1.h>
 #include <mmm/mmm_2.h>
 #include <mmm/mmm_3.h>
 #include <stdlib.h>
@@ -105,6 +105,78 @@ void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c){
 
     free(new_Mt);
     
+}
+
+void perf_m(int numTests, int min, int max, int opt, FILE * fout){
+    Matrix V;
+    Matrix W, H;
+    int m, n, r;
+    printf("MMM %d performance evaluation\n\n", opt);
+    srand(SEED);
+
+    myInt64 cost = 0;
+    double performance;
+    
+    int num_runs = NUM_RUNS;
+    double rand_max_r = 1 / (double)RAND_MAX;
+
+    int steps = (max - min) / numTests;
+    printf("Steps %d\n", steps);
+    for (int i = min; i < max; i += steps) {  
+
+        m = i;
+        n = i; //+ steps; 
+        r = RANK;
+
+        cost = 2 * m * r * n;
+
+        matrix_allocation(&V, m, n);
+        matrix_allocation(&W, m, r);
+        matrix_allocation(&H, r, n);
+
+        random_matrix_init(&W, 0, 1);
+        random_matrix_init(&H, 0, 1);
+        random_matrix_init(&V, 0, 1);
+
+        #ifdef __x86_64__
+        myInt64 cycles;
+        myInt64 start;
+        #ifdef CALIBRATE
+        while(num_runs < (1 << 14)) {
+            start = start_tsc();
+            for (int j = 0; j < num_runs; j++) {
+                 run_mmm_m(&W, &H, &V);
+            }
+            cycles = stop_tsc(start);
+
+            if(cycles >= CYCLES_REQUIRED) break;
+
+            num_runs *= 2;
+        }
+        #endif 
+
+        start = start_tsc();
+
+        for (int j = 0; j < num_runs; j++) {
+            run_mmm_m(&W, &H, &V);
+        }
+
+        cycles = stop_tsc(start)/num_runs;
+        performance =  (double )cost / (double) cycles;
+
+        #endif
+
+        printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
+        printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
+        
+         if(fout != NULL){
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf, %llu\n", m, r, n, cost, performance, cycles);
+        }
+
+        matrix_deallocation(&V);
+        matrix_deallocation(&W);
+        matrix_deallocation(&H);
+    }
 }
 
 
@@ -216,11 +288,10 @@ void perf_v(int numTests, int min, int max, int opt, FILE * fout){
         #endif
 
         printf("Sizes: m=%llu, n=%llu, r=%llu:\n", m, n, r);
-        printf("Sizes: m=%llu, n=%llu, r=%llu:\n", original_m,original_r,original_n);
         printf("--- cost(flops):%llu, cycles:%llu, performance(flops/cycle):%lf\n\n", cost, cycles, performance);
         
          if(fout != NULL){
-            fprintf(fout, "%llu,%llu,%llu,%llu,%lf\n",original_m,original_r,original_n,cost, performance);
+            fprintf(fout, "%llu,%llu,%llu,%llu,%lf, %llu\n", original_m, original_r, original_n, cost, performance, cycles);
         }
 
         free(A);
@@ -263,10 +334,8 @@ int main(int argc, char const *argv[])
             printf("Can't open output file\n");
             exit(-1);
         }
-        fprintf(fout, "m,r,n,cycles,performance\n");
+        fprintf(fout, "m,r,n,cost,performance,cycles\n");
     }
-
-
 
     fflush(stdout);
 
@@ -276,10 +345,20 @@ int main(int argc, char const *argv[])
     {
 
     case 0:
-        run_mmm_v = &matrix_mul_2;
+        run_mmm_m = &matrix_mul_0;
+        perf_m(tests, min, max, id, fout);
         break;
     case 1:
+        run_mmm_m = &matrix_mul_1;
+        perf_m(tests, min, max, id, fout);
+        break;
+    case 2:
+        run_mmm_v = &matrix_mul_2;
+        perf_v(tests, min, max, id, fout);
+        break;
+    case 3:
         run_mmm_v = &matrix_mul_3;
+        perf_v(tests, min, max, id, fout);
         break;
 
     default:
@@ -288,7 +367,7 @@ int main(int argc, char const *argv[])
     }
 
 
-    perf_v(tests, min, max, id, fout);
+    
 
     return 0;
 }

@@ -31,6 +31,8 @@
 #include <optimizations/optimizations_53.h>
 #include <optimizations/optimizations_54.h>
 #include <optimizations/optimizations_48.h>
+#include <optimizations/optimizations_60.h>
+#include <optimizations/optimizations_61.h>
 
 #ifndef WIN32
 
@@ -60,7 +62,7 @@ typedef myInt64 (*opt_fact_cost)(int, int, int, int, int, int, int);
 
 
 void
-baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_function, fact_cost fact_cost_function);
+baseline(int numTests, int min, int max, int b, FILE *fout, fact_function fact_function, fact_cost fact_cost_function, int rank);
 
 void optimization(int numTests, int min, int max, int opt, FILE *fout, opt_fact_function fact_function,
-                  opt_fact_cost fact_cost_function);
+                  opt_fact_cost fact_cost_function, int rank);

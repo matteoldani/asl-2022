@@ -1,40 +1,44 @@
 {
-  "title": "Benchmarks - runtime comparison",
-  "type": "performance",
-  "action": "save",
-  "output_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/benchmarking_plot.pdf",
-  "xlabel": "Input matrix size",
-  "ylabel": "Seconds",
-  "lines": [
-    {
-      "label": "C implementation",
-      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/c.csv",
-      "color": "limegreen",
-      "marker": "o"
-    },
-    {
-      "label": "baseline2",
-      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/bs2.csv",
-      "color": "black",
-      "marker": "s"
-    },
-    {
-      "label": "baseline1",
-      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/bs1.csv",
-      "color": "firebrick",
-      "marker": "D"
-    },
-    {
-      "label": "R implementation",
-      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/r.csv",
-      "color": "mediumorchid",
-      "marker": "^"
-    },
-    {
-      "label": "MATLAB implementation",
-      "input_file": "C:/File system/ETH/2nd Semester/ASL/repo/asl-2022/docs/outputs/matlab.csv",
-      "color": "mediumblue",
-      "marker": "P"
-    }
-  ]
+    "title" : "Benchmarks - runtime comparison",
+    "type"  : "performance",
+    "action": "save",
+    "output_file":"/home/dan/ETH/ASL/asl-2022/docs/plotting/benchmark/plot_post_61.pdf",
+    "xlabel": "Input matrix size",
+    "ylabel": "Seconds",
+    
+    "lines" : [
+        {"label" : "Baseline 2",
+            "input_file" : "/home/dan/ETH/ASL/asl-2022/docs/plotting/benchmark/data/bs2_post.csv",
+            "color" : "green",
+            "marker": "."
+        },
+
+        {"label" : "opt61",
+            "input_file" : "/home/dan/ETH/ASL/asl-2022/docs/plotting/benchmark/data/opt61.csv",
+            "color" : "coral",
+            "marker": "."
+        },
+        {"label" : "opt60",
+            "input_file" : "/home/dan/ETH/ASL/asl-2022/docs/plotting/benchmark/data/opt60.csv",
+            "color" : "gray",
+            "marker": "."
+        },
+        {"label" : "opt53",
+            "input_file" : "/home/dan/ETH/ASL/asl-2022/docs/plotting/benchmark/data/opt53_post.csv",
+            "color" : "firebrick",
+            "marker": "."
+        },	
+		{"label" : "MATLAB implementation",
+         "input_file" : "/home/dan/ETH/ASL/asl-2022/docs/plotting/benchmark/data/matalab_post.csv",
+         "color" : "black",
+         "marker": "."
+        },
+        {"label" : "Sklearn implementation",
+            "input_file" : "/home/dan/ETH/ASL/asl-2022/docs/plotting/benchmark/data/sklearn.csv",
+            "color" : "lightskyblue",
+            "marker": "."
+           }
+           
+
+    ]
 }

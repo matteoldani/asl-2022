@@ -35,6 +35,9 @@
 #include <optimizations/optimizations_53.h>
 #include <optimizations/optimizations_54.h>
 
+#include <optimizations/optimizations_60.h>
+#include <optimizations/optimizations_61.h>
+
 #include <unistd.h>
 
 #ifndef WIN32
