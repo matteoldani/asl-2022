@@ -1,105 +1,15 @@
 {
-  "title": "Baseline 2 3D Performance",
+  "title": "3D Performance Plot - Baseline 2",
   "type": "performance",
   "action": "save",
-  "output_file": "/home/asl/asl-2022/docs/outputs/performance_bs2_3D.pdf",
+  "output_file": "/home/asl/asl-2022/docs/outputs/plots/performance_3D/performance_3D_bs2_2.pdf",
   "xlabel": "Input matrix size",
   "ylabel": "R",
   "zlabel": "Flops/Cycle",
-  "maxR": 112,
+  "maxR": 25,
   "lines": [
     {
-      "input_file": "/home/asl/asl-2022/docs/outputs/3D/bs2_r2.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r4.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r6.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r8.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r10.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r12.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r14.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r16.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r18.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r20.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r22.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r24.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r26.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r28.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r30.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r32.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r34.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r36.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r38.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r40.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r42.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r44.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r46.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r48.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r50.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r60.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r70.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r80.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r90.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r100.out"
-    },
-    {
-      "input_file": "/home/asl/asl-2022/docs/outputs/bs2_r110.out"
+      "input_file": "/home/asl/asl-2022/docs/outputs/3D/bs2/"
     }
   ]
 }
