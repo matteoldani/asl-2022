@@ -1,15 +1,15 @@
 {
-  "title": "3D Performance Plot - Baseline 2",
+  "title": "3D Performance Plot - Optimization 61",
   "type": "performance",
   "action": "save",
-  "output_file": "/home/asl/asl-2022/docs/outputs/plots/performance_3D/performance_3D_bs2_2.pdf",
+  "output_file": "/home/asl/asl-2022/docs/outputs/plots/performance_3D/performance_3D_opt61_1.pdf",
   "xlabel": "Input matrix size",
   "ylabel": "R",
   "zlabel": "Flops/Cycle",
   "maxR": 25,
   "lines": [
     {
-      "input_file": "/home/asl/asl-2022/docs/outputs/3D/bs2/"
+      "input_file": "/home/asl/asl-2022/docs/outputs/3D/opt61/"
     }
   ]
 }
