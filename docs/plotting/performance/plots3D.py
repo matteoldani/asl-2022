@@ -23,6 +23,18 @@ def read_settings(input_path):
     return settings
 
 
+def nnm_cost_2(V_row, V_col, W_row, W_col, H_row, H_col, num_iterations):
+
+    return (2 * W_row * H_col * W_col + 5 * V_row * V_col + 3) + num_iterations * (2 * W_row * H_col * W_col + 5 * V_row * V_col +
+                                                2 * W_col * V_col * V_row +
+                                                2 * W_col * W_col * W_row +
+                                                2 * W_col * W_col * H_col +
+                                                2 * V_row * H_row * V_col +
+                                                1 * H_row * H_col * H_row +
+                                                1 * H_row * H_row * W_row +
+                                                2 * H_row * H_col +
+                                                2 * W_row * W_col + 3)
+
 def plot():
     # sns.set_theme()
     settings = read_settings("./settings3D.json")
@@ -37,7 +49,22 @@ def plot():
             X.extend(df["m"].tolist())
             Y.extend(df["r"].tolist())
             for i in range(len(df["m"].tolist())):
-                z_dict[(df["m"].tolist()[i], df["r"].tolist()[i])] = df["performance"].tolist()[i]
+                # if settings['title'].endswith('61'):
+                #     if df["r"].tolist()[i] == 16:
+                #         l = df["performance"].tolist()[i]
+                #     else:
+                #         real_m = (((df["m"].tolist()[i] - 1) / 16) + 1) * 16
+                #         real_n = (((df["n"].tolist()[i] - 1) / 16) + 1) * 16
+                #         real_r = (((df["r"].tolist()[i] - 1) / 16) + 1) * 16
+
+                #         new_cost = nnm_cost_2(real_m, real_n, real_m, real_r, real_r, real_n, 100)
+                #         new_cost += (5 * real_n * real_m)
+                #         new_cost += (5 * real_m * real_r)
+                #         new_cost += (5 * real_r * real_n)
+                #         l = new_cost / df["cycles"].tolist()[i]
+                # else:
+                l = df["performance"].tolist()[i]
+                z_dict[(df["m"].tolist()[i], df["r"].tolist()[i])] = l
 
     X = np.array(X)
     Y = np.array(Y)
@@ -60,8 +87,8 @@ def plot():
     ax.set_zlabel(settings["zlabel"], fontsize=12)
 
     plt.yticks(np.arange(8, 25, 2))
-    #ax.view_init(30, 200)  
-    ax.view_init(30, 160)
+    ax.view_init(30, 200)  
+    #ax.view_init(30, 160)
     plt.title(settings["title"])
 
     if settings["action"] == "show":
