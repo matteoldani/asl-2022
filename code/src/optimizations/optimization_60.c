@@ -8,12 +8,10 @@
 #include <immintrin.h>
 #include <stdalign.h>
 
-// NEW matrices W, H and V are padded with zeros such that all dimensions are multiple of the blocksize 16. 
-//     matrices are unpadded at the end of the nmf computation  
+// NEW on top of optimization 47 - introduces a new way of calculating the error function
 
 
 static unsigned int double_size = sizeof(double);
-
 
 inline void transpose4x4(double *dst, double *src, const int n, const int m) {
 
@@ -41,7 +39,6 @@ inline void transpose4x4(double *dst, double *src, const int n, const int m) {
     _mm256_storeu_pd(&dst[3 * n], row3);
 }
 
-//NEW - the transpose function is now vectorized and generalized
 static void transpose(double *src, double *dst, const int n, const int m) {
 
     int nB = BLOCK_SIZE_TRANS;
@@ -92,7 +89,6 @@ static void transpose(double *src, double *dst, const int n, const int m) {
             dst[j * n + i] = src[i * m + j];
 }
 
-// NEW: this is the function that pads the matrix to a multiple of the block size
 static void pad_matrix(double **M, int *r, int *c) {
     int temp_r;
     int temp_c;
@@ -137,7 +133,6 @@ static void pad_matrix(double **M, int *r, int *c) {
 
 }
 
-// NEW: this is the function that unpard the matrix to the oringinal size
 static void unpad_matrix(double **M, int *r, int *c, int original_r, int original_c) {
 
     // lets suppose that are always row majour
@@ -182,7 +177,6 @@ static void unpad_matrix(double **M, int *r, int *c, int original_r, int origina
 void matrix_mul_opt60(double *A, int A_n_row, int A_n_col, double *B, int B_n_row, int B_n_col, double *R, int R_n_row,
                       int R_n_col) {
 
-    //NEW to this matrix mult will arrive only padded matrices thus we don't need the cleanups loops
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
     int nBR_n_col = nB * R_n_col;
@@ -289,10 +283,11 @@ void matrix_mul_opt60(double *A, int A_n_row, int A_n_col, double *B, int B_n_ro
 static inline double
 error(double *approx, double *V, double *W, double *H, int m, int n, int r, int mn, double norm_V) {
 
-    //matrix_mul_opt60(W, m, r, H, r, n, approx, m, n);
-
+    //NEW - We avoid storing and rereding the approximation matrix
+    //NEW - Instead, we use the results of WH for calculating the error as soon as they're available
     int Rij = 0, Ri = 0, Ai = 0, Aii, Rii;
     int nB = BLOCK_SIZE_MMUL;
+    int nB_nB = nB * nB, d_nB_nB = double_size * nB_nB;
     int nBR_n_col = nB * n;
     int nBA_n_col = nB * r;
     int unroll_i = 2, unroll_j = 16;
@@ -316,19 +311,17 @@ error(double *approx, double *V, double *W, double *H, int m, int n, int r, int 
     __m256d e2;
     __m256d e3;
 
+    alignas(32) double buffer[nB_nB];
+    alignas(32) double errors[nB_nB];
 
-    alignas(32) double buffer[BLOCK_SIZE_MMUL * BLOCK_SIZE_MMUL];
-    alignas(32) double errors[BLOCK_SIZE_MMUL * BLOCK_SIZE_MMUL];
-
-
-    memset(errors, 0, double_size * BLOCK_SIZE_MMUL * BLOCK_SIZE_MMUL);     
+    memset(errors, 0, d_nB_nB);     
     memset(approx, 0, double_size * m * n);
     
     //MAIN LOOP BLOCKED 16x16
     for (i = 0; i < m - nB + 1; i += nB) {
         for (j = 0; j < n - nB + 1; j += nB) {
 
-            memset(buffer, 0, double_size * BLOCK_SIZE_MMUL * BLOCK_SIZE_MMUL);
+            memset(buffer, 0, d_nB_nB);
 
             for (k = 0; k < r - nB + 1; k += nB) {
 
@@ -339,7 +332,7 @@ error(double *approx, double *V, double *W, double *H, int m, int n, int r, int 
                     for (int jj = 0; jj < nB - unroll_j + 1; jj += unroll_j) {
 
                         Rij = Rii + jj;
-                        int idx_r = Rij + BLOCK_SIZE_MMUL;
+                        int idx_r = Rij + nB;
 
                         r0 = _mm256_load_pd((double *) &buffer[Rij]);
                         r1 = _mm256_load_pd((double *) &buffer[Rij + 4]);
@@ -354,13 +347,13 @@ error(double *approx, double *V, double *W, double *H, int m, int n, int r, int 
 
                         int idx_b = k * n + j + jj;
                         for (kk = k; kk < k + nB; kk++) {
-                            a0 = _mm256_set1_pd(W[Aii + kk]);                //Aik0 = A[Aii + kk];
-                            a1 = _mm256_set1_pd(W[Aii + r + kk]);      //Aik1 = A[Aii + A_n_col + kk]; 
+                            a0 = _mm256_set1_pd(W[Aii + kk]);
+                            a1 = _mm256_set1_pd(W[Aii + r + kk]);
 
-                            b0 = _mm256_load_pd((double *) &H[idx_b]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b1 = _mm256_load_pd((double *) &H[idx_b + 4]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b2 = _mm256_load_pd((double *) &H[idx_b + 8]);    // Bi0j0 = B[kk * B_n_col + jj];
-                            b3 = _mm256_load_pd((double *) &H[idx_b + 12]);    // Bi0j0 = B[kk * B_n_col + jj];
+                            b0 = _mm256_load_pd((double *) &H[idx_b]);
+                            b1 = _mm256_load_pd((double *) &H[idx_b + 4]);
+                            b2 = _mm256_load_pd((double *) &H[idx_b + 8]);
+                            b3 = _mm256_load_pd((double *) &H[idx_b + 12]);
 
                             r0 = _mm256_fmadd_pd(a0, b0, r0);
                             r1 = _mm256_fmadd_pd(a0, b1, r1);
@@ -386,16 +379,16 @@ error(double *approx, double *V, double *W, double *H, int m, int n, int r, int 
                         _mm256_store_pd((double *) &buffer[idx_r + 12], r7);
 
                     }
-                    Rii += BLOCK_SIZE_MMUL * unroll_i;
+                    Rii += nB * unroll_i;
                     Aii += r * unroll_i;
                 }
             }
             Rii = Ri + j;
-            for (int is = 0; is < BLOCK_SIZE_MMUL; is++) {
-                r0 = _mm256_load_pd((double *) &buffer[0 + is * BLOCK_SIZE_MMUL]);
-                r1 = _mm256_load_pd((double *) &buffer[4 + is * BLOCK_SIZE_MMUL]);
-                r2 = _mm256_load_pd((double *) &buffer[8 + is * BLOCK_SIZE_MMUL]);
-                r3 = _mm256_load_pd((double *) &buffer[12 + is * BLOCK_SIZE_MMUL]);
+            for (int is = 0; is < nB; is++) {
+                r0 = _mm256_load_pd((double *) &buffer[0 + is * nB]);
+                r1 = _mm256_load_pd((double *) &buffer[4 + is * nB]);
+                r2 = _mm256_load_pd((double *) &buffer[8 + is * nB]);
+                r3 = _mm256_load_pd((double *) &buffer[12 + is * nB]);
                 
                 // fix indeces
                 v0 = _mm256_load_pd((double *) &V[Rii]);
@@ -408,20 +401,20 @@ error(double *approx, double *V, double *W, double *H, int m, int n, int r, int 
                 t2 = _mm256_sub_pd(r2, v2);
                 t3 = _mm256_sub_pd(r3, v3); 
 
-                e0 = _mm256_load_pd((double *) &errors[0 + is * BLOCK_SIZE_MMUL]);
-                e1 = _mm256_load_pd((double *) &errors[4 + is * BLOCK_SIZE_MMUL]);
-                e2 = _mm256_load_pd((double *) &errors[8 + is * BLOCK_SIZE_MMUL]);
-                e3 = _mm256_load_pd((double *) &errors[12 + is * BLOCK_SIZE_MMUL]);
+                e0 = _mm256_load_pd((double *) &errors[0 + is * nB]);
+                e1 = _mm256_load_pd((double *) &errors[4 + is * nB]);
+                e2 = _mm256_load_pd((double *) &errors[8 + is * nB]);
+                e3 = _mm256_load_pd((double *) &errors[12 + is * nB]);
 
                 e0 = _mm256_fmadd_pd(t0, t0, e0);
                 e1 = _mm256_fmadd_pd(t1, t1, e1);
                 e2 = _mm256_fmadd_pd(t2, t2, e2);
                 e3 = _mm256_fmadd_pd(t3, t3, e3);
 
-                _mm256_store_pd((double *) &errors[ is * BLOCK_SIZE_MMUL + 0], e0);
-                _mm256_store_pd((double *) &errors[ is * BLOCK_SIZE_MMUL + 4], e1);
-                _mm256_store_pd((double *) &errors[ is * BLOCK_SIZE_MMUL + 8], e2);
-                _mm256_store_pd((double *) &errors[ is * BLOCK_SIZE_MMUL + 12],e3);
+                _mm256_store_pd((double *) &errors[ is * nB + 0], e0);
+                _mm256_store_pd((double *) &errors[ is * nB + 4], e1);
+                _mm256_store_pd((double *) &errors[ is * nB + 8], e2);
+                _mm256_store_pd((double *) &errors[ is * nB + 12],e3);
                 Rii += n;
             }
         }
@@ -431,9 +424,8 @@ error(double *approx, double *V, double *W, double *H, int m, int n, int r, int 
     }
 
     double final_error = 0;
-    for (int is = 0; is < BLOCK_SIZE_MMUL*BLOCK_SIZE_MMUL; is++) {
-        final_error += errors[is];
-       
+    for (int is = 0; is < nB_nB; is++) {
+        final_error += errors[is];      
     }
         
     res = sqrt(final_error);
