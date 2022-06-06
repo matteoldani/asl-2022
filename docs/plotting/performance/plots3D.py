@@ -6,6 +6,7 @@ import seaborn as sns
 from matplotlib import cm
 import numpy as np
 import sys
+import os
 
 z_dict = dict()
 np.set_printoptions(threshold=sys.maxsize)
@@ -24,24 +25,26 @@ def read_settings(input_path):
 
 def plot():
     # sns.set_theme()
-    settings = read_settings("/home/asl/asl-2022/docs/plotting/performance/settings3D.json")
+    settings = read_settings("./settings3D.json")
     fig, ax = plt.subplots(figsize=(10, 10), dpi=80, subplot_kw={"projection": "3d"})
     X = []
     Y = []
     Z = []
     for line in settings["lines"]:
-        df = pd.read_csv(line["input_file"])
+        for filename in os.listdir(line['input_file']):
+            df = pd.read_csv(line['input_file'] + filename)
 
-        X.extend(df["m"].tolist())
-        Y.extend(df["r"].tolist())
-        for i in range(len(df["m"].tolist())):
-            z_dict[(df["m"].tolist()[i], df["r"].tolist()[i])] = df["performance"].tolist()[i]
+            X.extend(df["m"].tolist())
+            Y.extend(df["r"].tolist())
+            for i in range(len(df["m"].tolist())):
+                z_dict[(df["m"].tolist()[i], df["r"].tolist()[i])] = df["performance"].tolist()[i]
 
     X = np.array(X)
     Y = np.array(Y)
     p = X.argsort()
+    o = Y.argsort()
 
-    X, Y = np.meshgrid(X[p], Y)
+    X, Y = np.meshgrid(X[p], Y[o])
     Z = f(X, Y)
 
     surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
@@ -56,9 +59,9 @@ def plot():
     plt.ylabel(settings["ylabel"], fontsize=12)
     ax.set_zlabel(settings["zlabel"], fontsize=12)
 
-    plt.yticks(np.arange(2, settings["maxR"] + 1, 10.0))
-    ax.view_init(30, 150)
-
+    plt.yticks(np.arange(8, 25, 2))
+    #ax.view_init(30, 200)  
+    ax.view_init(30, 160)
     plt.title(settings["title"])
 
     if settings["action"] == "show":

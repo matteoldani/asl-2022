@@ -21,9 +21,9 @@ import matplotlib.font_manager as fm
 # font = fm.FontProperties(
 #        family = 'Gill Sans', fname = 'GillSans.ttc')
 
-included = ['opt44', 'opt46', 'opt60', 'opt37']
-OUTPUT_FILE = "../../outputs/roofline_vectorized.pdf"
-TITLE = "Roofline Plot - Vectorized"
+included = ['bs2', 'opt24', 'opt60', 'opt61', 'opt42']
+OUTPUT_FILE = "../../outputs/plots/roofline/roofline.pdf"
+TITLE = "Roofline Plot"
 
 background_color = (0.85, 0.85, 0.85)  # '#C0C0C0'
 dark_grey_color = (0.298, 0.298, 0.298)

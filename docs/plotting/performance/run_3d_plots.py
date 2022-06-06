@@ -49,11 +49,11 @@ import time
 
 #evaluations = {29: 'opt54', 30: 'opt48'}
 
-ranks = range(8,25)
+ranks = range(17,25)
 
-evaluations = {32: 'opt61'}
+evaluations = {2: 'bs2'}
 
 for rank in ranks:
     for evaluation in evaluations:
-        os.system(f'/home/asl/asl-2022/code/build/performance {evaluation} 200 1800 25 /home/asl/asl-2022/docs/outputs/3D/{evaluations[evaluation]}_r{rank}.out {rank}')
+        os.system(f'/home/asl/asl-2022/code/build/performance {evaluation} 200 1800 25 /home/asl/asl-2022/docs/outputs/3D/bs2/{evaluations[evaluation]}_r{rank}.out {rank}')
         time.sleep(1)
