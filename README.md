@@ -4,7 +4,8 @@ This repo contains the code for the Advanced System Lab course held @ ETHZ
 
 ## Goal
 
-Non-Negative Matrix Factorization
+Optimize the Non-Negative Matrix Factorization with multiplicative updates algorithm proposed by Lee and Seung. The optimization is done 
+based on the given configuration and uses AVX2 instructions. 
 
 ## Team
 
